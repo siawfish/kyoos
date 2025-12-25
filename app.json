@@ -13,10 +13,17 @@
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
         "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone.",
-        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera"
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.divsandviews.kyoos",
-      "icon": "./assets/ios.icon"
+      "icon": {
+        "dark": "./assets/images/icon-dark.png",
+        "light": "./assets/images/icon-light.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
+      "buildNumber": "1.0.0",
+      "versionCode": 1
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +36,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA"
       ],
-      "package": "com.divsandviews.kyoos"
+      "package": "com.divsandviews.kyoos",
+      "buildNumber": "1.0.0",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
