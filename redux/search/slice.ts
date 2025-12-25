@@ -1,0 +1,99 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { REHYDRATE } from 'redux-persist';
+import { ContainerState, LocationForm, Worker, Summary } from '@/redux/search/types';
+import { Media } from '@/redux/app/types';
+
+// The initial state of the GithubRepoForm container
+export const initialState: ContainerState = {
+  isLoading: false,
+  search: '',
+  media: [],
+  summary: {
+    estimatedDuration: 0,
+    requiredSkills: [],
+    requiredTools: [],
+    estimatedPrice: '',
+    reasoning: '',
+  },
+  recommendedWorkers: [],
+  closestWorkers: [],
+  location: {
+    lat: 0,
+    lng: 0,
+    address: '',
+    error: '',
+  },
+  searchReferenceId: '',
+  isUpdatingLocation: false,
+}
+
+interface RehydrateAction {
+  type: typeof REHYDRATE;
+  key: string;
+  payload: {
+    search?: ContainerState;
+  };
+}
+
+const searchSlice = createSlice({
+  name: 'search',
+  initialState,
+  reducers: {
+    onSearch: (state) => {
+      state.isLoading = true;
+    },
+    setIsLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+    setSearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload;
+    },
+    setMedia: (state, action: PayloadAction<Media[]>) => {
+      state.media = action.payload;
+    },
+    setSummary: (state, action: PayloadAction<Summary>) => {
+      state.summary = action.payload;
+    },
+    setRecommendedWorkers: (state, action: PayloadAction<Worker[]>) => {
+      state.recommendedWorkers = action.payload;
+    },
+    setClosestWorkers: (state, action: PayloadAction<Worker[]>) => {
+      state.closestWorkers = action.payload;
+    },
+    setSearchReferenceId: (state, action: PayloadAction<string>) => {
+      state.searchReferenceId = action.payload;
+    },
+    setLocation: (state, action: PayloadAction<LocationForm>) => {
+      state.location = action.payload;
+    },
+    setLocationError: (state, action: PayloadAction<string>) => {
+      state.location.error = action.payload;
+    },
+    clearLocationError: (state) => {
+      state.location.error = '';
+    },
+    saveUserLocation: (state) => {
+      state.isUpdatingLocation = true;
+    },
+    resetState: (state) => {
+      return {
+        ...initialState,
+        location: state.location,
+      };
+    },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
+      // Handle rehydration explicitly
+      if (action.payload?.search) {
+        return {
+          ...state,
+          ...action.payload.search
+        };
+      }
+      return state;
+    });
+  }
+});
+
+export const {actions, reducer, name: sliceKey} = searchSlice;

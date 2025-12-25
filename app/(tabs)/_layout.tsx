@@ -1,33 +1,54 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { useEffect } from 'react';
+import { useAppDispatch } from '@/store/hooks';
+import BottomTab from '@/components/ui/BottomTab';
+import { actions } from '@/redux/app/slice';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function Layout() {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(actions.getUser());
+  }, []);
 
   return (
     <Tabs
+      initialRouteName="(search)"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+      }}
+      tabBar={(props) => <BottomTab {...props} />}
+    >
       <Tabs.Screen
-        name="index"
+        name="(search)" 
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="notifications"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="(settings)"
+        options={{
+          title: 'Settings',
+          header: () => null
+        }}
+      />
+      <Tabs.Screen
+        name="(messaging)"
+        options={{
+          title: 'Messages',
+          header: () => null
+        }}
+      />
+      <Tabs.Screen
+        name="(bookings)"
+        options={{
+          title: 'Bookings',
+          header: () => null
         }}
       />
     </Tabs>
