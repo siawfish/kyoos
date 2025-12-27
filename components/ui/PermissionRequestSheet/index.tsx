@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect } from 'react';
-import { View, StyleSheet, Image, StyleProp, ViewStyle, Modal, TouchableWithoutFeedback, Platform, Alert, Linking, Dimensions } from 'react-native';
-import Button from '../Button';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { PermissionType } from '@/redux/app/types';
 import { BlurView } from 'expo-blur';
 import { useCameraPermissions, useMediaLibraryPermissions } from 'expo-image-picker';
 import { requestForegroundPermissionsAsync } from 'expo-location';
 import { router } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
+import React, { useCallback, useEffect } from 'react';
+import { Alert, Dimensions, Image, Linking, Modal, StyleProp, StyleSheet, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { PermissionType } from '@/redux/app/types';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import Button from '../Button';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.45;
@@ -94,6 +94,14 @@ export const PermissionRequestSheet: React.FC<PermissionRequestSheetProps> = ({
     "text"
   );
 
+  const buttonTextColor = useThemeColor(
+    {
+      light: colors.light.white,
+      dark: colors.dark.black,
+    },
+    "text"
+  );
+
   const { title: defaultTitle, description: defaultDescription, icon: defaultIcon } = getDefaultMessages(permissionType);
 
   useEffect(() => {
@@ -161,7 +169,7 @@ export const PermissionRequestSheet: React.FC<PermissionRequestSheetProps> = ({
       console.error('Error requesting permission:', error);
       handleClose();
     }
-  }, [permissionType, onGranted, onDenied, isOpenChange]);
+  }, [permissionType, onGranted, isOpenChange, handleClose]);
 
   if (!isOpen) return null;
 
@@ -199,7 +207,11 @@ export const PermissionRequestSheet: React.FC<PermissionRequestSheetProps> = ({
               <ThemedText type="defaultSemiBold" style={styles.title}>
                 {defaultTitle}
               </ThemedText>
-              <ThemedText style={styles.description}>
+              <ThemedText 
+                style={styles.description}
+                lightColor={colors.light.secondary}
+                darkColor={colors.dark.secondary}
+              >
                 {defaultDescription}
               </ThemedText>
               <View style={styles.buttonContainer}>
@@ -213,7 +225,7 @@ export const PermissionRequestSheet: React.FC<PermissionRequestSheetProps> = ({
                   onPress={handleRequestPermission}
                   style={styles.button}
                   label="Allow Access"
-                  labelStyle={styles.confirmText}
+                  labelStyle={{ color: buttonTextColor }}
                 />
               </View>
             </View>
@@ -234,7 +246,7 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'absolute',
     top: SCREEN_HEIGHT,
-    borderRadius: 25,
+    borderRadius: 0,
     zIndex: 100,
   },
   line: {
@@ -243,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'grey',
     alignSelf: 'center',
     marginVertical: 15,
-    borderRadius: 2,
+    borderRadius: 0,
   },
   contentContainer: {
     paddingHorizontal: widthPixel(24),
@@ -258,7 +270,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: fontPixel(16),
-    color: '#666',
     marginBottom: heightPixel(32),
     textAlign: 'center',
     lineHeight: heightPixel(24),
@@ -289,8 +300,4 @@ const styles = StyleSheet.create({
     width: widthPixel(80),
     height: widthPixel(80),
   },
-  confirmText: {
-    fontFamily: 'Bold',
-    color: '#FFFFFF',
-  },
-}); 
+});

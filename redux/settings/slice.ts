@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ContainerState } from '@/redux/settings/types';
+import { ContainerState } from './types';
 import { KeyValue } from '@/redux/app/types';
 import { RegisterFormFields } from '@/redux/auth/types';
 

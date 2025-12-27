@@ -1,20 +1,22 @@
-import { ViewStyle } from 'react-native'
-import React from 'react'
-import IconButton from '@/components/ui/IconButton'
-import { Feather } from '@expo/vector-icons'
-import { useThemeColor } from '@/hooks/use-theme-color'
 import { colors } from '@/constants/theme/colors'
+import { useThemeColor } from '@/hooks/use-theme-color'
+import { Feather } from '@expo/vector-icons'
+import React from 'react'
+import { ViewStyle } from 'react-native'
+import IconButton from '../IconButton'
 
 interface BackButtonProps {
-    readonly containerStyle?: ViewStyle
+    readonly containerStyle?: ViewStyle | ViewStyle[]
     readonly onPress?: () => void
     readonly iconName?: "x" | "arrow-left" | "menu"
+    readonly iconColor?: string
 }
 
 export default function BackButton({
     containerStyle,
     onPress,
-    iconName = "x"
+    iconName = "x",
+    iconColor
 }: BackButtonProps) {
     const color = useThemeColor({
         light: colors.light.white,
@@ -27,7 +29,7 @@ export default function BackButton({
             onPress={onPress} 
             style={containerStyle}
         >
-            <Feather name={iconName} size={24} color={color} />
+            <Feather name={iconName} size={24} color={iconColor || color} />
         </IconButton>
     )
 }

@@ -1,131 +1,128 @@
-import { ScrollView, StyleSheet, Image, View } from 'react-native'
-import React from 'react'
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
-import { colors } from '@/constants/theme/colors'
-import { useThemeColor } from '@/hooks/use-theme-color'
-import Status from './Status'
 import Thumbnails from '@/components/ui/Thumbnails'
-import ContactCard from './ContactCard'
-import { BookingStatuses, Media, MediaType } from '@/redux/app/types'
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
+import { colors } from '@/constants/theme/colors'
+import { Booking } from '@/redux/bookings/types'
+import { Media } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { format } from 'date-fns'
+import React from 'react'
+import { Image, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import ContactCard from './ContactCard'
+import Status from './Status'
 
-const IMAGES:Media[] = [
-    {
-        uri: 'https://plus.unsplash.com/premium_photo-1723200799223-0095f042decb?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        type: MediaType.IMAGE,
-        id: '1',
-    },
-    {
-        uri: 'https://plus.unsplash.com/premium_photo-1723200799223-0095f042decb?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        type: MediaType.IMAGE,
-        id: '2',
-    },
-    {
-        uri: 'https://plus.unsplash.com/premium_photo-1723200799223-0095f042decb?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        type: MediaType.IMAGE,
-        id: '3',
-    },
-    {
-        uri: 'https://plus.unsplash.com/premium_photo-1723200799223-0095f042decb?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        type: MediaType.IMAGE,
-        id: '4',
-    },
-    {
-        uri: 'https://plus.unsplash.com/premium_photo-1723200799223-0095f042decb?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-        type: MediaType.IMAGE,
-        id: '5',
-    },
-]
+interface BookingDetailsProps {
+    booking: Booking;
+}
 
-const BookingDetails = () => {
-    const labelColor = useThemeColor(
-        {
-          light: colors.light.secondary,
-          dark: colors.dark.secondary,
-        },
-        "text"
-    );
-    const color = useThemeColor(
-      {
-        light: colors.light.text,
-        dark: colors.dark.text,
-      },
-      "text"
-    );
+const BookingDetails = ({
+    booking
+}:BookingDetailsProps) => {
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const textColor = isDark ? colors.dark.text : colors.light.text;
+    const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+    const cardBg = isDark ? colors.dark.background : colors.light.background;
+    const borderColor = isDark ? colors.dark.white : colors.light.black;
+
     return (
         <ScrollView 
             contentContainerStyle={styles.mainContainer}
             showsVerticalScrollIndicator={false}
         >
-
-            <View style={styles.headerLeft}>
-              <View>
-                  <ThemedText type="title" style={styles.headerTitle}>Cleaning Appointment</ThemedText>
-                  <View style={styles.headerSubtitle}>
-                      <ThemedText 
-                          type="defaultSemiBold" 
-                          lightColor={colors.light.secondary}
-                          darkColor={colors.dark.secondary}
-                      >
-                          with 
-                      </ThemedText>
+            {/* Header Section */}
+            <View style={styles.headerSection}>
+                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                <Text style={[styles.pageLabel, { color: labelColor }]}>
+                    BOOKING DETAILS
+                </Text>
+                <Text style={[styles.headerTitle, { color: textColor }]}>
+                    {booking.service.description}
+                </Text>
+                <View style={styles.clientRow}>
+                    <Text style={[styles.withText, { color: labelColor }]}>with</Text>
                       <Image 
                           source={require('@/assets/images/individual.png')} 
                           style={styles.avatar}
                       />
-                      <ThemedText 
-                          type="defaultSemiBold"
-                          lightColor={colors.light.tint}
-                          darkColor={colors.dark.tint}
-                      >
-                          John Smith
-                      </ThemedText>
+                    <Text style={[styles.clientName, { color: textColor }]}>
+                            {booking.client.name}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Status & Fee Row */}
+            <View style={styles.statusRow}>
+                <Status status={booking.status} />
+                <View>
+                    <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
+                    <Text style={[styles.feeValue, { color: textColor }]}>
+                        GHS {booking.service.summary.estimatedPrice || '0.00'}
+                    </Text>
                   </View>
                 </View>
 
-                {/* Date and Time */}
-                <View style={styles.infoContainer}>
+            {/* Info Card */}
+            <View style={[styles.infoCard, { backgroundColor: cardBg, borderColor }]}>
+                <View style={[styles.infoAccent, { backgroundColor: accentColor }]} />
+                <View style={styles.infoContent}>
                     <View style={styles.infoRow}>
-                        <Ionicons name="calendar" size={fontPixel(20)} color={color} /> 
-                        <ThemedText darkColor={colors.dark.secondary} lightColor={colors.light.secondary} type="subtitle">
-                            Today {' '}
-                            <ThemedText style={styles.subtitle} type="title" darkColor={colors.dark.text} lightColor={colors.light.text}>12:00 PM</ThemedText>{' '}
-                        </ThemedText>
+                        <View style={styles.infoIconContainer}>
+                            <Ionicons name="calendar" size={fontPixel(16)} color={labelColor} />
+                        </View>
+                        <View style={styles.infoTextContainer}>
+                            <Text style={[styles.infoLabel, { color: labelColor }]}>DATE & TIME</Text>
+                            <Text style={[styles.infoValue, { color: textColor }]}>
+                                {format(new Date(booking.service.appointmentDateTime.date.value), 'EEEE, MMM d')} • {booking.service.appointmentDateTime.time.value}
+                            </Text>
+                        </View>
                     </View>
 
-                    {/* Duration */}
+                    <View style={[styles.infoDivider, { backgroundColor: labelColor }]} />
+
                     <View style={styles.infoRow}>
-                        <Ionicons name="time-outline" size={fontPixel(20)} color={color} />
-                        <ThemedText darkColor={colors.dark.secondary} lightColor={colors.light.secondary} type="subtitle">
-                            Duration: {' '}
-                            <ThemedText style={styles.subtitle} type="title" darkColor={colors.dark.text} lightColor={colors.light.text}>2 hours</ThemedText>
-                        </ThemedText>
+                        <View style={styles.infoIconContainer}>
+                            <Ionicons name="time-outline" size={fontPixel(16)} color={labelColor} />
+                        </View>
+                        <View style={styles.infoTextContainer}>
+                            <Text style={[styles.infoLabel, { color: labelColor }]}>DURATION</Text>
+                            <Text style={[styles.infoValue, { color: textColor }]}>
+                                {booking.service.summary.estimatedDuration}
+                            </Text>
+                        </View>
                     </View>
 
-                    {/* Required Tools */}
+                    <View style={[styles.infoDivider, { backgroundColor: labelColor }]} />
+
                     <View style={styles.infoRow}>
-                        <MaterialCommunityIcons name="tools" size={fontPixel(20)} color={color} />
-                        <ThemedText darkColor={colors.dark.secondary} lightColor={colors.light.secondary} type="subtitle">
-                            Tools: {' '}
-                            <ThemedText style={styles.subtitle} type="title" darkColor={colors.dark.text} lightColor={colors.light.text}>Vacuum, Mop, Cleaning supplies</ThemedText>
-                        </ThemedText>
+                        <View style={styles.infoIconContainer}>
+                            <MaterialCommunityIcons name="tools" size={fontPixel(16)} color={labelColor} />
+                        </View>
+                        <View style={styles.infoTextContainer}>
+                            <Text style={[styles.infoLabel, { color: labelColor }]}>REQUIRED TOOLS</Text>
+                            <Text style={[styles.infoValue, { color: textColor }]}>
+                                {booking.service.summary.requiredTools.join(', ') || 'None specified'}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>
-            <View style={styles.row}>
-                <Status status={BookingStatuses.ONGOING} />
-                <View>
-                    <ThemedText style={[styles.label, { color:labelColor}]}>Estimated Fees: <ThemedText type='defaultSemiBold'>GHS 2.00</ThemedText></ThemedText>
+
+            {/* Description & Media */}
+            {(booking.description || booking.service.media?.length > 0) && (
+                <View style={styles.descriptionSection}>
+                    <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
+                    <Text style={[styles.descriptionText, { color: textColor }]}>
+                        {booking.description || booking.service.description}
+                    </Text>
+                    {booking.service.media?.length > 0 && (
+                        <Thumbnails data={booking.service.media as Media[]} />
+                    )}
                 </View>
-            </View>
-            <View>
-                <ThemedText>
-                    Excepteur Lorem sunt mollit aliquip. Et consequat consequat ad in minim amet minim aliqua. Amet do voluptate proident tempor aute veniam ullamco. Voluptate dolore commodo in velit officia excepteur Lorem cupidatat ut sit quis occaecat exercitation anim. Est dolore commodo dolore duis sit aliqua nostrud elit sunt labore eu ex. Aliqua fugiat qui aliqua pariatur sunt.
-                </ThemedText>
-                <Thumbnails data={IMAGES} />
-            </View>
-            <ContactCard />
+            )}
+
+            <ContactCard booking={booking} />
         </ScrollView>
     )
 }
@@ -134,55 +131,116 @@ export default BookingDetails
 
 const styles = StyleSheet.create({
     mainContainer: {
-        paddingHorizontal: widthPixel(16),
-        gap: heightPixel(20),
-        paddingBottom: heightPixel(40),
+        paddingHorizontal: widthPixel(20),
+        gap: heightPixel(24),
+        paddingBottom: heightPixel(100),
     },
-    row: {
+    headerSection: {
+        paddingTop: heightPixel(8),
+    },
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(16),
+    },
+    pageLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+        marginBottom: heightPixel(8),
+    },
+    headerTitle: {
+        fontSize: fontPixel(28),
+        fontFamily: 'Bold',
+        letterSpacing: -0.5,
+        marginBottom: heightPixel(12),
+    },
+    clientRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(8),
+    },
+    withText: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
+    },
+    avatar: {
+        width: widthPixel(24),
+        height: widthPixel(24),
+        borderRadius: 0,
+    },
+    clientName: {
+        fontSize: fontPixel(14),
+        fontFamily: 'SemiBold',
+    },
+    statusRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    headerSubtitle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(4),
+    feeLabel: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        textAlign: 'right',
+        marginBottom: heightPixel(2),
     },
-    label: {
-        fontSize: fontPixel(14),
+    feeValue: {
+        fontSize: fontPixel(18),
+        fontFamily: 'Bold',
+        textAlign: 'right',
     },
-    headerTitle: {
-      fontSize: fontPixel(24),
-      marginBottom: heightPixel(8),
+    infoCard: {
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
     },
-    avatar: {
-        width: widthPixel(20),
-        height: widthPixel(20),
-        borderRadius: widthPixel(10),
+    infoAccent: {
+        height: heightPixel(3),
+        width: '100%',
     },
-    headerLeft: {
-        gap: widthPixel(16),
-        flexDirection: 'column',
-    },
-    infoContainer: {
-        gap: heightPixel(8),
+    infoContent: {
+        padding: widthPixel(16),
     },
     infoRow: {
-        flexDirection: "row",
-        gap: widthPixel(8),
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: widthPixel(12),
+    },
+    infoIconContainer: {
+        width: widthPixel(24),
         alignItems: 'center',
+        paddingTop: heightPixel(2),
     },
-    header: {
-        paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(16),
-        paddingTop: heightPixel(16),
-        gap: heightPixel(16),
+    infoTextContainer: {
+        flex: 1,
     },
-    title: {
-        fontSize: fontPixel(24) 
+    infoLabel: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.2,
+        marginBottom: heightPixel(2),
     },
-    subtitle: {
-        fontSize: fontPixel(16),
-        color: colors.dark.secondary,
-    }
+    infoValue: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Medium',
+    },
+    infoDivider: {
+        height: 1,
+        marginVertical: heightPixel(12),
+        opacity: 0.15,
+    },
+    descriptionSection: {
+        gap: heightPixel(8),
+    },
+    sectionLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+    },
+    descriptionText: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(20),
+    },
 });

@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
 import { heightPixel, widthPixel } from '@/constants/normalize'
-import { AntDesign } from '@expo/vector-icons'
 import { colors } from '@/constants/theme/colors'
+import { AntDesign } from '@expo/vector-icons'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
 
 interface RatingProps {
     rating?: number;
@@ -10,7 +10,7 @@ interface RatingProps {
 
 const Rating = ({
     rating=0
-}) => {
+}: RatingProps) => {
   return (
     <View style={styles.container}>
       {[1, 2, 3, 4, 5].map((_, index) => {
@@ -20,13 +20,13 @@ const Rating = ({
                     <AntDesign 
                         name='star' 
                         size={15} 
-                        color={colors.light.tint}
+                        color={colors.light.green}
                     />
                 ) : (
                     <AntDesign 
                         name='star' 
                         size={15} 
-                        color={colors.light.tint}
+                        color={colors.light.grey}
                     />
                 )}
             </View>

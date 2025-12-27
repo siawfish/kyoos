@@ -1,9 +1,8 @@
-import { StyleSheet, Image, View, ViewStyle, TextStyle } from 'react-native'
-import React from 'react'
-import { colors } from '@/constants/theme/colors';
 import { fontPixel, widthPixel } from '@/constants/normalize';
-import calendarIcon from "@/assets/images/calendar.png";
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { colors } from '@/constants/theme/colors';
+import React from 'react';
+import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
+import { ThemedText } from '../Themed/ThemedText';
 
 interface SectionTitleProps {
     readonly title?: string;
@@ -18,7 +17,7 @@ interface SectionTitleProps {
 const SectionTitle = ({
     title="Upcoming Bookings",
     subtitle="Your bookings today",
-    icon=<Image source={calendarIcon} style={styles.icon} />,
+    icon,
     children,
     containerStyle={},
     titleStyle={},

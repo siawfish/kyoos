@@ -1,46 +1,37 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { usePathname } from 'expo-router';
+import { useState } from 'react';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform, Text, useColorScheme } from 'react-native';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import Button from '@/components/ui/Button';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { widthPixel, heightPixel } from '@/constants/normalize';
+import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
 import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { RegisterForm, RegisterFormFields } from '@/redux/auth/types';
-import { Gender } from '@/redux/app/types';
 
 export default function ProfileForm({
     registerForm,
-    isLoading,
     onSetFormValues,
     onSetFormErrors,
     onSubmit,
     submitOnBlur=false
 }: {
     registerForm: RegisterForm;
-    isLoading: boolean;
     onSetFormValues: (key: RegisterFormFields, value: string) => void;
     onSetFormErrors: (key: RegisterFormFields, value: string) => void;
     onSubmit: () => void;
     submitOnBlur?: boolean;
 }) {
-    const pathname = usePathname();
-    const [isDisabled, setIsDisabled] = useState(false);
+    const [, setIsDisabled] = useState(false);
 
-    const inputBackgroundColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.black
-    }, 'white');
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
 
-    useEffect(() => {
-        if (!submitOnBlur) return;
-        handleSave();
-    }, [submitOnBlur, registerForm.avatar.value, registerForm.gender.value]);
+    const textColor = isDark ? colors.dark.text : colors.light.text;
+    const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+    const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
 
     const handleSave = () => {
         const errors = validateBasicInformation(registerForm);
@@ -64,23 +55,34 @@ export default function ProfileForm({
                 showsVerticalScrollIndicator={false}
             >
                 <ThemedView style={styles.container}>
-                    
-                    <View style={styles.mainStyle}>
-                        <ThemedText type="title" style={styles.title}>
+                    <View style={styles.contentContainer}>
+                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                        <Text style={[styles.label, { color: subtitleColor }]}>
+                            REGISTER
+                        </Text>
+                        <Text style={[styles.title, { color: textColor }]}>
                             Profile info
-                        </ThemedText>
-                        
+                        </Text>
+                        <Text style={[styles.subtitle, { color: subtitleColor }]}>
+                            Please provide your name and an optional profile photo
+                        </Text>
+                    </View>
+
+                    <View style={styles.gap}>
                         <UploadProfilePhoto 
                             url={registerForm.avatar.value}
                             onChange={(url) => onSetFormValues('avatar', url)}
                             setDisabled={setIsDisabled}
                         />
-                    </View>
 
-                    <View style={styles.inputContainer}>
+                        <SelectGender 
+                            gender={registerForm.gender}
+                            onGenderChange={(gender) => onSetFormValues('gender', gender)}
+                        />
+
                         <InputField
-                            label="Name"
-                            placeholder="Enter your name"
+                            label="FULL NAME"
+                            placeholder="Enter your full name"
                             value={registerForm.name.value}
                             error={registerForm.name.error}
                             onChangeText={(text) => onSetFormValues('name', text)}
@@ -88,11 +90,11 @@ export default function ProfileForm({
                             keyboardType="default"
                             textContentType="name"
                             maxLength={50}
-                            style={{backgroundColor: inputBackgroundColor}}
+                            style={{backgroundColor: inputBackground}}
                         />
 
                         <InputField
-                            label="Email (optional)"
+                            label="EMAIL (OPTIONAL)"
                             placeholder="Enter your email"
                             value={registerForm.email.value}
                             onChangeText={(text) => onSetFormValues('email', text)}
@@ -100,25 +102,8 @@ export default function ProfileForm({
                             keyboardType="email-address"
                             textContentType="emailAddress"
                             autoCapitalize="none"
-                            style={{backgroundColor: inputBackgroundColor}}
+                            style={{backgroundColor: inputBackground}}
                         />
-
-                        <SelectGender 
-                            gender={registerForm.gender.value as Gender}
-                            error={registerForm.gender.error}
-                            onChange={(gender) => onSetFormValues('gender', gender)}
-                        />
-                        {
-                            pathname === '/register' && (
-                                <Button
-                                    label="Save"
-                                    isLoading={isLoading}
-                                    disabled={isDisabled}
-                                    onPress={handleSave}
-                                    style={styles.button}
-                                />
-                            )
-                        }
                     </View>
                 </ThemedView>
             </ScrollView>
@@ -129,23 +114,50 @@ export default function ProfileForm({
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        marginTop: heightPixel(16),
     },
     container: {
         flex: 1,
         paddingBottom: heightPixel(16),
     },
-    mainStyle: {
-        paddingHorizontal: widthPixel(16),
+    contentContainer: {
+        paddingHorizontal: widthPixel(20),
+        paddingTop: heightPixel(24),
+        marginBottom: heightPixel(24),
+    },
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(20),
     },
     title: {
-        marginBottom: heightPixel(8),
+        fontSize: fontPixel(32),
+        fontFamily: 'Bold',
+        lineHeight: fontPixel(38),
+        letterSpacing: -1,
+        marginBottom: heightPixel(12),
     },
-    inputContainer: {
-        flex: 1,
+    subtitle: {
+        fontSize: fontPixel(15),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(22),
+    },
+    gap: {
+        flexDirection: 'column',
         gap: heightPixel(16),
+        paddingHorizontal: widthPixel(4),
+        paddingBottom: heightPixel(88),
     },
-    button: {
-        marginTop: 'auto',
+    stepContainer: {
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(8),
+        backgroundColor: colors.light.grey,
+        borderRadius: widthPixel(16),
+        marginBottom: heightPixel(12),
+    },
+    label: {
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+        marginBottom: heightPixel(8),
     },
 });

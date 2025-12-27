@@ -1,23 +1,23 @@
-import { ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { ThemedView } from '@/components/ui/Themed/ThemedView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import Constants from 'expo-constants';
-import { colors } from '@/constants/theme/colors';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
-import { useState } from 'react';
 import SettingsItem from '@/components/settings/SettingItem';
-import { useDispatch } from 'react-redux';
+import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions } from '@/redux/app/slice';
+import { useAppDispatch } from '@/store/hooks';
+import Constants from 'expo-constants';
+import { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+
 
 const settingsSections = [
   {
-    title: 'Profile',
+    title: 'Account Settings',
     icon: 'person-outline',
     color: colors.light.blue,
-    href: '/(tabs)/(settings)/profile',
+    href: '/(tabs)/(settings)/(account)',
   },
   {
     title: 'Appearance',
@@ -55,28 +55,53 @@ const deleteAccountSections = [
 ]
 
 const SettingsScreen = () => {
-  const borderColor = useThemeColor({ light: colors.light.grey, dark: colors.dark.background }, 'background');
+  const dispatch = useAppDispatch();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  
+  const backgroundColor = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
+  }, 'background');
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = accentColor;
+  const labelColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text
+  }, 'text');
+  const cardBg = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
+  }, 'background');
+  
   const [isConfirmLogout, setIsConfirmLogout] = useState(false);
   const [isConfirmDeleteAccount, setIsConfirmDeleteAccount] = useState(false);
-  const dispatch = useDispatch();
-
-  const handleLogout = () => {
-    dispatch(actions.logout());
-  };
-
+  
   const handleDeleteAccount = () => {
     // Implement delete account logic here
     console.log('Delete account pressed');
   };
 
   return (
-    <ThemedSafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>        
-        <ThemedView 
-          style={styles.settingsGroup}
-          lightColor={colors.light.white}
-          darkColor={colors.dark.black}
-        >
+    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerSection}>
+          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <Text style={[styles.label, { color: labelColor }]}>SETTINGS</Text>
+        </View>
+
+        <View style={styles.sectionLabelContainer}>
+          <Text style={[styles.sectionLabel, { color: labelColor }]}>GENERAL</Text>
+        </View>
+        <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>
           {settingsSections.map((section, index) => (
             <SettingsItem
               key={index}
@@ -87,13 +112,12 @@ const SettingsScreen = () => {
               href={section.href}
             />
           ))}
-        </ThemedView>
+        </View>
 
-        <ThemedView 
-          style={styles.settingsGroup}
-          lightColor={colors.light.white}
-          darkColor={colors.dark.black}
-        >
+        <View style={styles.sectionLabelContainer}>
+          <Text style={[styles.sectionLabel, { color: labelColor }]}>LEGAL</Text>
+        </View>
+        <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>
           {legalSections.map((section, index) => (
             <SettingsItem
               key={index}
@@ -104,13 +128,12 @@ const SettingsScreen = () => {
               onPress={() => {}}
             />
           ))}
-        </ThemedView>
+        </View>
 
-        <ThemedView 
-          style={styles.settingsGroup}
-          lightColor={colors.light.white}
-          darkColor={colors.dark.black}
-        >
+        <View style={styles.sectionLabelContainer}>
+          <Text style={[styles.sectionLabel, { color: labelColor }]}>ACCOUNT</Text>
+        </View>
+        <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>
           {deleteAccountSections.map((section, index) => (
             <SettingsItem
               key={index}
@@ -120,11 +143,18 @@ const SettingsScreen = () => {
               onPress={() => setIsConfirmDeleteAccount(true)}
             />
           ))}
-        </ThemedView>
+        </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => setIsConfirmLogout(true)}>
-          <ThemedText style={styles.logoutText} lightColor={colors.light.danger} darkColor={colors.dark.danger}>
-            Log Out
+        <TouchableOpacity 
+          style={[styles.logoutButton, { borderColor: colors.light.danger }]} 
+          onPress={() => setIsConfirmLogout(true)}
+        >
+          <ThemedText 
+            style={styles.logoutText} 
+            lightColor={colors.light.danger} 
+            darkColor={colors.dark.danger}
+          >
+            LOG OUT
           </ThemedText>
         </TouchableOpacity>
 
@@ -142,7 +172,7 @@ const SettingsScreen = () => {
         isOpenChange={setIsConfirmLogout}
         title="Are you sure you want to log out?"
         description="Logging out will remove your account from the app and you will need to sign in again."
-        onConfirm={handleLogout}
+        onConfirm={() => dispatch(actions.logout())}
         confirmText="Yes, Log Out"
         cancelText="Cancel"
       />
@@ -168,32 +198,62 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    marginTop: heightPixel(20),
   },
-  header: {
-    marginHorizontal: widthPixel(16),
-    marginTop: heightPixel(20),
-    marginBottom: heightPixel(16),
+  scrollContent: {
+    paddingBottom: heightPixel(100),
+  },
+  headerSection: {
+    paddingHorizontal: widthPixel(20),
+    paddingTop: heightPixel(32),
+    paddingBottom: heightPixel(20),
+  },
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
+  },
+  label: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+  },
+  sectionLabelContainer: {
+    paddingHorizontal: widthPixel(20),
+    marginBottom: heightPixel(12),
+    marginTop: heightPixel(8),
+  },
+  sectionLabel: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
   },
   settingsGroup: {
-    marginHorizontal: widthPixel(16),
-    marginBottom: heightPixel(32),
-    borderRadius: widthPixel(10),
+    marginHorizontal: widthPixel(20),
+    marginBottom: heightPixel(16),
+    borderWidth: 0.5,
+    borderRadius: 0,
+    overflow: 'hidden',
   },
   logoutButton: {
-    marginHorizontal: widthPixel(16),
-    padding: widthPixel(16),
-    borderRadius: widthPixel(10),
+    marginHorizontal: widthPixel(20),
+    paddingVertical: heightPixel(16),
+    paddingHorizontal: widthPixel(16),
+    borderWidth: 0.5,
+    borderRadius: 0,
     alignItems: 'center',
+    marginBottom: heightPixel(16),
   },
   logoutText: {
-    fontSize: fontPixel(17),
-    fontFamily: 'Bold',
+    fontSize: fontPixel(12),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
   },
   versionText: {
     textAlign: 'center',
     marginTop: heightPixel(8),
     marginBottom: heightPixel(32),
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
   },
   dangerIcon: {
     width: widthPixel(60),

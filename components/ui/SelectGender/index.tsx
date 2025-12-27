@@ -1,67 +1,56 @@
-import { StyleSheet, View, Image } from 'react-native'
-import React, { useRef } from 'react'
-import { ThemedView } from '@/components/ui/Themed/ThemedView'
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
+import { fontPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import GenderOption from './components/GenderOption'
+import { selectRegisterFormGender } from '@/redux/auth/selector'
+import { actions } from '@/redux/auth/slice'
+import { FormElement } from '@/redux/app/types'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Gender } from '@/redux/app/types'
+import React from 'react'
+import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import GenderOption from './components/GenderOption'
 
-export default function SelectGender({
-    gender,
-    error,
-    onChange,
-}: {
-    gender: Gender;
-    error: string;
-    onChange: (gender: Gender) => void;
-}) {
+interface SelectGenderProps {
+    gender?: FormElement;
+    onGenderChange?: (gender: Gender) => void;
+}
+
+export default function SelectGender({ gender: propGender, onGenderChange }: SelectGenderProps = {}) {
+    const reduxGender = useAppSelector(selectRegisterFormGender);
+    const dispatch = useAppDispatch();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
+
+    // Use prop gender if provided, otherwise use Redux (backward compatibility)
+    const gender = propGender || reduxGender;
+
+    const handleGenderChange = (gender: Gender) => {
+        if (onGenderChange) {
+            onGenderChange(gender);
+        } else {
+            // Default to Redux action (backward compatibility)
+            dispatch(actions.setRegisterFormValue({key: 'gender', value: gender}));
+        }
+    }
+
     return (
-        <ThemedView
-            style={styles.container}
-        >
-            <ThemedText
-                type='default'
-                lightColor={colors.light.secondary} 
-                darkColor={colors.dark.secondary} 
-                style={[styles.label]}
-            >
-                Select Gender
-            </ThemedText>
+        <View style={styles.container}>
+            <Text style={[styles.label, { color: labelColor }]}>
+                SELECT GENDER
+            </Text>
             <View style={styles.row}>
                 <GenderOption 
                     type={Gender.MALE}
-                    checked={gender === Gender.MALE}
-                    onPress={() => onChange(Gender.MALE)}
-                    style={{
-                        borderColor: error ? colors.light.danger : undefined,
-                    }}
+                    checked={gender?.value === Gender.MALE}
+                    onPress={() => handleGenderChange(Gender.MALE)}
                 />
                 <GenderOption 
                     type={Gender.FEMALE}
-                    checked={gender === Gender.FEMALE}
-                    onPress={() => onChange(Gender.FEMALE)}
-                    style={{
-                        borderColor: error ? colors.light.danger : undefined,
-                    }}
+                    checked={gender?.value === Gender.FEMALE}
+                    onPress={() => handleGenderChange(Gender.FEMALE)}
                 />
             </View>
-            
-            {
-                error && (
-                    <ThemedText
-                        type='default'
-                        lightColor={colors.light.error}
-                        darkColor={colors.dark.error}
-                        style={styles.error}
-                    >
-                        <Image source={require('@/assets/images/warning.png')} style={styles.errorIcon} />
-                        {" "}
-                        {error}
-                    </ThemedText>
-                )
-            }
-        </ThemedView>
+        </View>
     )
 }
 
@@ -72,22 +61,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(16)
     },
     label: {
-        fontSize: fontPixel(14),
+        fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
     },
     row: {
         flexDirection: 'row',
-        gap: widthPixel(10),
+        gap: widthPixel(12),
         alignItems: 'center',
-        justifyContent: 'space-evenly'
     },
-    errorIcon: {
-        width: widthPixel(10),
-        height: widthPixel(10),
-        marginRight: widthPixel(4)
-    },
-    error: {
-        fontSize: fontPixel(12),
-        marginTop: heightPixel(-4)
-    }
 })

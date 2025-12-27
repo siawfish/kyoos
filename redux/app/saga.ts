@@ -4,12 +4,14 @@
 
 import {call, delay, put, takeLatest} from 'redux-saga/effects';
 import { actions } from './slice';
+import { actions as authActions } from '@/redux/auth/slice';
 import Toast from 'react-native-toast-message';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { removeItemFromStorage } from '@/services/asyncStorage';
-import { Asset, User, Theme } from './types';
+import { Asset, User, Theme, StoreName } from './types';
+import { Location } from '@/redux/auth/types';
 
 export function* logout() {
     try {
@@ -163,7 +165,7 @@ export function* updateNotifications(action: PayloadAction<{
     }
 } 
 
-export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, callback: (loc: Location) => void}>) {
+export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, store?: StoreName}>) {
     try {
         yield delay(500);
         const response: ApiResponse<Location> = yield call(request, {
@@ -173,7 +175,9 @@ export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, c
         if (response.error || !response.data) {
             throw new Error(response.message || response.error || 'An error occurred while reverse geocoding location');
         }
-        action.payload.callback(response.data);
+        if (action?.payload?.store === StoreName.REGISTER) {
+            yield put(authActions.setLocation(response.data));
+        }
     } catch (error:any) {
         const errorMessage = error?.error || error?.message || 'An error occurred while reverse geocoding location';
         Toast.show({

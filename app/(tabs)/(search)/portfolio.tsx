@@ -53,6 +53,20 @@ const CommentItem = ({ item }: { item: typeof COMMENTS[0] }) => (
 );
 
 export default function PortfolioDetails() {
+  const portfolio = {
+    id: '1',
+    title: 'Portfolio 1',
+    description: 'Description 1',
+    assets: [],
+    skills: [],
+    likes: 0,
+    comments: 0,
+    hasLiked: false,
+    hasCommented: false,
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
+    createdBy: '1',
+  };
   return (
     <ThemedSafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -62,7 +76,7 @@ export default function PortfolioDetails() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <Portfolio id={"1"} />
+        <Portfolio portfolio={portfolio} />
         
         <View style={styles.commentsSection}>
           <ThemedText type="title" style={styles.commentsTitle}>

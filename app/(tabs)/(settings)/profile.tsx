@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
 import ProfileForm from '@/components/account/ProfileForm';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectProfileForm, selectProfileFormIsLoading } from '@/redux/settings/selector';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectUserForm, selectUserFormIsLoading } from '@/redux/settings/selector';
 import { actions } from '@/redux/settings/slice';
 import { useEffect, useMemo } from 'react';
 import { selectUser } from '@/redux/app/selector';
 
 export default function ProfileScreen() {
-    const isLoading = useSelector(selectProfileFormIsLoading);
-    const profileForm = useSelector(selectProfileForm);
-    const user = useSelector(selectUser);
-    const dispatch = useDispatch();
+    const isLoading = useAppSelector(selectUserFormIsLoading);
+    const profileForm = useAppSelector(selectUserForm);
+    const user = useAppSelector(selectUser);
+    const dispatch = useAppDispatch();
 
     const hasUserChanged = useMemo(() => {
         return user?.name !== profileForm?.name?.value || user?.email !== profileForm?.email?.value || user?.gender !== profileForm?.gender?.value || user?.avatar !== profileForm?.avatar?.value;
@@ -24,7 +24,7 @@ export default function ProfileScreen() {
             dispatch(actions.setProfileFormValue({key: 'gender', value: user.gender}));
             dispatch(actions.setProfileFormValue({key: 'avatar', value: user.avatar}));
         }
-    }, [user]);
+    }, [user, dispatch]);
 
     return (
         <ThemedSafeAreaView 

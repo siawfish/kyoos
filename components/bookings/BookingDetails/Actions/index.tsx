@@ -1,10 +1,9 @@
-import { StyleSheet } from 'react-native'
-import React from 'react'
-import { ThemedView } from '@/components/ui/Themed/ThemedView'
-import Button from '@/components/ui/Button'
-import { Ionicons } from "@expo/vector-icons";
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import Button from '@/components/ui/Button';
+import { fontPixel, heightPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { Ionicons } from "@expo/vector-icons";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 
 interface ActionsProps {
@@ -17,15 +16,15 @@ const Actions = ({
 }:ActionsProps) => {
 
   return (
-    <ThemedView style={styles.action}>
+    <View style={styles.action}>
       <Button 
         onPress={onCancel}
-        label="Cancel Booking"
-        icon={<Ionicons name="close" size={fontPixel(20)} color={colors.light.white} />}  
+        label="CANCEL BOOKING"
+        icon={<Ionicons name="close" size={fontPixel(16)} color={colors.light.white} />}  
         style={styles.cancelBtn}
         labelStyle={styles.cancelLabel}
       />
-    </ThemedView>
+    </View>
   )
 }
 
@@ -33,15 +32,16 @@ export default Actions
 
 const styles = StyleSheet.create({
     action: {
-      marginTop: 'auto',
-      paddingBottom: heightPixel(20),
-      paddingHorizontal: widthPixel(16),
     },
     cancelBtn: {
       marginHorizontal: 0,
       backgroundColor: colors.light.danger,
+      borderRadius: 0,
     },
     cancelLabel: {
       color: colors.light.white,
+      fontSize: fontPixel(12),
+      fontFamily: 'SemiBold',
+      letterSpacing: 1.5,
     },
 })

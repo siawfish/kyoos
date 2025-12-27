@@ -1,106 +1,158 @@
-import { StyleSheet, FlatList, Pressable, Image, View } from 'react-native';
-import { router } from 'expo-router';
+import { FlashList } from '@shopify/flash-list';
 import { format } from 'date-fns';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { Image, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
+import EmptyList from '@/components/ui/EmptyList';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { selectUser } from '@/redux/app/selector';
+import { User } from '@/redux/app/types';
+import { selectIsLoading, selectMessages } from '@/redux/messaging/selector';
+import { actions } from '@/redux/messaging/slice';
+import { Conversation } from '@/redux/messaging/types';
 
-// Temporary mock data
-const mockMessages = [
-  {
-    id: '1',
-    sender: 'John Doe',
-    lastMessage: 'Hey, how are you?',
-    timestamp: new Date(),
-    unread: 2,
-    avatar: null,
-  },
-  {
-    id: '2',
-    sender: 'Jane Smith',
-    lastMessage: 'Can we meet tomorrow?',
-    timestamp: new Date(Date.now() - 3600000),
-    unread: 0,
-    avatar: null,
-  },
-  // Add more mock conversations as needed
-];
-
-const ConversationItem = ({ item } : { item: typeof mockMessages[0] }) => {
+const ConversationItem = ({ item } : { item: Conversation }) => {
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  
   const tintColor = useThemeColor({
     light: colors.light.tint,
     dark: colors.dark.tint
   }, 'background');
-  const borderColor = useThemeColor({
-    light: colors.light.misc,
-    dark: colors.dark.misc
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const cardBg = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
   }, 'background');
+  const borderColor = accentColor;
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text
+  }, 'text');
   const secondaryText = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
   }, 'text');
-  const backgroundColor = useThemeColor({
-    light: colors.light.white,
-    dark: colors.dark.black
-  }, 'background');
+
+  const handlePress = () => {
+    dispatch(actions.markConversationAsRead(item.id));
+    router.push(`/(tabs)/(messaging)/${item.id}`);
+  };
+
+  const sender = item.participants.find(p => p.id !== user?.id) as User;
 
   return (
     <Pressable
-      onPress={() => router.push(`/(tabs)/(messaging)/${item.id}`)}
-      style={[styles.conversationItem, { borderBottomColor: borderColor, backgroundColor: backgroundColor }]}>
-      <View style={styles.avatarContainer}>
-        {item.avatar ? (
-          <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        ) : (
-          <ThemedView style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: tintColor }]}>
-            <ThemedText style={styles.avatarText}>
-              {item.sender.charAt(0)}
-            </ThemedText>
-          </ThemedView>
-        )}
-      </View>
-      <View style={styles.messageContent}>
-        <View style={styles.messageHeader}>
-          <ThemedText type='defaultSemiBold' style={styles.senderName}>{item.sender}</ThemedText>
-          <ThemedText style={[styles.timestamp, { color: secondaryText }]}>
-            {format(item.timestamp, 'h:mm a')}
-          </ThemedText>
-        </View>
-        <View style={styles.messagePreview}>
-          <ThemedText 
-            numberOfLines={1} 
-            style={[
-              styles.lastMessage, 
-              { color: secondaryText },
-              item.unread > 0 && styles.unreadMessage
-            ]}>
-            {item.lastMessage}
-          </ThemedText>
-          {item.unread > 0 && (
-            <ThemedView style={[styles.unreadBadge, { backgroundColor: tintColor }]}>
-              <ThemedText style={styles.unreadCount}>{item.unread}</ThemedText>
-            </ThemedView>
-          )}
+      onPress={handlePress}
+      style={[styles.conversationItem, { backgroundColor: cardBg, borderColor }]}>
+      <View style={[styles.leftAccent, { backgroundColor: borderColor }]} />
+      <View style={styles.content}>
+        <View style={styles.topRow}>
+          <View style={styles.avatarContainer}>
+            {sender.avatar ? (
+              <Image source={{ uri: sender.avatar }} style={styles.avatar} />
+            ) : (
+              <ThemedView style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: tintColor }]}>
+                <ThemedText style={styles.avatarText}>
+                  {sender.name.charAt(0).toUpperCase()}
+                </ThemedText>
+              </ThemedView>
+            )}
+          </View>
+          <View style={styles.messageContent}>
+            <View style={styles.messageHeader}>
+              <ThemedText style={[styles.senderName, { color: textColor }]}>
+                {sender.name}
+              </ThemedText>
+              {item.unreadCount > 0 && (
+                <ThemedView style={[styles.unreadBadge, { backgroundColor: tintColor }]}>
+                  <ThemedText style={styles.unreadCount}>{item.unreadCount}</ThemedText>
+                </ThemedView>
+              )}
+            </View>
+            <View style={styles.messagePreview}>
+              <ThemedText 
+                numberOfLines={1} 
+                style={[
+                  styles.lastMessage, 
+                  { color: secondaryText },
+                  item.unreadCount > 0 && styles.unreadMessage
+                ]}>
+                {item.messages.length > 0 ? item.messages[item.messages.length - 1].content || 'No messages yet' : 'No messages yet'}
+              </ThemedText>
+              {item.messages.length > 0 && (
+                <ThemedText style={[styles.timestamp, { color: secondaryText }]}>
+                  {format(new Date(item.messages[item.messages.length - 1].timestamp), 'h:mm a')}
+                </ThemedText>
+              )}
+            </View>
+          </View>
         </View>
       </View>
     </Pressable>
   );
 };
 
-export default function MessagingScreen() {  
+export default function MessagingScreen() {
+  const dispatch = useDispatch();
+  const messages = useSelector(selectMessages);
+  const isLoading = useSelector(selectIsLoading);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  useEffect(() => {
+    dispatch(actions.fetchMessages());
+  }, [dispatch]);
+
+  const backgroundColor = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
+  }, 'background');
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const labelColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
+
+  const renderHeader = () => {
+    return (
+      <View style={styles.headerSection}>
+        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+        <Text style={[styles.label, { color: labelColor }]}>MESSAGES</Text>
+      </View>
+    );
+  };
+
+  const renderEmptyList = () => {
+    return (
+      <EmptyList
+        containerStyle={styles.emptyList}
+        message="No messages yet. Start a conversation to get started."
+      />
+    );
+  };
+
   return (
-    <ThemedSafeAreaView 
-      style={styles.container}
-    >
-      <FlatList
-        data={mockMessages}
-        renderItem={({ item }) => <ConversationItem item={item} />}
+    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+      <FlashList
+        data={messages}
+        renderItem={({ item }) => <ConversationItem item={item as Conversation} />}
         keyExtractor={(item) => item.id}
-        style={styles.list}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyList}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        refreshing={isLoading}
+        onRefresh={() => dispatch(actions.fetchMessages())}
       />
     </ThemedSafeAreaView>
   );
@@ -110,40 +162,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: widthPixel(16),
-    paddingVertical: heightPixel(16),
-    borderBottomWidth: 1,
+  headerSection: {
+    paddingTop: heightPixel(32),
+    paddingBottom: heightPixel(20),
+    paddingHorizontal: widthPixel(20),
   },
-  title: {
-    fontSize: fontPixel(32),
-    fontWeight: 'bold',
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
   },
-  list: {
+  label: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+  },
+  listContainer: {
+    paddingHorizontal: widthPixel(20),
+    paddingBottom: heightPixel(100),
+  },
+  emptyList: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: heightPixel(200),
   },
   conversationItem: {
+    width: '100%',
     flexDirection: 'row',
-    paddingHorizontal: widthPixel(16),
-    paddingVertical: heightPixel(16),
-    borderBottomWidth: 1,
+    marginBottom: heightPixel(16),
+    borderWidth: 0.5,
+    borderLeftWidth: 0,
+    overflow: 'hidden',
+  },
+  leftAccent: {
+    width: widthPixel(4),
+  },
+  content: {
+    flex: 1,
+    padding: widthPixel(16),
+  },
+  topRow: {
+    flexDirection: 'row',
+    gap: widthPixel(12),
   },
   avatarContainer: {
-    marginRight: widthPixel(12),
+    width: widthPixel(50),
+    height: heightPixel(50),
   },
   avatar: {
     width: widthPixel(50),
     height: heightPixel(50),
-    borderRadius: 25,
+    borderRadius: 0,
   },
   avatarPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 0,
   },
   avatarText: {
     color: 'white',
     fontSize: fontPixel(20),
-    fontWeight: 'bold',
+    fontFamily: 'Bold',
   },
   messageContent: {
     flex: 1,
@@ -152,37 +232,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: heightPixel(4),
+    marginBottom: heightPixel(8),
   },
   senderName: {
-    fontSize: fontPixel(16),
-  },
-  timestamp: {
-    fontSize: fontPixel(14),
+    fontSize: fontPixel(15),
+    fontFamily: 'Bold',
+    letterSpacing: 0.5,
+    flex: 1,
   },
   messagePreview: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: widthPixel(8),
   },
   lastMessage: {
     fontSize: fontPixel(15),
+    fontFamily: 'Regular',
     flex: 1,
   },
   unreadMessage: {
-    fontWeight: '500',
+    fontFamily: 'SemiBold',
+  },
+  timestamp: {
+    fontSize: fontPixel(12),
+    fontFamily: 'Regular',
   },
   unreadBadge: {
-    borderRadius: 10,
+    borderRadius: 0,
     minWidth: widthPixel(20),
     height: heightPixel(20),
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: widthPixel(8),
     paddingHorizontal: widthPixel(6),
   },
   unreadCount: {
     color: 'white',
-    fontSize: fontPixel(12),
-    fontWeight: 'bold',
+    fontSize: fontPixel(11),
+    fontFamily: 'Bold',
   },
 });

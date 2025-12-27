@@ -1,44 +1,45 @@
-import { StyleSheet, View, Image, Modal, Dimensions } from "react-native";
-import React from "react";
-import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import success from "@/assets/images/success.png";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { colors } from "@/constants/theme/colors";
 import Button from "@/components/ui/Button";
-import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { useDispatch } from "react-redux";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
 import { actions } from "@/redux/auth/slice";
+import { useAppDispatch } from "@/store/hooks";
+import React from "react";
+import { Dimensions, Image, Modal, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 const Success = () => {
-    const dispatch = useDispatch();
-    const backgroundColor = useThemeColor(
-        {
-        light: colors.light.background,
-        dark: colors.dark.background,
-        },
-        "background"
-    );
+    const dispatch = useAppDispatch();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const backgroundColor = isDark ? colors.dark.background : colors.light.background;
+    const textColor = isDark ? colors.dark.text : colors.light.text;
+    const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+    const borderColor = isDark ? colors.dark.white : colors.light.black;
 
     return (
         <Modal animationType="slide" transparent style={styles.modal} visible>
             <View style={styles.container}>
-                <View style={[styles.contentContainer, {backgroundColor}]}>
+                <View style={[styles.contentContainer, { backgroundColor, borderColor }]}>
+                    <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                    <View style={styles.inner}>
+                        <Text style={[styles.label, { color: subtitleColor }]}>
+                            SUCCESS
+                        </Text>
                     <Image
                         source={success}
-                        style={{ width: widthPixel(80), height: widthPixel(80) }}
+                            style={styles.icon}
                     />
-                    <ThemedText style={styles.title} type='defaultSemiBold'>
-                        Your account has been created
-                    </ThemedText>
-                    <ThemedText 
-                        style={styles.text}
-                        lightColor={colors.light.secondary}
-                        darkColor={colors.dark.secondary}
-                    >
-                        An email has been sent to your email address. Please verify your email address to activate your account.
-                    </ThemedText>
+                        <Text style={[styles.title, { color: textColor }]}>
+                            Account Created
+                        </Text>
+                        <Text style={[styles.text, { color: subtitleColor }]}>
+                            An email has been sent to your email address. Please verify to activate your account.
+                        </Text>
+                    </View>
                     <Button 
-                        label='Go to dashboard'
+                        label='Go to Dashboard'
                         style={styles.btn}
                         onPress={() => dispatch(actions.confirmLogin())}
                     />
@@ -56,31 +57,56 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center", 
     justifyContent: "center",
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    paddingHorizontal: widthPixel(16),
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        paddingHorizontal: widthPixel(20),
     },
   contentContainer: {
     height: Dimensions.get('window').height / 2,
     width: '100%',
-    borderRadius: 20,
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    topAccent: {
+        height: heightPixel(4),
+        width: '100%',
+    },
+    inner: {
+        flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: widthPixel(16),
-    gap: widthPixel(16),
+        padding: widthPixel(24),
+    },
+    label: {
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+        marginBottom: heightPixel(20),
+    },
+    icon: {
+        width: widthPixel(64),
+        height: widthPixel(64),
+        marginBottom: heightPixel(24),
   },
   title: {
-    fontSize: fontPixel(24),
+        fontSize: fontPixel(28),
+        fontFamily: 'Bold',
     textAlign: 'center',
+        letterSpacing: -0.5,
+        marginBottom: heightPixel(12),
   },
   text: {
-    fontSize: fontPixel(16),
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
     textAlign: 'center',
+        lineHeight: fontPixel(20),
     },
     btn: {
-        marginTop: widthPixel(16),
-        width: '100%',
         position: 'absolute',
-        bottom: heightPixel(16),
+        bottom: heightPixel(20),
+        left: widthPixel(20),
+        right: widthPixel(20),
+        marginHorizontal: 0,
     },
 });
 

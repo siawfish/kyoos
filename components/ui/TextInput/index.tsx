@@ -1,9 +1,9 @@
-import React, { memo, useCallback, useRef } from 'react';
-import { StyleSheet, TextInput, TextInputProps, View, ViewStyle, Animated, Easing, TextStyle, Image, ActivityIndicator } from 'react-native';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import React, { memo, useCallback, useRef } from 'react';
+import { ActivityIndicator, Animated, Easing, Image, StyleSheet, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import { ThemedText } from '../Themed/ThemedText';
 
 interface PhoneInputProps extends TextInputProps {
     containerStyle?: ViewStyle;
@@ -43,7 +43,22 @@ const InputField = memo(({
     const color = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text,
-    }, 'text');    
+    }, 'text');
+
+    const borderColor = useThemeColor({
+        light: error ? colors.light.error : colors.light.tint,
+        dark: error ? colors.dark.error : colors.dark.tint
+    }, 'tint');
+
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint
+    }, 'tint');
+
+    const errorColor = useThemeColor({
+        light: colors.light.error,
+        dark: colors.dark.error
+    }, 'error');
 
     // Animated borderWidth
     const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
@@ -86,12 +101,12 @@ const InputField = memo(({
                         color,
                         borderTopWidth: borderWidthAnim, // Apply animated borderWidth
                         borderBottomWidth: borderWidthAnim, // Apply animated borderWidth
-                        borderColor: error ? colors.light.error : colors.light.tint
+                        borderColor
                     },
                     style
                 ]}
-                selectionColor={colors.light.tint}
-                cursorColor={colors.light.tint}
+                selectionColor={tintColor}
+                cursorColor={tintColor}
                 placeholder={placeholder}
                 keyboardType={keyboardType}
                 textContentType={textContentType}
@@ -106,7 +121,7 @@ const InputField = memo(({
             />
             {
                 isLoading && (
-                    <ActivityIndicator size="small" color={error ? colors.light.error : colors.light.tint} style={styles.loading} />
+                    <ActivityIndicator size="small" color={error ? errorColor : tintColor} style={styles.loading} />
                 )
             }
             {
@@ -131,16 +146,19 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'column',
         gap: widthPixel(8),
-        position: 'relative'
+        position: 'relative',
+        marginBottom: heightPixel(16),
     },
     input: {
         fontSize: widthPixel(18),
         fontFamily: 'Light',
         padding: widthPixel(16),
+        borderRadius: 0,
     },
     label: {
-        fontSize: fontPixel(14),
+        fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
         marginLeft: widthPixel(16)
     },
     errorIcon: {

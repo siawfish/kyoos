@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import reducers from './reducers';
 import rootSaga from './sagas';
+import { createLogger } from 'redux-logger'
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -11,6 +12,15 @@ const persistConfig = {
     key: 'root',
     storage: AsyncStorage
 }
+
+const logger = createLogger({
+  collapsed: true,
+  duration: true,
+  timestamp: true,
+  logErrors: true,
+  diff: true,
+  predicate: (_, action) => !action.type.includes('persist/')
+});
 
 const rootReducer = combineReducers(reducers);
 
@@ -22,9 +32,9 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(sagaMiddleware),
+    }).concat(sagaMiddleware).concat(logger),
 })
 
 export const persistor = persistStore(store, null, () => {

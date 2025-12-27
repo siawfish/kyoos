@@ -3,26 +3,26 @@ import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { selectUserLocation } from '@/redux/app/selector';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectProfileFormLocation } from '@/redux/settings/selector';
 import { useRouter } from 'expo-router';
 import { actions } from '@/redux/search/slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 export default function UserLocation() {
     const router = useRouter();
-    const location = useAppSelector(selectUserLocation);
+    const location = useAppSelector(selectProfileFormLocation);
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        if (location) {
-            dispatch(actions.setLocation({
-                address: location.address,
-                lat: location.lat,
-                lng: location.lng,
-                error: '',
-            }));
-        }
-    }, [location]);
+      if (location) {
+        dispatch(actions.setLocation({
+          address: location.address,
+          lat: location.lat,
+          lng: location.lng,
+          error: '',
+        }));
+      }
+    }, [location, dispatch]);
 
     return (
         <View style={styles.header}>

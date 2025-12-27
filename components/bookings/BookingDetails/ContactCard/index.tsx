@@ -1,54 +1,58 @@
-import { StyleSheet, Image, View } from 'react-native'
-import React from 'react'
-import { ThemedView } from '@/components/ui/Themed/ThemedView'
 import user from "@/assets/images/individual.png";
-import { heightPixel, widthPixel } from '@/constants/normalize';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import Rating from '../Rating';
 import IconButton from '@/components/ui/IconButton';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { Booking } from '@/redux/bookings/types';
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
+import React from 'react';
+import { Image, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
-const ContactCard = () => {
+interface ContactCardProps {
+    booking: Booking;
+}
+
+const ContactCard = ({ booking }: ContactCardProps) => {
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const cardBg = isDark ? colors.dark.background : colors.light.background;
+    const borderColor = isDark ? colors.dark.white : colors.light.black;
+    const textColor = isDark ? colors.dark.text : colors.light.text;
+    const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
+
     return (
-        <ThemedView
-            style={styles.container}
-        >
+        <View style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
+            <View style={[styles.topAccent, { backgroundColor: borderColor }]} />
+            <View style={styles.content}>
+                <Text style={[styles.sectionLabel, { color: labelColor }]}>CLIENT</Text>
             <View style={styles.row}>
                 <View style={styles.user}>
                     <Image
-                        source={user}
+                            source={booking.client.avatar ? { uri: booking.client.avatar } : user}
                         style={styles.img}
                     />
-                    <View>
-                        <ThemedText style={styles.name} type="defaultSemiBold">John Doe</ThemedText>
-                        <Rating rating={1} />
+                        <View style={styles.userInfo}>
+                            <Text style={[styles.name, { color: textColor }]}>{booking.client.name}</Text>
+                            {booking.client.location?.address && (
+                                <Text style={[styles.address, { color: labelColor }]} numberOfLines={1}>
+                                    {booking.client.location.address}
+                                </Text>
+                            )}
+                        </View>
                     </View>
-                </View>
-                <View style={styles.rightRow}>
-                    <Link href="/(tabs)/(messaging)/1" asChild>
-                        <IconButton style={styles.btn}>
+                    <Link href="/(drawer)/(messaging)/1" asChild>
+                        <IconButton style={[styles.btn, { borderColor }]}>
                             <Ionicons
                                 name="chatbubble-outline"
-                                size={widthPixel(20)}
-                                color={colors.light.tint}
+                                size={widthPixel(18)}
+                                color={textColor}
                             />
                         </IconButton>
                     </Link>
                 </View>
             </View>
-            <View style={styles.map}>
-                {/* <LeafletView
-                    renderLoading={()=><ActivityIndicator color={colors.light.primary} />}
-                    zoom={13}
-                    mapCenterPosition={{
-                        lat: 5.6037,
-                        lng: -0.1870,
-                    }}
-                /> */}
-            </View>
-        </ThemedView>
+        </View>
     )
 }
 
@@ -56,7 +60,22 @@ export default ContactCard
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: widthPixel(10),
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    topAccent: {
+        height: heightPixel(3),
+        width: '100%',
+    },
+    content: {
+        padding: widthPixel(16),
+    },
+    sectionLabel: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(12),
     },
     row: {
         flexDirection: 'row',
@@ -65,35 +84,28 @@ const styles = StyleSheet.create({
     },
     user: {
         flexDirection: 'row',
-        gap: widthPixel(8),
+        gap: widthPixel(12),
         alignItems: 'center',
+        flex: 1,
+    },
+    userInfo: {
+        flex: 1,
     },
     name: {
-        fontSize: widthPixel(16),
+        fontSize: fontPixel(16),
+        fontFamily: 'SemiBold',
+        marginBottom: heightPixel(2),
     },
-    rightRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
+    address: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Regular',
     },
     img: { 
-        width: widthPixel(50), 
-        height: widthPixel(50),
-        borderRadius: widthPixel(25),
-    },
-    icon: {
-        width: widthPixel(30),
-        height: widthPixel(30),
+        width: widthPixel(48), 
+        height: widthPixel(48),
     },
     btn: {
-        backgroundColor: colors.light.lightTint,
-        borderRadius: widthPixel(20),
+        borderWidth: 1,
         padding: widthPixel(10),
     },
-    map: {
-        height: heightPixel(150),
-        marginTop: widthPixel(16),
-        borderRadius: widthPixel(10),
-        overflow: 'hidden',
-    }
 })

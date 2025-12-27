@@ -45,6 +45,21 @@ export default function ArtisanScreen({
     const router = useRouter();
     const backgroundColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'background');
 
+    const portfolio = {
+        id: '1',
+        title: 'Portfolio 1',
+        description: 'Description 1',
+        assets: [],
+        skills: [],
+        likes: 0,
+        comments: 0,
+        hasLiked: false,
+        hasCommented: false,
+        createdAt: '2021-01-01',
+        updatedAt: '2021-01-01',
+        createdBy: '1',
+    };
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.backButtonContainer}>
@@ -80,7 +95,7 @@ export default function ArtisanScreen({
                 {/* Portfolio Section */}
                 <View style={styles.section}>
                     <ThemedText type="subtitle" style={styles.sectionTitle}>Recent Works</ThemedText>
-                    <Portfolio id={artisan.id || ''} />
+                    <Portfolio portfolio={portfolio} />
                 </View>
             </ScrollView>
         </ThemedSafeAreaView>

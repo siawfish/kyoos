@@ -17,6 +17,15 @@ export enum MediaType {
     VIDEO = 'VIDEO',
 }
 
+export enum MimeType {
+    JPEG = 'image/jpeg',
+    JPG = 'image/jpg',
+    PNG = 'image/png',
+    MP4 = 'video/mp4',
+    MOV = 'video/mov',
+    PDF = 'application/pdf',
+}
+
 export enum PermissionType {
     CAMERA = 'CAMERA',
     MEDIA_LIBRARY = 'MEDIA_LIBRARY',
@@ -27,7 +36,7 @@ export interface Media {
     uri: string;
     width?: number;
     height?: number;
-    type?: MediaType;
+    type?: MediaType | MimeType;
 }
 
 export enum BookingStatuses {
@@ -50,6 +59,11 @@ export interface AppState {
     token: string | null;
     user: User | null;
     hasSeenOnboarding: boolean;
+}
+
+export enum StoreName {
+    SEARCH = 'SEARCH',
+    REGISTER = 'REGISTER',
 }
 export interface Asset {
     id: string;

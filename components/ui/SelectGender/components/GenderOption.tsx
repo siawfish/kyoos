@@ -1,13 +1,13 @@
-import { StyleSheet, Image, TouchableOpacity, View, ViewStyle } from 'react-native'
-import React from 'react'
+import man from '@/assets/images/man.png'
+import woman from '@/assets/images/woman.png'
+import RadioButton from '@/components/ui/RadioButton'
+import { ThemedText } from '@/components/ui/Themed/ThemedText'
 import { fontPixel, widthPixel } from '@/constants/normalize'
-import man from '@/assets/images/man.png';
-import woman from '@/assets/images/woman.png';
 import { colors } from '@/constants/theme/colors'
 import { useThemeColor } from '@/hooks/use-theme-color'
-import { Gender } from '@/redux/app/types';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import RadioButton from '@/components/ui/RadioButton';
+import { Gender } from '@/redux/app/types'
+import React from 'react'
+import { Image, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native'
 
 interface GenderOptionProps {
     style?: ViewStyle;
@@ -35,9 +35,9 @@ const GenderOption = ({
         dark: colors.dark.background
     }, 'background');
     const activeBackgroundColor = useThemeColor({
-        light: colors.light.lightTint,
-        dark: colors.dark.lightTint
-    }, 'lightTint');
+        light: colors.light.misc,
+        dark: colors.dark.misc
+    }, 'misc');
   return (
     <TouchableOpacity 
         onPress={onPress} 
@@ -46,7 +46,8 @@ const GenderOption = ({
             {
                 borderColor: checked ? activeBorderColor : borderColor, 
                 backgroundColor: checked ? activeBackgroundColor : backgroundColor
-            }
+            },
+            style
         ]}
     >
         <View style={styles.innerRow}>
@@ -61,7 +62,7 @@ const GenderOption = ({
                 <ThemedText 
                     style={[styles.businessType]}
                     lightColor={checked ? colors.light.tint : colors.light.text}
-                    darkColor={checked ? colors.light.tint : colors.dark.text}
+                    darkColor={checked ? colors.dark.tint : colors.dark.text}
                 >
                     {type}
                 </ThemedText>
@@ -90,8 +91,7 @@ const styles = StyleSheet.create({
     },
     card: {
         padding: widthPixel(10),
-        borderRadius: widthPixel(10),
-        backgroundColor: '#f5f5f5',
+        borderRadius: 0,
         flex: 1,
         borderWidth: 1,
     },

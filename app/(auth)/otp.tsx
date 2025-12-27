@@ -1,16 +1,14 @@
-import { StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import React from 'react'
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import Button from '@/components/ui/Button'
 import OtpField from '@/components/auth/Otp'
-import BackButton from '@/components/ui/BackButton'
-import { Link, Redirect, router } from 'expo-router'
-import { colors } from '@/constants/theme/colors'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { actions } from '@/redux/auth/slice'
-import { selectLoginFormIsLoading, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId } from '@/redux/auth/selector'
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
+import Button from '@/components/ui/Button'
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
+import { colors } from '@/constants/theme/colors'
+import { selectLoginFormIsLoading, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId } from '@/redux/auth/selector'
+import { actions } from '@/redux/auth/slice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { Link, Redirect } from 'expo-router'
+import React, { useEffect } from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 
 const Otp = () => {
     const dispatch = useAppDispatch();
@@ -18,6 +16,12 @@ const Otp = () => {
     const isLoading = useAppSelector(selectLoginFormIsLoading);
     const referenceId = useAppSelector(selectReferenceId);
     const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const textColor = isDark ? colors.dark.text : colors.light.text;
+    const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
 
     if (!referenceId) {
         return <Redirect href="/(auth)/login" />
@@ -35,34 +39,23 @@ const Otp = () => {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <BackButton 
-                        containerStyle={styles.backButton}
-                        onPress={()=>router.back()}
-                        iconName="arrow-left"
-                    />
                     <View style={styles.mainStyle}>
-                        <ThemedText 
-                            type='title'
-                        >
-                            Enter the confirmation code
-                        </ThemedText>
-                        <ThemedText 
-                            style={styles.subtitle} 
-                            type='subtitle'
-                            lightColor={colors.light.secondary}
-                            darkColor={colors.dark.secondary}
-                        >
-                            To confirm your phone number, please enter the 6 digit code sent to your phone {phoneNumber.value}
-                        </ThemedText>
-                        <Link href="/(auth)" asChild>
-                            <ThemedText
-                                style={styles.subtitle}
-                                type='subtitle'
-                                lightColor={colors.light.tint}
-                                darkColor={colors.dark.tint}
-                            >
-                                Change phone number
-                            </ThemedText>
+                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                        <Text style={[styles.label, { color: subtitleColor }]}>
+                            VERIFICATION
+                        </Text>
+                        <Text style={[styles.title, { color: textColor }]}>
+                            Enter the{'\n'}confirmation code
+                        </Text>
+                        <Text style={[styles.subtitle, { color: subtitleColor }]}>
+                            Please enter the 6 digit code sent to {phoneNumber.value}
+                        </Text>
+                        <Link href="/(auth)/login" asChild>
+                            <TouchableOpacity>
+                                <Text style={[styles.changeNumber, { color: textColor }]}>
+                                    Change number →
+                                </Text>
+                            </TouchableOpacity>
                         </Link>
                     </View>
                     <OtpField
@@ -72,7 +65,7 @@ const Otp = () => {
                         }}
                     />
                     <Button 
-                        label='Continue'
+                        label='Verify'
                         style={styles.continueButton}
                         disabled={otp.value.length !== 6 || !!otp.error}
                         onPress={()=>{
@@ -98,20 +91,43 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
     },
-    backButton: {
-        margin: widthPixel(16),
-    },
     mainStyle: {
-        paddingHorizontal: widthPixel(16),
-        marginBottom: "6%",
+        marginTop: "15%",
+        paddingHorizontal: widthPixel(20),
+        marginBottom: heightPixel(32),
+    },
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(24),
+    },
+    label: {
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+        marginBottom: heightPixel(8),
+    },
+    title: {
+        fontSize: fontPixel(36),
+        fontFamily: 'Bold',
+        lineHeight: fontPixel(42),
+        letterSpacing: -1,
+        marginBottom: heightPixel(16),
     },
     subtitle: {
-        width: "90%",
-        fontSize: fontPixel(16),
-        marginTop: heightPixel(10)
+        fontSize: fontPixel(15),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(22),
+        marginBottom: heightPixel(16),
+    },
+    changeNumber: {
+        fontSize: fontPixel(13),
+        fontFamily: 'SemiBold',
+        letterSpacing: 0.5,
     },
     continueButton: {
         marginTop: 'auto',
         marginBottom: heightPixel(20),
+        marginHorizontal: widthPixel(20),
     },
 })

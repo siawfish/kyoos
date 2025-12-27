@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
         flex:1,
         height: widthPixel(60),
         maxWidth: widthPixel(60),
+        borderRadius: 0,
     },
     pinCodeTextStyle: {
         fontFamily: 'Bold',

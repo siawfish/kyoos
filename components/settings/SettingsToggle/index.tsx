@@ -1,34 +1,53 @@
-import { Switch, View,TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { widthPixel, heightPixel } from "@/constants/normalize";
-import { colors } from "@/constants/theme/colors";
-import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import Switch from '@/components/ui/Switch';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface SettingsToggleProps {
     title: string;
     icon: string;
-    color: string;
-    onToggle: () => void;
+    color?: string;
+    onToggle: (value: boolean) => void;
     value: boolean;
     disabled?: boolean;
 }
 
 const SettingsToggle = ({ title, icon, color, onToggle, value, disabled }: SettingsToggleProps) => {
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    // Use consistent colors: black icon on light gray (light mode), white icon on dark gray (dark mode)
+    const iconColor = isDark ? colors.dark.white : colors.light.black;
+    const iconBackgroundColor = isDark ? colors.dark.grey : colors.light.grey;
+
+    // Switch colors: use theme-aware colors
+    // Active: white in dark mode, black in light mode (or use the accent color)
+    const switchActiveColor = isDark ? colors.dark.white : colors.light.black;
+    // Inactive: dark grey in dark mode, light grey in light mode
+    const switchInactiveColor = isDark ? colors.dark.grey : colors.light.grey;
+    // Thumb: black in dark mode, white in light mode
+    const switchThumbColor = isDark ? colors.dark.black : colors.light.white;
 
     return (
         <TouchableOpacity style={styles.settingsItem}>
             <View style={styles.settingsItemContent}>
-                <View style={[styles.iconContainer, { backgroundColor: `${color}20` }]}>
-                <Ionicons name={icon as any} size={22} color={color} />
+                <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor }]}>
+                <Ionicons name={icon as any} size={22} color={iconColor} />
                 </View>
-                <ThemedText type="default">{title}</ThemedText>
+                <ThemedText style={styles.titleText}>{title}</ThemedText>
             </View>
             <Switch
                 value={value}
                 onValueChange={onToggle}
                 style={styles.switch}
+                activeColor={switchActiveColor}
+                inactiveColor={switchInactiveColor}
+                thumbColor={switchThumbColor}
                 disabled={disabled}
-                trackColor={{ false: colors.light.background, true: colors.light.tint }}
             />
         </TouchableOpacity>
     );
@@ -39,24 +58,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: heightPixel(12),
-        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(16),
+        paddingHorizontal: widthPixel(20),
     },
     settingsItemContent: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: widthPixel(12),
     },
     iconContainer: {
-        width: widthPixel(32),
-        height: widthPixel(32),
-        borderRadius: widthPixel(8),
+        width: widthPixel(40),
+        height: widthPixel(40),
+        borderRadius: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: widthPixel(12),
+    },
+    titleText: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Medium',
     },
     switch: {
-        transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-    }
+        transform: [{ scaleX: 1 }, { scaleY: 1 }],
+    },
 });
 
 export default SettingsToggle;

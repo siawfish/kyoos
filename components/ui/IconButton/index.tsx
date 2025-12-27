@@ -1,8 +1,8 @@
-import { StyleSheet, TouchableOpacity, TouchableOpacityProps } from 'react-native'
-import React, { forwardRef } from 'react'
 import { widthPixel } from '@/constants/normalize';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 
 interface IconButtonProps extends TouchableOpacityProps {
     children: React.ReactNode;
@@ -10,21 +10,20 @@ interface IconButtonProps extends TouchableOpacityProps {
     darkColor?: string;
 }
 
-const IconButton = forwardRef<any, IconButtonProps>(({
+const IconButton = ({
     onPress,
     children,
     style,
     lightColor,
     darkColor,
     ...props
-}, ref) => {
+}: IconButtonProps) => {
     const backgroundColor = useThemeColor({
         light: lightColor ?? colors.light.background,
         dark: darkColor ?? colors.dark.background
     }, 'background');
     return (
         <TouchableOpacity 
-            ref={ref}
             style={[styles.container, {backgroundColor}, style]}
             onPress={onPress}
             {...props}
@@ -32,7 +31,7 @@ const IconButton = forwardRef<any, IconButtonProps>(({
             {children}
         </TouchableOpacity>
     )
-});
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -41,7 +40,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: widthPixel(48),
         height: widthPixel(48),
-        borderRadius: widthPixel(24),
+        borderRadius: 0,
     }
 })
 

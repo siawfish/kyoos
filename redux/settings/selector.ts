@@ -2,8 +2,8 @@
  * Homepage selectors
  */
 
-import {createSelector} from '@reduxjs/toolkit';
 import { RootState } from '@/store';
+import {createSelector} from '@reduxjs/toolkit';
 
 import {initialState} from './slice';
 
@@ -18,5 +18,10 @@ export const selectProfileForm = createSelector(
 export const selectProfileFormIsLoading = createSelector(
     [selectDomain],
     (settings) => settings.profileForm.isLoading,
+);
+
+export const selectProfileFormLocation = createSelector(
+    [selectDomain],
+    (settings) => settings.profileForm.location,
 );
 

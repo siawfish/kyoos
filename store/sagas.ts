@@ -9,6 +9,7 @@ import { all } from 'redux-saga/effects';
 import { searchSaga } from '@/redux/search/saga';
 import { bookingSaga } from '@/redux/booking/saga';
 import { settingsSaga } from '@/redux/settings/saga';
+import { portfolioSaga } from '@/redux/portfolio/saga';
 
 // export default [loginSaga];
 
@@ -19,5 +20,6 @@ export default function* rootSaga() {
     searchSaga(),
     bookingSaga(),
     settingsSaga(),
+    portfolioSaga(),
   ]);
 }

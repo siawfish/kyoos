@@ -15,7 +15,36 @@ import Animated, {
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const portfolios = ['1', '2', '3', '4', '5'];
+const portfolios = [
+  {
+    id: '1',
+    title: 'Portfolio 1',
+    description: 'Description 1',
+    assets: [],
+    skills: [],
+    likes: 0,
+    comments: 0,
+    hasLiked: false,
+    hasCommented: false,
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
+    createdBy: '1',
+  },
+  {
+    id: '2',
+    title: 'Portfolio 2',
+    description: 'Description 2',
+    assets: [],
+    skills: [],
+    likes: 0,
+    comments: 0,
+    hasLiked: false,
+    hasCommented: false,
+    createdAt: '2021-01-01',
+    updatedAt: '2021-01-01',
+    createdBy: '1',
+  },
+];
 
 export default function TrendingWorks() {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -114,10 +143,10 @@ export default function TrendingWorks() {
                 scrollEventThrottle={16}
                 style={styles.carousel}
             >
-                {portfolios.map((id, index) => (
-                <Animated.View key={id} style={[styles.portfolioSlide, PortfolioAnimatedStyle(index)]}>
-                    <Portfolio id={id} />
-                </Animated.View>
+                {portfolios.map((portfolio, index) => (
+                    <Animated.View key={portfolio.id} style={[styles.portfolioSlide, PortfolioAnimatedStyle(index)]}>
+                        <Portfolio portfolio={portfolio} />
+                    </Animated.View>
                 ))}
             </Animated.ScrollView>
             <View style={styles.pagination}>

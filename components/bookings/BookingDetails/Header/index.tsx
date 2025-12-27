@@ -1,12 +1,12 @@
-import { StyleSheet, View } from 'react-native'
-import React from 'react'
+import BackButton from '@/components/ui/BackButton'
+import Button from '@/components/ui/Button'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Link } from 'expo-router'
-import BackButton from '@/components/ui/BackButton'
-import Button from '@/components/ui/Button'
+import React from 'react'
+import { StyleSheet, View } from 'react-native'
 
 const Header = ({
   onReschedule,
@@ -23,7 +23,7 @@ const Header = ({
     const borderColor = useThemeColor(
       {
         light: colors.light.black,
-        dark: colors.dark.misc,
+        dark: colors.dark.white,
       },
       "text"
     );
@@ -37,10 +37,10 @@ const Header = ({
                 />
               </Link>
               <Button 
-                style={{...styles.chatButton, borderColor: borderColor}}
-                labelStyle={{color: color}}
-                icon={<Ionicons name="calendar" size={18} color={color} />}
-                label="Reschedule"
+                style={{...styles.rescheduleButton, borderColor: borderColor}}
+                labelStyle={{...styles.rescheduleLabel, color: color}}
+                icon={<Ionicons name="calendar" size={fontPixel(16)} color={color} />}
+                label="RESCHEDULE"
                 onPress={onReschedule}
               />
             </View>
@@ -51,60 +51,30 @@ const Header = ({
 export default Header
 
 const styles = StyleSheet.create({
-  backButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-    headerLeft: {
-        gap: widthPixel(16),
-        flexDirection: 'column',
-    },
-    infoContainer: {
-        gap: heightPixel(8),
-    },
-    infoRow: {
-        flexDirection: "row",
-        gap: widthPixel(8),
-        alignItems: 'center',
-    },
     header: {
-        paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(16),
-        paddingTop: heightPixel(16),
-        gap: heightPixel(16),
+        paddingHorizontal: widthPixel(20),
+        paddingBottom: heightPixel(12),
+        paddingTop: heightPixel(8),
     },
-    title: {
-        fontSize: fontPixel(24) 
-    },
-    subtitle: {
-        fontSize: fontPixel(16),
-        color: colors.dark.secondary,
-    },
-    headerTitle: {
-      fontSize: fontPixel(24),
-      marginBottom: heightPixel(8),
-    },
-    avatar: {
-        width: widthPixel(20),
-        height: widthPixel(20),
-        borderRadius: widthPixel(10),
-    },
-    headerSubtitle: {
+    backButtonContainer: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        gap: widthPixel(4),
     },
     backButton: {
-        // alignSelf: "flex-end",
+        // Sharp edges handled by BackButton component
     },
-    chatButton: {
+    rescheduleButton: {
         backgroundColor: "transparent",
-        borderRadius: 28,
-        padding: widthPixel(10),
+        borderRadius: 0,
         borderWidth: 1,
         marginHorizontal: 0,
-        height: 40,
-        paddingHorizontal: widthPixel(16),
+        height: heightPixel(40),
+        paddingHorizontal: widthPixel(14),
+    },
+    rescheduleLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1,
     },
 })

@@ -1,9 +1,9 @@
-import React, { forwardRef } from 'react';
-import { StyleSheet, TouchableOpacity, TouchableOpacityProps, TextStyle, Platform, ActivityIndicator, View } from 'react-native'
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
 import { heightPixel, widthPixel } from '@/constants/normalize';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import React, { forwardRef } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, TextStyle, TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
+import { ThemedText } from '../Themed/ThemedText';
 
 interface ButtonProps extends TouchableOpacityProps {
   labelStyle?: TextStyle | TextStyle[];
@@ -29,12 +29,12 @@ const Button = forwardRef<View, ButtonProps>(({
     isLoading
 }, ref) => {
     const backgroundColor = useThemeColor({
-        light: lightBackgroundColor || colors.dark.background,
-        dark: darkBackgroundColor || colors.dark.black
+        light: lightBackgroundColor || colors.light.black,
+        dark: darkBackgroundColor || colors.dark.white
     }, 'background');
     const color = useThemeColor({
         light: colors.light.white,
-        dark: colors.dark.white
+        dark: colors.dark.black
     }, 'text');
   return (
     <TouchableOpacity 
@@ -43,7 +43,7 @@ const Button = forwardRef<View, ButtonProps>(({
         style={[
             styles.button, 
             {
-              backgroundColor
+                backgroundColor
             },
             (disabled || isLoading) && styles.disabled,
             style
@@ -77,12 +77,12 @@ const styles = StyleSheet.create({
     height: heightPixel(56),
     alignItems: 'center',
     marginHorizontal: widthPixel(16),
-    borderRadius: widthPixel(14),
+    borderRadius: 0,
     flexDirection: 'row',
     gap: widthPixel(10),
     ...Platform.select({
       ios: {
-        shadowColor: colors.light.black,
+        shadowColor: '#000',
         shadowOffset: {
           width: 0,
           height: 2,

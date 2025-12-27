@@ -1,7 +1,7 @@
-import { View, StyleSheet, ViewStyle } from 'react-native'
-import React from 'react'
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 
 interface RadioButtonProps {
     style?: ViewStyle;
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   container: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 0,
     borderWidth: 2,
   },
   checked: {

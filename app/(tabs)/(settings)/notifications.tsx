@@ -1,20 +1,38 @@
-import { ScrollView, StyleSheet } from "react-native";
-import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
-import { ThemedView } from "@/components/ui/Themed/ThemedView";
-import { fontPixel, widthPixel, heightPixel } from "@/constants/normalize";
-import { colors } from "@/constants/theme/colors";
-import SectionTitle from "@/components/ui/SectionTitle";
 import SettingsToggle from "@/components/settings/SettingsToggle";
-import { useSelector, useDispatch } from "react-redux";
+import BackButton from "@/components/ui/BackButton";
+import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectUser } from "@/redux/app/selector";
 import { actions } from "@/redux/app/slice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { router } from "expo-router";
 import { useState } from "react";
+import { ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
   
 const NotificationsScreen = () => {
-  const user = useSelector(selectUser)
-  const dispatch = useDispatch()
+  const user = useAppSelector(selectUser)
+  const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(false)
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+
+  const backgroundColor = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
+  }, 'background');
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = accentColor;
+  const labelColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
+  const cardBg = useThemeColor({
+    light: colors.light.background,
+    dark: colors.dark.background
+  }, 'background');
 
   const handlePushNotificationToggle = () => {
     setIsLoading(true)
@@ -23,23 +41,23 @@ const NotificationsScreen = () => {
       callback: () => setIsLoading(false)
     }))
   }
+
   return (
-    <ThemedSafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>  
-      <SectionTitle 
-          containerStyle={styles.header}
-          titleStyle={styles.title}
-          subtitleStyle={styles.subtitle}
-          subtitle="Manage your notifications settings."
-          title="Notifications" 
-          icon={null}
-      />
-        <ThemedView 
-          style={styles.settingsGroup}
-          lightColor={colors.light.white}
-          darkColor={colors.dark.black}
-        >
-          
+    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerSection}>
+          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <View style={styles.header}>
+            <BackButton onPress={() => router.back()} iconName="arrow-left" />
+          </View>
+          <Text style={[styles.label, { color: labelColor }]}>NOTIFICATIONS</Text>
+        </View>
+
+        <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>
           <SettingsToggle
             title="Push Notifications"
             icon="notifications-outline"
@@ -48,17 +66,17 @@ const NotificationsScreen = () => {
             value={user?.settings?.notifications?.pushNotification as boolean}
             disabled={isLoading}
           />
-        </ThemedView>
-        <ThemedView style={styles.settingsGroup}>
+        </View>
+
+        <View style={[styles.descriptionGroup, { backgroundColor: cardBg, borderColor }]}>
           <ThemedText 
-            type="subtitle"
-            style={styles.versionText}
+            style={styles.descriptionText}
             lightColor={colors.light.secondary}
             darkColor={colors.dark.secondary}
           >
             Select the notifications you want to receive. Push notifications help you stay up to date with important updates, messages, and activity in the app. You can customize which notifications you receive to ensure you only get the updates that matter most to you.
           </ThemedText>
-        </ThemedView>
+        </View>
       </ScrollView>
     </ThemedSafeAreaView>
   );
@@ -70,33 +88,47 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    marginTop: heightPixel(20),
+  },
+  scrollContent: {
+    paddingBottom: heightPixel(100),
+  },
+  headerSection: {
+    paddingHorizontal: widthPixel(20),
+    paddingTop: heightPixel(32),
+    paddingBottom: heightPixel(20),
+  },
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
   },
   header: {
-    marginHorizontal: widthPixel(16),
-    marginBottom: heightPixel(32),
+    marginBottom: heightPixel(16),
   },
-  title: {
-    fontSize: fontPixel(32),
-    fontFamily: 'Bold',
-    lineHeight: 38
-  },
-  subtitle: {
-    fontSize: fontPixel(16),
-    fontFamily: 'Regular',
-    lineHeight: 20
+  label: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
   },
   settingsGroup: {
-    marginHorizontal: widthPixel(16),
-    marginBottom: heightPixel(32),
-    borderRadius: widthPixel(10),
+    marginHorizontal: widthPixel(20),
+    marginBottom: heightPixel(16),
+    borderWidth: 0.5,
+    borderRadius: 0,
+    overflow: 'hidden',
   },
-  versionText: {
-    fontSize: fontPixel(14),
+  descriptionGroup: {
+    marginHorizontal: widthPixel(20),
+    marginBottom: heightPixel(16),
+    borderWidth: 0.5,
+    borderRadius: 0,
+    padding: widthPixel(16),
+  },
+  descriptionText: {
+    fontSize: fontPixel(15),
     fontFamily: 'Regular',
-    lineHeight: 20,
-    textAlign: 'center'
-  }
+    lineHeight: fontPixel(22),
+  },
 });
 
 export default NotificationsScreen;

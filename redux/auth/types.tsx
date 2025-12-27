@@ -14,6 +14,7 @@ export interface LoginForm {
   otp: FormElement;
   isLoading: boolean;
 }
+
 export interface RegisterForm {
   name: FormElement;
   email: FormElement;
@@ -22,6 +23,27 @@ export interface RegisterForm {
   isLoading: boolean;
   gender: FormElement;
   location: Location;
+}
+
+export interface GhanaCardForm {
+  number: FormElement;
+  front: FormElement;
+  back: FormElement;
+}
+
+export interface SkillsForm {
+  id: string;
+  name: FormElement;
+  rate: FormElement;
+  yearsOfExperience: FormElement;
+  icon: string;
+}
+
+export interface LocationForm {
+  lat: number;
+  lng: number;
+  address: string;
+  error?: string;
 }
 
 export interface Credentials {
@@ -33,6 +55,7 @@ export interface Location {
   lng: number;
   address: string;
 }
+
 export interface VerifyPhoneNumberResponse {
   referenceId: string;
   phoneNumber: string;

@@ -1,94 +1,129 @@
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import {Agenda, DateData, AgendaEntry, AgendaSchedule} from 'react-native-calendars';
-import SectionTitle from '@/components/ui/SectionTitle';
-import { fontPixel, heightPixel } from '@/constants/normalize';
-import { format } from 'date-fns'
-import { formatRelativeDate, timeToString } from '@/constants/helpers';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
 import BookingCard from '@/components/bookings/BookingCard';
+import WeekCalendar from '@/components/bookings/WeekCalendar';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { formatRelativeDate } from '@/constants/helpers';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { format, isSameDay } from 'date-fns';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { AgendaEntry } from 'react-native-calendars';
+
+interface BookingAgendaEntry extends AgendaEntry {
+  booking?: any;
+}
+
+// Mock data for preview - bookings spread across different days
+// TODO: Replace with actual data from Redux
+const mockBookings: any[] = [];
 
 export default function BookingsScreen() {
-  const [items, setItems] = React.useState<AgendaSchedule>({});
-  const [currentDate, setCurrentDate] = React.useState<string>(new Date().toISOString().split('T')[0]);
-  const loadItems = (day: DateData) => {  
-    setTimeout(() => {
-      for (let i = -15; i < 85; i++) {
-        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
-        const strTime = timeToString(time);
+  // TODO: Replace with actual data from Redux
+  const allBookings = mockBookings;
+  const isLoading = false;
   
-        if (!items[strTime]) {
-          items[strTime] = [];
-          
-          const numItems = Math.floor(Math.random() * 3 + 1);
-          for (let j = 0; j < numItems; j++) {
-            items[strTime].push({
-              name: 'Plumbing appointment with John',
-              height: Math.max(50, Math.floor(Math.random() * 150)),
-              day: strTime
-            });
-          }
-        }
-      }
-      
-      const newItems: AgendaSchedule = {};
-      Object.keys(items).forEach(key => {
-        newItems[key] = items[key];
-      });
-      setItems(newItems);
-    }, 1000);
-  };
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-  
-  const rowHasChanged = (r1: AgendaEntry, r2: AgendaEntry) => {
-    return r1.name !== r2.name;
-  };
-  const backgroundColor = useThemeColor({ light: '', dark: '' }, 'background');
-  const labelColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'text');
-  const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
-  const knobColor = useThemeColor({ light: colors.light.grey, dark: colors.dark.lightTint }, 'text');
-  const tintColor = useThemeColor({ light: colors.light.tint, dark: colors.dark.tint }, 'text');
+  const textColor = isDark ? colors.dark.text : colors.light.text;
+  const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+
+  const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background}, 'background');
+
+  // Calculate booking counts per day for the calendar indicators
+  const bookingCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allBookings.forEach((booking: any) => {
+      // TODO: Adjust based on actual booking data structure
+      const dateKey = booking?.service?.appointmentDateTime?.date?.value || format(selectedDate, 'yyyy-MM-dd');
+      counts[dateKey] = (counts[dateKey] || 0) + 1;
+    });
+    return counts;
+  }, [allBookings]);
+
+  // Filter bookings for the selected date
+  const filteredBookings = useMemo(() => {
+    return allBookings.filter((booking: any) => {
+      // TODO: Adjust based on actual booking data structure
+      const bookingDate = booking?.service?.appointmentDateTime?.date?.value;
+      if (!bookingDate) return false;
+      return isSameDay(new Date(bookingDate), selectedDate);
+    });
+  }, [allBookings, selectedDate]);
+
+  // Convert filtered bookings to agenda items
+  const agendaItems: BookingAgendaEntry[] = filteredBookings.map((booking: any) => ({
+    name: `${booking?.service?.description || 'Booking'} with ${booking?.client?.name || 'Client'}`,
+    height: 80,
+    day: booking?.service?.appointmentDateTime?.date?.value || format(selectedDate, 'yyyy-MM-dd'),
+    booking
+  }));
   
   return (
     <ThemedSafeAreaView 
       style={styles.containerStyle}
     >
-        <SectionTitle 
-          title={formatRelativeDate(currentDate)} 
-          subtitle={format(new Date(currentDate), 'EEEE, MMMM d, yyyy')}
-          containerStyle={styles.headerContainerStyle}
-          titleStyle={styles.headerTitle}
-          icon={null}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <Text style={[styles.label, { color: subtitleColor }]}>
+            BOOKINGS
+          </Text>
+          <Text style={[styles.title, { color: textColor }]}>
+            {formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
+          </Text>
+          <Text style={[styles.subtitle, { color: subtitleColor }]}>
+            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+          </Text>
+        </View>
+
+        {/* Week Calendar */}
+        <WeekCalendar
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+          bookingCounts={bookingCounts}
         />
-        {/* <Agenda
-          items={items}
-          loadItemsForMonth={loadItems}
-          selected={currentDate} // Should be a date string of format 'yyyy-mm-dd'
-          renderItem={(item:AgendaEntry, firstItemInDay:boolean)=><BookingCard reservation={item} isFirst={firstItemInDay} />}
-          rowHasChanged={rowHasChanged}
-          showClosingKnob={true}
-          style={{
-            backgroundColor,
-          }}
-          onDayPress={(day:DateData) => setCurrentDate(day.dateString)}
-          onDayChange={(day:DateData) => setCurrentDate(day.dateString)}
-          theme={{
-            calendarBackground: backgroundColor, 
-            dayTextColor: textColor,
-            textSectionTitleColor: labelColor,
-            selectedDayBackgroundColor: colors.light.tint,
-            todayTextColor: colors.light.tint,
-            dotColor: colors.light.tint,
-            agendaKnobColor: knobColor,
-            monthTextColor: textColor,
-            agendaTodayColor: colors.light.tint,
-            agendaDayTextColor: labelColor,
-            agendaDayNumColor: labelColor,
-            reservationsBackgroundColor: backgroundColor
-          }}
-        /> */}
+
+        {/* Content */}
+        {isLoading && !filteredBookings.length ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={accentColor} />
+          </View>
+        ) : filteredBookings.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <View style={[styles.emptyCard, { borderColor: accentColor, backgroundColor }]}>
+              <View style={[styles.emptyAccent, { backgroundColor: accentColor }]} />
+              <View style={styles.emptyInner}>
+                <Image source={require('@/assets/images/empty-list.png')} style={styles.emptyImage} />
+                <Text style={[styles.emptyTitle, { color: textColor }]}>
+                  No bookings
+                </Text>
+                <Text style={[styles.emptySubtitle, { color: subtitleColor }]}>
+                  No bookings scheduled for this day
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.bookingsList}>
+            {agendaItems.map((item, index) => (
+              <BookingCard 
+                key={item.booking?.id || index} 
+                reservation={item} 
+                isFirst={index === 0} 
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </ThemedSafeAreaView>
   );
 }
@@ -97,15 +132,83 @@ const styles = StyleSheet.create({
   containerStyle: {
     flex: 1,
   },
-  headerContainerStyle: {
-    marginBottom: heightPixel(8),
-    marginHorizontal: heightPixel(16),
-    paddingBottom: heightPixel(10),
-    marginTop: heightPixel(20),
-    alignItems: 'flex-start',
+  scrollView: {
+    flex: 1,
   },
-  headerTitle: {
-    fontSize: fontPixel(32),
-    lineHeight: 32,
-  }
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: heightPixel(40),
+  },
+  header: {
+    paddingHorizontal: widthPixel(20),
+    paddingTop: heightPixel(32),
+    marginBottom: heightPixel(24),
+  },
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
+  },
+  label: {
+    fontSize: fontPixel(11),
+    fontFamily: 'SemiBold',
+    letterSpacing: 2,
+    marginBottom: heightPixel(8),
+  },
+  title: {
+    fontSize: fontPixel(36),
+    fontFamily: 'Bold',
+    letterSpacing: -1,
+    marginBottom: heightPixel(4),
+    textTransform: 'capitalize',
+  },
+  subtitle: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: heightPixel(100),
+  },
+  emptyContainer: {
+    flex: 1,
+    paddingHorizontal: widthPixel(20),
+    paddingTop: heightPixel(20),
+  },
+  emptyCard: {
+    borderWidth: 0.5,
+    borderTopWidth: 0,
+    overflow: 'hidden',
+  },
+  emptyAccent: {
+    height: heightPixel(3),
+    width: '100%',
+  },
+  emptyInner: {
+    alignItems: 'center',
+    paddingVertical: heightPixel(48),
+    paddingHorizontal: widthPixel(24),
+  },
+  emptyImage: {
+    width: widthPixel(80),
+    height: widthPixel(80),
+    marginBottom: heightPixel(20),
+    opacity: 0.8,
+  },
+  emptyTitle: {
+    fontSize: fontPixel(18),
+    fontFamily: 'SemiBold',
+    marginBottom: heightPixel(8),
+  },
+  emptySubtitle: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
+    textAlign: 'center',
+  },
+  bookingsList: {
+    paddingHorizontal: widthPixel(20),
+    gap: heightPixel(12),
+  },
 });

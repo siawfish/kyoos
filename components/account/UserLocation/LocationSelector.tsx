@@ -34,7 +34,7 @@ export default function LocationSelector() {
         error: '',
       }));
     }
-  }, [user?.location]);
+  }, [user?.location, dispatch]);
   
   const backgroundColor = useThemeColor({
     light: colors.light.background,

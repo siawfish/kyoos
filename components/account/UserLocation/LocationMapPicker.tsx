@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, TouchableOpacity, View, Dimensions } from 'react-native';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { Colors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { colors } from '@/constants/theme/colors';
 import { Portal } from '@gorhom/portal';
-import { ThemedText } from '@/components/themed/ThemedText';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { BlurView } from 'expo-blur';
-import { fontPixel } from '@/constants/normalize';
-import { heightPixel } from '@/constants/normalize';
-import { widthPixel } from '@/constants/normalize';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -15,11 +13,11 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import MapView, { Marker } from 'react-native-maps';
-import Button from '@/components/Button';
-import { Location } from '@/app/(auth)/types';
-import { useDispatch } from 'react-redux';
-import { actions } from '@/app/redux/slice';
+import MapView, { MapPressEvent, Marker } from 'react-native-maps';
+import Button from '@/components/ui/Button';
+import { Location } from '@/redux/auth/types';
+import { useAppDispatch } from '@/store/hooks';
+import { actions } from '@/redux/app/slice';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.8;
@@ -52,9 +50,9 @@ const LocationMapPicker = ({
       longitude: number;
     } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
   
-    const handleMapPress = (e: any) => {
+    const handleMapPress = (e: MapPressEvent) => {
       setSelectedLocation(e.nativeEvent.coordinate);
     };
   
@@ -63,17 +61,13 @@ const LocationMapPicker = ({
         setIsLoading(true);
         dispatch(actions.reverseGeocodeLocation({
           latlng: `${selectedLocation.latitude},${selectedLocation.longitude}`,
-           callback: (loc: Location) => {
-            onLocationSelect(loc);
-            onClose();
-            setIsLoading(false);
-        }}));
+        }));
       }
     };
 
     const backgroundColor = useThemeColor({
-        light: Colors.light.background,
-        dark: Colors.dark.background,
+        light: colors.light.background,
+        dark: colors.dark.background,
     }, 'background');
 
     useEffect(() => {
@@ -202,7 +196,7 @@ const styles = StyleSheet.create({
         padding: widthPixel(16),
         flexDirection: 'row',
         alignItems: 'center',
-        borderColor: Colors.light.tint,
+        borderColor: colors.light.tint,
         borderTopWidth: 0.3,
         borderBottomWidth: 0.3,
         borderLeftWidth: 0,
@@ -242,7 +236,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(16),
         marginHorizontal: -widthPixel(16),
         borderBottomWidth: 0.3,
-        borderBottomColor: Colors.dark.misc,
+        borderBottomColor: colors.dark.misc,
     },
     optionText: {
         fontSize: fontPixel(16),
@@ -261,7 +255,7 @@ const styles = StyleSheet.create({
         width: widthPixel(24),
         height: widthPixel(24),
         borderRadius: widthPixel(12),
-        backgroundColor: Colors.light.lightTint,
+        backgroundColor: colors.light.lightTint,
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',

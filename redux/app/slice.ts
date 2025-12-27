@@ -1,9 +1,8 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Asset, ContainerState, Theme, User} from './types';
-import { Location } from '@/redux/auth/types';
+import {Asset, AppState, Theme, User, StoreName} from './types';
 
 // The initial state of the GithubRepoForm container
-export const initialState: ContainerState = {
+export const initialState: AppState = {
   isLoading: false,
   token: null,
   user: null,
@@ -46,7 +45,7 @@ const appSlice = createSlice({
         state.user.settings.theme = state.user.settings.theme === Theme.DARK ? Theme.LIGHT : Theme.DARK;
       }
     },
-    reverseGeocodeLocation: (state, action: PayloadAction<{latlng: string, callback: (loc: Location) => void}>) => {},
+    reverseGeocodeLocation: (state, action: PayloadAction<{latlng: string, store?: StoreName}>) => {},
     updateNotifications: (state, action: PayloadAction<{
       pushNotification: boolean;
       callback: () => void;

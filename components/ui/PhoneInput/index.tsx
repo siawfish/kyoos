@@ -1,12 +1,13 @@
-import React, { useRef, useCallback, memo, useEffect } from 'react';
-import { StyleSheet, View, ViewStyle, Animated, Easing, TextInputProps, TextInput, Image } from 'react-native';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import Ghana from '@/assets/svgs/ic_ghana.svg';
+import { widthPixel, fontPixel, heightPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import React, { memo, useCallback, useRef, useEffect } from 'react';
+import { Animated, Easing, StyleSheet, TextInput, TextInputProps, View, ViewStyle, Image } from 'react-native';
+import { ThemedText } from '../Themed/ThemedText';
 import { actions } from '@/redux/auth/slice';
 import { useDispatch } from 'react-redux';
+
 interface PhoneInputProps extends TextInputProps {
     containerStyle?: ViewStyle;
     error?: string;
@@ -38,14 +39,29 @@ const PhoneInput = memo(({
         dark: colors.dark.text,
     }, 'text');
 
+    const borderColor = useThemeColor({
+        light: error ? colors.light.danger : colors.light.tint,
+        dark: error ? colors.dark.danger : colors.dark.tint
+    }, 'tint');
+
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint
+    }, 'tint');
+
+    const errorColor = useThemeColor({
+        light: colors.light.danger,
+        dark: colors.dark.danger
+    }, 'danger');
+
+    // Animated borderWidth
+    const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
+
     const handleChangeText = useCallback((text: string) => {
         // Remove any non-numeric characters and limit to maxLength
         const numericText = text.replace(/[^0-9]/g, '').slice(0, maxLength);
         onChangeText?.(numericText);
     }, [maxLength, onChangeText]);
-
-    // Animated borderWidth
-    const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
 
     const onFocus = useCallback(() => {
         Animated.timing(borderWidthAnim, {
@@ -65,6 +81,7 @@ const PhoneInput = memo(({
         }).start();
     }, [borderWidthAnim]);
 
+    // Preserve kyoos-specific logic
     useEffect(()=>{
         dispatch(actions.resetAuthState());
     },[])
@@ -90,11 +107,11 @@ const PhoneInput = memo(({
                         color,
                         borderTopWidth: borderWidthAnim,
                         borderBottomWidth: borderWidthAnim,
-                        borderColor: error ? colors.light.danger : colors.light.tint,
+                        borderColor,
                     },
                     style,
                 ]}
-                cursorColor={error ? colors.light.danger : colors.light.tint}
+                cursorColor={error ? errorColor : tintColor}
                 placeholder={placeholder}
                 keyboardType={keyboardType}
                 textContentType={textContentType}
@@ -111,12 +128,10 @@ const PhoneInput = memo(({
                 error && (
                     <ThemedText
                         type='default'
-                        lightColor={colors.light.error}
-                        darkColor={colors.dark.error}
-                        style={styles.error}
+                        lightColor={colors.light.danger}
+                        darkColor={colors.dark.danger}
+                        style={styles.errorText}
                     >
-                        <Image source={require('@/assets/images/warning.png')} style={styles.errorIcon} />
-                        {" "}
                         {error}
                     </ThemedText>
                 )
@@ -132,37 +147,35 @@ const styles = StyleSheet.create({
     input: {
         fontSize: widthPixel(18),
         fontFamily: 'Regular',
-        paddingVertical: widthPixel(16),
         paddingLeft: widthPixel(105),
-        borderColor: colors.light.tint,
+        height: widthPixel(60),
+        borderRadius: 0,
     },
     prefixContainer: {
         position: 'absolute',
-        top: widthPixel(32),
+        top: widthPixel(16),
         left: widthPixel(16),
+        height: widthPixel(60),
         zIndex: 1,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
     },
     ghanaFlag: {
         height: widthPixel(24),
-        borderRadius: widthPixel(2),
+        borderRadius: 0,
     },
     prefixText: {
         fontSize: widthPixel(18),
         fontFamily: 'Regular',
         marginLeft: widthPixel(8),
     },
-    errorIcon: {
-        width: widthPixel(10),
-        height: widthPixel(10),
-        marginRight: widthPixel(4)
+    errorText: {
+        fontSize: widthPixel(14),
+        marginTop: widthPixel(5),
+        marginLeft: widthPixel(16),
     },
-    error: {
-        fontSize: fontPixel(12),
-        marginTop: heightPixel(-4)
-    }
 });
 
 export default PhoneInput;

@@ -1,14 +1,15 @@
 import { Tabs } from 'expo-router';
-import { useEffect } from 'react';
-import { useAppDispatch } from '@/store/hooks';
-import BottomTab from '@/components/ui/BottomTab';
 import { actions } from '@/redux/app/slice';
+import { useEffect } from 'react';
+import BottomTab from '@/components/ui/BottomTab';
+import { useAppDispatch } from '@/store/hooks';
 
 export default function Layout() {
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     dispatch(actions.getUser());
-  }, []);
+  }, [dispatch]);
 
   return (
     <Tabs

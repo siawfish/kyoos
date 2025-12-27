@@ -1,25 +1,27 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { heightPixel, widthPixel } from "@/constants/normalize";
 import CustomImage from "@/components/ui/CustomImage";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import { heightPixel, widthPixel } from "@/constants/normalize";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Media } from "@/redux/app/types";
+import React from "react";
+import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface ThumbnailsProps {
     readonly data: Media[];
     readonly onPress?: (id: string) => void;
     readonly onViewMore?: () => void;
+    readonly containerStyle?: StyleProp<ViewStyle>;
 }
 
 const Thumbnails = ({
     data=[],
     onPress,
     onViewMore,
+    containerStyle,
 }:ThumbnailsProps) => {
     const backgroundColor = useThemeColor({ light: '', dark: '' }, 'background');
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, containerStyle]}>
             {
                 data?.[0] &&
                 <CustomImage 
@@ -85,9 +87,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-evenly",
         gap: 3,
-        borderRadius: 10,
+        borderRadius: 0,
         overflow: "hidden",
-        marginVertical: heightPixel(10),
     },
     stack: {
         flex: 1,
@@ -108,6 +109,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         padding: widthPixel(10),
-        borderTopLeftRadius: 5,
+        borderRadius: 0,
     }
 });
