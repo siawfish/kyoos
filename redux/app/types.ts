@@ -59,11 +59,19 @@ export interface AppState {
     token: string | null;
     user: User | null;
     hasSeenOnboarding: boolean;
+    location: LocationForm;
+}
+
+export interface LocationForm extends Location {
+    error: string;
+    isLoading: boolean;
+    isMapPickerOpen: boolean;
 }
 
 export enum StoreName {
     SEARCH = 'SEARCH',
     REGISTER = 'REGISTER',
+    LOCATION = 'LOCATION',
 }
 export interface Asset {
     id: string;

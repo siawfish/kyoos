@@ -1,8 +1,4 @@
-/**
- * Gets the repositories of the game from Game
- */
-
-import {call, delay, put, takeLatest} from 'redux-saga/effects';
+import {call, put, select, takeLatest} from 'redux-saga/effects';
 import { actions } from './slice';
 import { actions as authActions } from '@/redux/auth/slice';
 import Toast from 'react-native-toast-message';
@@ -12,10 +8,10 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { removeItemFromStorage } from '@/services/asyncStorage';
 import { Asset, User, Theme, StoreName } from './types';
 import { Location } from '@/redux/auth/types';
+import { selectUserLocation } from './selector';
 
 export function* logout() {
     try {
-        yield delay(500);
         yield call(request, {
             method: 'GET',
             url: '/api/users/auth/signOut',
@@ -39,7 +35,6 @@ export function* logout() {
 
 export function* getUser() {
     try {
-        yield delay(500);
         const response : ApiResponse<User> = yield call(request, {
             method: 'GET',
             url: '/api/users/auth/me',
@@ -65,7 +60,6 @@ export function* setIsUploadingAsset(action: PayloadAction<{
   notify?: boolean;
 }>) {
     try {
-        yield delay(500);
         const response: ApiResponse<Asset[]> = yield call(request, {
             method: 'POST',
             url: '/api/assets',
@@ -111,7 +105,6 @@ export function* updateTheme(action: PayloadAction<{
   callback: () => void;
 }>) {
     try {
-        yield delay(500);
         const response: ApiResponse<User> = yield call(request, {
             method: 'PATCH',
             url: '/api/users/profile/theme',
@@ -167,7 +160,6 @@ export function* updateNotifications(action: PayloadAction<{
 
 export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, store?: StoreName}>) {
     try {
-        yield delay(500);
         const response: ApiResponse<Location> = yield call(request, {
             method: 'GET',
             url: `/api/google/reverseGeoCode/${action.payload.latlng}`,
@@ -176,13 +168,61 @@ export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, s
             throw new Error(response.message || response.error || 'An error occurred while reverse geocoding location');
         }
         if (action?.payload?.store === StoreName.REGISTER) {
-            yield put(authActions.setLocation(response.data));
+            yield put(authActions.setLocation({
+                lat: response.data.lat,
+                lng: response.data.lng,
+                address: response.data.address,
+                error: '',
+                isLoading: false,
+                isMapPickerOpen: false,
+            }));
+            yield put(authActions.closeMapPicker());
+        }
+        if (action?.payload?.store === StoreName.LOCATION) {
+            yield put(actions.setLocation({
+                lat: response.data.lat,
+                lng: response.data.lng,
+                address: response.data.address,
+                error: '',
+                isLoading: false,
+                isMapPickerOpen: false,
+            }));
+            yield put(actions.closeMapPicker());
         }
     } catch (error:any) {
         const errorMessage = error?.error || error?.message || 'An error occurred while reverse geocoding location';
         Toast.show({
             type: 'error',
             text1: 'Reverse geocode location failed',
+            text2: errorMessage,
+        });
+    }
+}
+
+
+
+export function* updateUserLocation() {
+    try {
+        const location: Location = yield select(selectUserLocation);
+        const response : ApiResponse<User> = yield call(request, {
+            method: 'PATCH',
+            url: '/api/users/profile',
+            data: {
+                location: {
+                    lat: location.lat,
+                    lng: location.lng,
+                    address: location.address,
+                },
+            },
+        });
+        if (response.error || !response.data) {
+            throw new Error(response.error || response.message || 'An error occurred while getting user');
+        }
+    } catch (error: any) {
+        const errorMessage = error?.error || error?.message || 'Failed to update user';
+        Toast.show({
+            type: 'error',
+            text1: 'Error',
             text2: errorMessage,
         });
     }
@@ -195,4 +235,5 @@ export function* appSaga() {
   yield takeLatest(actions.updateTheme.type, updateTheme);
   yield takeLatest(actions.updateNotifications.type, updateNotifications);
   yield takeLatest(actions.reverseGeocodeLocation.type, reverseGeocodeLocation);
+  yield takeLatest(actions.setLocation.type, updateUserLocation);
 }

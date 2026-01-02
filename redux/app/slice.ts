@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Asset, AppState, Theme, User, StoreName} from './types';
+import {Asset, AppState, Theme, User, StoreName, LocationForm} from './types';
 
 // The initial state of the GithubRepoForm container
 export const initialState: AppState = {
@@ -7,6 +7,14 @@ export const initialState: AppState = {
   token: null,
   user: null,
   hasSeenOnboarding: false,
+  location: {
+    lat: 0,
+    lng: 0,
+    address: '',
+    error: '',
+    isLoading: false,
+    isMapPickerOpen: false,
+  },
 }
 
 const appSlice = createSlice({
@@ -53,6 +61,24 @@ const appSlice = createSlice({
       if (state.user) {
         state.user.settings.notifications.pushNotification = action.payload.pushNotification;
       }
+    },
+    setLocation: (state, action: PayloadAction<LocationForm>) => {
+      state.location = action.payload;
+    },
+    setLocationError: (state, action: PayloadAction<string>) => {
+      state.location.error = action.payload;
+    },
+    clearLocationError: (state) => {
+      state.location.error = '';
+    },
+    saveUserLocation: (state) => {
+      state.location.isLoading = true;
+    },
+    openMapPicker: (state) => {
+      state.location.isMapPickerOpen = true;
+    },
+    closeMapPicker: (state) => {
+      state.location.isMapPickerOpen = false;
     },
     reverseNotifications: (state) => {
       if (state.user) {

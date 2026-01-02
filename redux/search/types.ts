@@ -8,13 +8,8 @@ export interface SearchState {
     summary: Summary;
     recommendedWorkers: Worker[];
     closestWorkers: Worker[];
-    location: LocationForm;
     isUpdatingLocation: boolean;
     searchReferenceId: string;
-}
-
-export interface LocationForm extends Location {
-    error: string;
 }
 
 export interface Summary {

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { ContainerState, LocationForm, Worker, Summary } from '@/redux/search/types';
+import { ContainerState, Worker, Summary } from '@/redux/search/types';
 import { Media } from '@/redux/app/types';
 
 // The initial state of the GithubRepoForm container
@@ -17,12 +17,6 @@ export const initialState: ContainerState = {
   },
   recommendedWorkers: [],
   closestWorkers: [],
-  location: {
-    lat: 0,
-    lng: 0,
-    address: '',
-    error: '',
-  },
   searchReferenceId: '',
   isUpdatingLocation: false,
 }
@@ -63,22 +57,12 @@ const searchSlice = createSlice({
     setSearchReferenceId: (state, action: PayloadAction<string>) => {
       state.searchReferenceId = action.payload;
     },
-    setLocation: (state, action: PayloadAction<LocationForm>) => {
-      state.location = action.payload;
-    },
-    setLocationError: (state, action: PayloadAction<string>) => {
-      state.location.error = action.payload;
-    },
-    clearLocationError: (state) => {
-      state.location.error = '';
-    },
     saveUserLocation: (state) => {
       state.isUpdatingLocation = true;
     },
     resetState: (state) => {
       return {
         ...initialState,
-        location: state.location,
       };
     },
   },

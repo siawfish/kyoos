@@ -150,5 +150,5 @@ export function* authSaga() {
     yield takeLatest(actions.initiateLogin, login);
     yield takeLatest(actions.submitRegisterForm, register);
     yield takeLatest(actions.verifyPhoneNumber, verifyPhoneNumber);
-  yield takeLatest(actions.confirmLogin, confirmLogin);
+    yield takeLatest(actions.confirmLogin, confirmLogin);
 }

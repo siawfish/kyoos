@@ -15,16 +15,15 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import MapView, { MapPressEvent, Marker } from 'react-native-maps';
 import Button from '@/components/ui/Button';
-import { Location } from '@/redux/auth/types';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { actions } from '@/redux/app/slice';
+import { selectUserLocation } from '@/redux/app/selector';
+import { StoreName } from '@/redux/app/types';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.8;
 
 interface LocationMapPickerProps {
-    onLocationSelect: (location: Location) => void;
-    onClose: () => void;
     isOpen: boolean;
     handleSheetChanges?: (index: number) => void;
 }
@@ -37,8 +36,6 @@ const INITIAL_REGION = {
 }
 
 const LocationMapPicker = ({
-    onLocationSelect,
-    onClose,
     isOpen,
     handleSheetChanges,
 }: LocationMapPickerProps) => {
@@ -49,7 +46,7 @@ const LocationMapPicker = ({
       latitude: number;
       longitude: number;
     } | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const location = useAppSelector(selectUserLocation);
     const dispatch = useAppDispatch();
   
     const handleMapPress = (e: MapPressEvent) => {
@@ -58,9 +55,10 @@ const LocationMapPicker = ({
   
     const handleConfirm = () => {
       if (selectedLocation) {
-        setIsLoading(true);
+        dispatch(actions.saveUserLocation());
         dispatch(actions.reverseGeocodeLocation({
           latlng: `${selectedLocation.latitude},${selectedLocation.longitude}`,
+          store: StoreName.LOCATION,
         }));
       }
     };
@@ -107,62 +105,65 @@ const LocationMapPicker = ({
     });
 
     return (
-        <>
-            {isOpen && (
-                <TouchableOpacity 
-                    style={StyleSheet.absoluteFill} 
-                    onPress={() => {
-                        translateY.value = withSpring(0, { damping: 50 });
-                        active.value = false;
-                        if (handleSheetChanges) {
-                          handleSheetChanges(-1);
-                        }
-                    }}
+      <Portal>
+        {isOpen && (
+            <TouchableOpacity 
+                style={StyleSheet.absoluteFill} 
+                onPress={() => {
+                    translateY.value = withSpring(0, { damping: 50 });
+                    active.value = false;
+                    if (handleSheetChanges) {
+                      handleSheetChanges(-1);
+                    }
+                }}
+            >
+                <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+            </TouchableOpacity>
+        )}
+            <GestureDetector gesture={gesture}>
+                <Animated.View
+                    style={[
+                        styles.bottomSheetContainer,
+                        rBottomSheetStyle,
+                        { backgroundColor }
+                    ]}
                 >
-                    <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-                </TouchableOpacity>
-            )}
-            <Portal>
-                <GestureDetector gesture={gesture}>
-                    <Animated.View
-                        style={[
-                            styles.bottomSheetContainer,
-                            rBottomSheetStyle,
-                            { backgroundColor }
-                        ]}
+                  <View style={styles.line} />
+                  <View style={styles.bottomSheetHeader}>
+                    <ThemedText style={styles.bottomSheetTitle}>Select Location</ThemedText>
+                    <ThemedText style={styles.helperText}>
+                      Tap on the map to select your location
+                    </ThemedText>
+                  </View>
+                  <View style={styles.mapContainer}>
+                    <MapView
+                      style={styles.map}
+                      onPress={handleMapPress}
+                      initialRegion={{
+                        latitude: location.lat || INITIAL_REGION.latitude,
+                        longitude: location.lng || INITIAL_REGION.longitude,
+                        latitudeDelta: INITIAL_REGION.latitudeDelta,
+                        longitudeDelta: INITIAL_REGION.longitudeDelta,
+                      }}
                     >
-                      <View style={styles.line} />
-                      <View style={styles.bottomSheetHeader}>
-                        <ThemedText style={styles.bottomSheetTitle}>Select Location</ThemedText>
-                        <ThemedText style={styles.helperText}>
-                          Tap on the map to select your location
-                        </ThemedText>
-                      </View>
-                      <View style={styles.mapContainer}>
-                        <MapView
-                          style={styles.map}
-                          onPress={handleMapPress}
-                          initialRegion={INITIAL_REGION}
-                        >
-                          {selectedLocation && (
-                            <Marker
-                              coordinate={selectedLocation}
-                            />
-                          )}
-                        </MapView>
-                        <View style={styles.footer}>
-                          <Button
-                            isLoading={isLoading}
-                            onPress={handleConfirm}
-                            disabled={!selectedLocation}
-                            label="Confirm Location"
-                          />
-                        </View>
-                      </View> 
-                    </Animated.View>
-                </GestureDetector>
-            </Portal>
-        </>
+                      {selectedLocation && (
+                        <Marker
+                          coordinate={selectedLocation}
+                        />
+                      )}
+                    </MapView>
+                    <View style={styles.footer}>
+                      <Button
+                        isLoading={location.isLoading}
+                        onPress={handleConfirm}
+                        disabled={!selectedLocation}
+                        label="Confirm Location"
+                      />
+                    </View>
+                  </View> 
+                </Animated.View>
+            </GestureDetector>
+        </Portal>
     );
 }
 

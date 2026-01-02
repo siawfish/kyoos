@@ -32,5 +32,10 @@ export const selectUser = createSelector(
 
 export const selectUserLocation = createSelector(
     [selectDomain],
-    (app) => app?.user?.location,
+    (app) => app?.location,
+);
+
+export const selectUserLocationIsMapPickerOpen = createSelector(
+    [selectUserLocation],
+    (location) => location?.isMapPickerOpen,
 );

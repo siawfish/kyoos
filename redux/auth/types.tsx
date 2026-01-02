@@ -1,4 +1,4 @@
-import { FormElement, User } from '@/redux/app/types';
+import { FormElement, LocationForm, User } from '@/redux/app/types';
 
 export interface AuthState {
   loginForm: LoginForm;
@@ -22,7 +22,7 @@ export interface RegisterForm {
   avatar: FormElement;
   isLoading: boolean;
   gender: FormElement;
-  location: Location;
+  location: LocationForm;
 }
 
 export interface GhanaCardForm {
@@ -37,13 +37,6 @@ export interface SkillsForm {
   rate: FormElement;
   yearsOfExperience: FormElement;
   icon: string;
-}
-
-export interface LocationForm {
-  lat: number;
-  lng: number;
-  address: string;
-  error?: string;
 }
 
 export interface Credentials {

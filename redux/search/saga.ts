@@ -7,17 +7,18 @@ import { actions } from '@/redux/search/slice';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { SearchResponse } from '@/redux/search/types';
-import { selectLocationForm, selectMedia, selectSearch } from '@/redux/search/selector';
-import { Media, User } from '@/redux/app/types';
+import { selectMedia, selectSearch } from '@/redux/search/selector';
+import { Media } from '@/redux/app/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { Location } from '@/redux/auth/types';
+import { selectUserLocation } from '../app/selector';
 
 export function* search() {
     try {
         const search: string = yield select(selectSearch);
         const media: Media[] = yield select(selectMedia);
-        const location: string = yield select(selectLocationForm);
+        const location: Location = yield select(selectUserLocation);
         const formData = new FormData();
         formData.append('query', search);
         formData.append('location', JSON.stringify(location));
@@ -68,36 +69,6 @@ export function* search() {
     }
 }
 
-
-
-export function* updateUserLocation() {
-    try {
-        const location: Location = yield select(selectLocationForm);
-        const response : ApiResponse<User> = yield call(request, {
-            method: 'PATCH',
-            url: '/api/users/profile',
-            data: {
-                location: {
-                    lat: location.lat,
-                    lng: location.lng,
-                    address: location.address,
-                },
-            },
-        });
-        if (response.error || !response.data) {
-            throw new Error(response.error || response.message || 'An error occurred while getting user');
-        }
-    } catch (error: any) {
-        const errorMessage = error?.error || error?.message || 'Failed to update user';
-        Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: errorMessage,
-        });
-    }
-}
-
 export function* searchSaga() {
   yield takeLatest(actions.onSearch, search);
-  yield takeLatest(actions.setLocation, updateUserLocation);
 }

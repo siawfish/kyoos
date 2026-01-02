@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   headerSection: {
     paddingTop: heightPixel(32),
     paddingBottom: heightPixel(20),
-    paddingHorizontal: widthPixel(20),
+    // paddingHorizontal: widthPixel(20),
   },
   accentBar: {
     width: widthPixel(40),

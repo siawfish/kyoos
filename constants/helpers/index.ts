@@ -1,6 +1,8 @@
 import { Skill, Worker } from '@/redux/search/types';
 import { BookingStatuses, PermissionType, StatusColors } from '@/redux/app/types';
 import { formatRelative } from 'date-fns'
+import * as Location from 'expo-location';
+import { Location as LocationType } from '@/redux/auth/types';
 
 export const timeToString = (time: number) => {
     const date = new Date(time);
@@ -114,4 +116,22 @@ export const calculateWorkerAverageRate = (worker: Worker): number => {
   const totalRate = worker?.skills?.reduce((sum, skill) => sum + (skill.rate || 0), 0) || 0;
   const totalSkills = worker?.skills?.length || 0;
   return totalRate / totalSkills;
+};
+
+export const getCurrentLocation = async (): Promise<LocationType | null> => {
+  try {
+    const { coords } = await Location.getCurrentPositionAsync({});
+    const address = await Location.reverseGeocodeAsync({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+    });
+    return {
+      lat: coords.latitude,
+      lng: coords.longitude,
+      address: address[0].formattedAddress || address[0].name || address[0].street || 'Unknown Street'
+    };
+  } catch (error: unknown) {
+    console.error("error: getting current location", error);
+    return null;    
+  }
 };

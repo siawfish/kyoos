@@ -1,28 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { selectProfileFormLocation } from '@/redux/settings/selector';
+import { selectUserLocation } from '@/redux/app/selector';
 import { useRouter } from 'expo-router';
-import { actions } from '@/redux/search/slice';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 
 export default function UserLocation() {
     const router = useRouter();
-    const location = useAppSelector(selectProfileFormLocation);
-    const dispatch = useAppDispatch();
-
-    useEffect(() => {
-      if (location) {
-        dispatch(actions.setLocation({
-          address: location.address,
-          lat: location.lat,
-          lng: location.lng,
-          error: '',
-        }));
-      }
-    }, [location, dispatch]);
+    const location = useAppSelector(selectUserLocation);
 
     return (
         <View style={styles.header}>
@@ -31,7 +18,7 @@ export default function UserLocation() {
                 <TouchableOpacity onPress={() => router.push('/(tabs)/(search)/location')}>
                     <ThemedText style={styles.locationLabel}>Your Location</ThemedText>
                     <View style={styles.locationRow}>
-                        <ThemedText style={styles.locationText}>{location?.address}</ThemedText>
+                        <ThemedText style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">{location?.address}</ThemedText>
                         <Ionicons name="chevron-down" size={20} color="white" />
                     </View>
                 </TouchableOpacity>
@@ -62,6 +49,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: widthPixel(8),
+        flex: 0.55,
     },
     locationLabel: {
         fontSize: fontPixel(12),

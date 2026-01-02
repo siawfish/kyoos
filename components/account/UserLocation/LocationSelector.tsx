@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
@@ -11,30 +11,15 @@ import InputField from '@/components/ui/TextInput';
 import LocationMapPicker from './LocationMapPicker';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import BackButton from '@/components/ui/BackButton';
-import { selectUser } from '@/redux/app/selector';
-import { actions } from '@/redux/search/slice';
-import { selectLocationForm } from '@/redux/search/selector';
-import { validateLocation } from '@/constants/helpers/validations';
-import { Location } from '@/redux/auth/types';
+import { selectUserLocation, selectUserLocationIsMapPickerOpen } from '@/redux/app/selector';
+import { actions } from '@/redux/app/slice';
 
 export default function LocationSelector() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const location = useAppSelector(selectLocationForm);
-  const [showMapPicker, setShowMapPicker] = useState(false);
+  const location = useAppSelector(selectUserLocation);
+  const isMapPickerOpen = useAppSelector(selectUserLocationIsMapPickerOpen);
   const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
-  const user = useAppSelector(selectUser);
-
-  useEffect(() => { 
-    if(user?.location){
-      dispatch(actions.setLocation({
-        lat: user.location.lat,
-        lng: user.location.lng,
-        address: user.location.address,
-        error: '',
-      }));
-    }
-  }, [user?.location, dispatch]);
   
   const backgroundColor = useThemeColor({
     light: colors.light.background,
@@ -48,17 +33,6 @@ export default function LocationSelector() {
     }
   );
 
-  const handleLocationSelect = (location: Location) => {
-    // Here you would typically use reverse geocoding to get the address
-    // For now, we'll just set the coordinates as the location
-    dispatch(actions.setLocation({
-      lat: location.lat,
-      lng: location.lng,
-      address: location.address,
-      error: '',
-    }));
-  };
-
   const onLocationSelect = (item: GoogleLocationResult) => {
     searchDetails(item.place_id).then((result) => {
       dispatch(actions.setLocation({
@@ -66,27 +40,11 @@ export default function LocationSelector() {
         lng: result.geometry.location.lng,
         address: result.formatted_address,
         error: '',
+        isLoading: false,
+        isMapPickerOpen: false,
       }));
       setTerm('');
     });
-  }
-
-  const locationHasChanged = useMemo(() => {
-    return user?.location?.lat !== location?.lat || user?.location?.lng !== location?.lng || user?.location?.address !== location?.address;
-  }, [user?.location, location]);
-
-  const handleOnClose = () => {
-    if(!locationHasChanged) {
-      router.back();
-      return;
-    }
-    const locationErrors = validateLocation(location);
-    if (locationErrors) {
-      dispatch(actions.setLocationError(locationErrors));
-      return;
-    }
-    dispatch(actions.saveUserLocation());
-    router.back();
   }
 
   return (
@@ -94,7 +52,7 @@ export default function LocationSelector() {
       <View style={styles.header}>
         <BackButton 
           iconName='arrow-left'
-          onPress={handleOnClose}
+          onPress={() => router.back()}
         />
       </View>
       <View style={styles.header}>
@@ -129,7 +87,7 @@ export default function LocationSelector() {
           style={[styles.input, { backgroundColor: inputBackground }]}
         />
         
-        <TouchableOpacity style={styles.pickContainer} onPress={() => setShowMapPicker(true)}>
+        <TouchableOpacity style={styles.pickContainer} onPress={() => dispatch(actions.openMapPicker())}>
           <Image source={require('@/assets/images/map-marker.png')} style={styles.pickIcon} />
           <ThemedText type="default" style={styles.description}>
             Pick location
@@ -157,12 +115,10 @@ export default function LocationSelector() {
       </View>
 
       <LocationMapPicker
-        isOpen={showMapPicker}
-        onClose={() => setShowMapPicker(false)}
-        onLocationSelect={handleLocationSelect}
+        isOpen={isMapPickerOpen}
         handleSheetChanges={(change) => {
           if(change === -1){
-            setShowMapPicker(false);
+            dispatch(actions.closeMapPicker());
           }
         }}
       />

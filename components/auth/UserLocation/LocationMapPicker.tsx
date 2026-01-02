@@ -4,8 +4,9 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions } from '@/redux/auth/slice';
-import { LocationForm } from '@/redux/auth/types';
-import { useAppDispatch } from '@/store/hooks';
+import { actions as appActions } from '@/redux/app/slice';
+import { StoreName } from '@/redux/app/types';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Portal } from '@gorhom/portal';
 import { BlurView } from 'expo-blur';
 import React, { useEffect, useState } from 'react';
@@ -18,15 +19,13 @@ import Animated, {
     useSharedValue,
     withSpring,
 } from 'react-native-reanimated';
+import { selectRegisterFormLocationIsLoading } from '@/redux/auth/selector';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.8;
 
 interface LocationMapPickerProps {
-    onLocationSelect: (location: LocationForm) => void;
-    onClose: () => void;
     isOpen: boolean;
     handleSheetChanges?: (index: number) => void;
-    onReverseGeocode?: (latlng: string, callback: (loc: LocationForm) => void) => void;
 }
 
 const INITIAL_REGION = {
@@ -37,11 +36,8 @@ const INITIAL_REGION = {
 }
 
 const LocationMapPicker = ({
-    onLocationSelect,
-    onClose,
     isOpen,
     handleSheetChanges,
-    onReverseGeocode: propOnReverseGeocode,
 }: LocationMapPickerProps) => {
     const translateY = useSharedValue(0);
     const context = useSharedValue({ y: 0 });
@@ -50,8 +46,8 @@ const LocationMapPicker = ({
       latitude: number;
       longitude: number;
     } | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useAppDispatch();
+    const isLoading = useAppSelector(selectRegisterFormLocationIsLoading);
   
     const handleMapPress = (e: any) => {
       setSelectedLocation(e.nativeEvent.coordinate);
@@ -59,25 +55,11 @@ const LocationMapPicker = ({
   
     const handleConfirm = () => {
       if (selectedLocation) {
-        setIsLoading(true);
-        const callback = (loc: LocationForm) => {
-          onLocationSelect(loc);
-          onClose();
-          setIsLoading(false);
-        };
-        
-        if (propOnReverseGeocode) {
-          propOnReverseGeocode(
-            `${selectedLocation.latitude},${selectedLocation.longitude}`,
-            callback
-          );
-        } else {
-          // Default to Redux action (backward compatibility)
-          dispatch(actions.reverseGeocodeLocation({
-            latlng: `${selectedLocation.latitude},${selectedLocation.longitude}`,
-            callback,
-          }));
-        }
+        dispatch(actions.saveUserLocation());
+        dispatch(appActions.reverseGeocodeLocation({
+          latlng: `${selectedLocation.latitude},${selectedLocation.longitude}`,
+          store: StoreName.REGISTER,
+        }));
       }
     };
 
@@ -85,11 +67,6 @@ const LocationMapPicker = ({
         light: colors.light.background,
         dark: colors.dark.background,
     }, 'background');
-
-    const borderColor = useThemeColor({
-        light: colors.light.tint,
-        dark: colors.dark.tint
-    }, 'tint');
 
     useEffect(() => {
         if (isOpen) {

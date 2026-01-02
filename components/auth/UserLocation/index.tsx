@@ -4,16 +4,16 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectLocation } from '@/redux/auth/selector';
+import { selectRegisterFormLocation, selectRegisterFormLocationIsMapPickerOpen } from '@/redux/auth/selector';
 import { actions } from '@/redux/auth/slice';
-import { LocationForm } from '@/redux/auth/types';
 import { RootState } from '@/store';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { GoogleLocationResult, useGoogleAutocomplete } from '@appandflow/react-native-google-autocomplete';
 import { FlashList } from '@shopify/flash-list';
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 import LocationMapPicker from './LocationMapPicker';
+import { LocationForm } from '@/redux/app/types';
 
 interface UserLocationProps {
     mode?: 'auth' | 'account';
@@ -41,10 +41,10 @@ export default function UserLocation({
     contentBottomPadding,
 }: UserLocationProps = {}) {
   const dispatch = useAppDispatch();
-  const reduxLocation = useAppSelector(selectLocation);
-  const propLocation = useAppSelector(propSelectLocation || selectLocation);
-  const location = propSelectLocation ? propLocation : reduxLocation;
-  const [showMapPicker, setShowMapPicker] = useState(false);
+  const reduxLocation = useAppSelector(selectRegisterFormLocation);
+  const propLocation = useAppSelector(propSelectLocation || selectRegisterFormLocation) as LocationForm;
+  const location = propSelectLocation ? propLocation : reduxLocation as LocationForm;
+  const isMapPickerOpen = useAppSelector(selectRegisterFormLocationIsMapPickerOpen);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
@@ -80,6 +80,9 @@ export default function UserLocation({
         lat: result.geometry.location.lat,
         lng: result.geometry.location.lng,
         address: result.formatted_address,
+        error: '',
+        isLoading: false,
+        isMapPickerOpen: false,
       };
       
       if (propOnSetLocation) {
@@ -103,7 +106,7 @@ export default function UserLocation({
 
   const handleInputChange = (text: string) => {
     const newLocation = {
-      ...location,
+      ...(location as LocationForm),
       address: text,
       error: '',
     };
@@ -153,7 +156,7 @@ export default function UserLocation({
           style={[styles.input, { backgroundColor: inputBackground }]}
         />
         
-        <TouchableOpacity style={styles.pickContainer} onPress={() => setShowMapPicker(true)}>
+        <TouchableOpacity style={styles.pickContainer} onPress={() => dispatch(actions.openMapPicker())}>
           <Image source={require('@/assets/images/map-marker.png')} style={styles.pickIcon} />
           <ThemedText type="default" style={styles.description}>
             Pick location
@@ -181,13 +184,10 @@ export default function UserLocation({
       </View>
 
       <LocationMapPicker
-        isOpen={showMapPicker}
-        onClose={() => setShowMapPicker(false)}
-        onLocationSelect={handleLocationSelect}
-        onReverseGeocode={propOnReverseGeocode}
+        isOpen={isMapPickerOpen}
         handleSheetChanges={(change) => {
           if(change === -1){
-            setShowMapPicker(false);
+            dispatch(actions.closeMapPicker());
           }
         }}
       />

@@ -69,3 +69,18 @@ export const selectCredentials = createSelector(
     [selectDomain],
     (auth) => auth?.credentials,
 );
+
+export const selectRegisterFormLocation = createSelector(
+    [selectDomain],
+    (auth) => auth?.registerForm.location,
+);
+
+export const selectRegisterFormLocationIsMapPickerOpen = createSelector(
+    [selectRegisterFormLocation],
+    (location) => location?.isMapPickerOpen,
+);
+
+export const selectRegisterFormLocationIsLoading = createSelector(
+    [selectRegisterFormLocation],
+    (location) => location?.isLoading,
+);

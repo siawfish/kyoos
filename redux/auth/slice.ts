@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, Location, LoginFormFields, RegisterFormFields } from '@/redux/auth/types';
-import { KeyValue, User } from '@/redux/app/types';
+import { AuthState, LoginFormFields, RegisterFormFields } from '@/redux/auth/types';
+import { KeyValue, LocationForm, User } from '@/redux/app/types';
 import { REHYDRATE } from 'redux-persist';
 
 interface RehydrateAction {
@@ -47,6 +47,8 @@ export const initialState: AuthState = {
       lng: 0,
       address: '',
       error: '',
+      isLoading: false, 
+      isMapPickerOpen: false,
     },
     avatar: {
       value: '',
@@ -94,8 +96,17 @@ const authSlice = createSlice({
     setRegisterFormIsLoading: (state, action: PayloadAction<boolean>) => {
       state.registerForm.isLoading = action.payload;
     },
-    setLocation: (state, action: PayloadAction<Location>) => {
+    setLocation: (state, action: PayloadAction<LocationForm>) => {
       state.registerForm.location = action.payload;
+    },
+    saveUserLocation: (state) => {
+      state.registerForm.location.isLoading = true;
+    },
+    openMapPicker: (state) => {
+      state.registerForm.location.isMapPickerOpen = true;
+    },
+    closeMapPicker: (state) => {
+      state.registerForm.location.isMapPickerOpen = false;
     },
     setLoginFormIsLoading: (state, action: PayloadAction<boolean>) => {
       state.loginForm.isLoading = action.payload;
