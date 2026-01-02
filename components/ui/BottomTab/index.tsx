@@ -150,7 +150,7 @@ export default function BottomTab({ state, descriptors, navigation }: BottomTabB
   const iconColor = isDark ? colors.dark.secondary : colors.light.secondary;
   const activeIconColor = isDark ? colors.dark.background : colors.light.white;
   const activeBgColor = isDark ? colors.dark.tint : colors.light.tint;
-  const borderColor = isDark ? colors.dark.tint : colors.light.grey;
+  const borderColor = isDark ? colors.dark.tint : colors.light.black;
 
   // Track tab layouts
   const tabLayouts = useRef<TabItemLayout[]>([]);

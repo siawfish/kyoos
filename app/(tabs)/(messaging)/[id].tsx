@@ -29,7 +29,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -345,7 +344,7 @@ export default function ConversationScreen() {
               <Image source={{ uri: sender.avatar }} style={styles.headerAvatar} />
             ) : (
               <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
-                <ThemedText style={[styles.headerAvatarText, { color: isDark ? colors.dark.black : colors.light.white }]}>
+                <ThemedText style={[styles.headerAvatarText, { color: whiteColor }]}>
                   {sender?.name?.charAt(0).toUpperCase() || '?'}
                 </ThemedText>
               </View>
@@ -531,7 +530,7 @@ export default function ConversationScreen() {
                 <View style={styles.attachmentSheetHeader}>
                   <View style={styles.attachmentSheetHeaderLeft}>
                     <View style={[styles.attachmentSheetAccentBar, { backgroundColor: borderColor }]} />
-                    <Text style={[styles.attachmentSheetLabel, { color: labelColor }]}>ATTACHMENT OPTIONS</Text>
+                    <ThemedText style={[styles.attachmentSheetLabel, { color: labelColor }]}>ATTACHMENT OPTIONS</ThemedText>
                     <ThemedText 
                       style={[styles.attachmentSheetTitle, { color: textColor }]} 
                       lightColor={colors.light.text} 
@@ -658,7 +657,6 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   headerAvatarText: {
-    color: 'white',
     fontSize: fontPixel(16),
     fontFamily: 'Bold',
   },

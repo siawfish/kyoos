@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { format } from 'date-fns';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import EmptyList from '@/components/ui/EmptyList';
@@ -29,6 +29,11 @@ const ConversationItem = ({ item } : { item: Conversation }) => {
     light: colors.light.tint,
     dark: colors.dark.tint
   }, 'background');
+  // Text color for tint backgrounds: white in light mode (on black), black in dark mode (on white)
+  const tintTextColor = useThemeColor({
+    light: colors.light.white,
+    dark: colors.dark.black
+  }, 'white');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
   const cardBg = useThemeColor({
     light: colors.light.background,
@@ -63,7 +68,7 @@ const ConversationItem = ({ item } : { item: Conversation }) => {
               <Image source={{ uri: sender.avatar }} style={styles.avatar} />
             ) : (
               <ThemedView style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: tintColor }]}>
-                <ThemedText style={styles.avatarText}>
+                <ThemedText style={[styles.avatarText, { color: tintTextColor }]}>
                   {sender.name.charAt(0).toUpperCase()}
                 </ThemedText>
               </ThemedView>
@@ -76,7 +81,7 @@ const ConversationItem = ({ item } : { item: Conversation }) => {
               </ThemedText>
               {item.unreadCount > 0 && (
                 <ThemedView style={[styles.unreadBadge, { backgroundColor: tintColor }]}>
-                  <ThemedText style={styles.unreadCount}>{item.unreadCount}</ThemedText>
+                  <ThemedText style={[styles.unreadCount, { color: tintTextColor }]}>{item.unreadCount}</ThemedText>
                 </ThemedView>
               )}
             </View>
@@ -128,7 +133,7 @@ export default function MessagingScreen() {
     return (
       <View style={styles.headerSection}>
         <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <Text style={[styles.label, { color: labelColor }]}>MESSAGES</Text>
+        <ThemedText style={[styles.label, { color: labelColor }]}>MESSAGES</ThemedText>
       </View>
     );
   };
@@ -220,7 +225,6 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   avatarText: {
-    color: 'white',
     fontSize: fontPixel(20),
     fontFamily: 'Bold',
   },
@@ -265,7 +269,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(6),
   },
   unreadCount: {
-    color: 'white',
     fontSize: fontPixel(11),
     fontFamily: 'Bold',
   },
