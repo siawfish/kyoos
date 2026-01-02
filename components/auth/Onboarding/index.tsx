@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -41,6 +42,10 @@ export default function Onboarding() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const backgroundColor = useThemeColor({}, 'background');
+  const tintColor = useThemeColor({
+    light: colors.light.tint,
+    dark: colors.dark.tint
+  }, 'tint');
   const dispatch = useAppDispatch();
   const translateX = useSharedValue(0);
 
@@ -93,7 +98,7 @@ export default function Onboarding() {
         opacity: withTiming(opacity),
         height: 8,
         borderRadius: 0,
-        backgroundColor: colors.light.tint,
+        backgroundColor: tintColor,
         marginHorizontal: 4,
       };
     });
@@ -131,7 +136,7 @@ export default function Onboarding() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
       <Animated.ScrollView
         ref={scrollViewRef}
         horizontal
@@ -178,7 +183,7 @@ export default function Onboarding() {
           style={styles.button}
         />
       </View>
-    </View>
+    </ThemedSafeAreaView>
   );
 }
 

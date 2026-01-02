@@ -3,28 +3,36 @@ import PhoneInput from '@/components/ui/PhoneInput'
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
 import { validateGhanaianPhoneNumber } from '@/constants/helpers/validations'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
+import { ThemedText } from '@/components/ui/Themed/ThemedText'
 import { colors } from '@/constants/theme/colors'
+import { useAppTheme } from '@/hooks/use-app-theme'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { selectLoginFormIsLoading, selectLoginFormPhoneNumber } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import React, { useEffect } from 'react'
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
   const isLoading = useAppSelector(selectLoginFormIsLoading);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
   
   const inputBackgroundColor = useThemeColor({
       light: colors.light.white,
       dark: colors.dark.black
   }, 'white');
 
-  const textColor = isDark ? colors.dark.text : colors.light.text;
-  const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text
+  }, 'text');
+  const subtitleColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
 
   useEffect(() => {
@@ -53,15 +61,15 @@ export default function Login() {
         <View style={styles.mainStyle}>
           <View style={styles.titleContainer}>
             <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-            <Text style={[styles.label, { color: subtitleColor }]}>
+            <ThemedText style={[styles.label, { color: subtitleColor }]}>
               SIGN IN
-            </Text>
-            <Text style={[styles.title, { color: textColor }]}>
+            </ThemedText>
+            <ThemedText style={[styles.title, { color: textColor }]}>
               Enter your{'\n'}phone number
-            </Text>
-            <Text style={[styles.subtitle, { color: subtitleColor }]}>
+            </ThemedText>
+            <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
               You will receive a 6 digit code to verify your account
-            </Text>
+            </ThemedText>
           </View>
           <PhoneInput 
             style={{marginTop: widthPixel(16), backgroundColor: inputBackgroundColor}}

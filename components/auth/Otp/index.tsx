@@ -20,6 +20,14 @@ const OtpField = ({
         light: colors.light.text,
         dark: colors.dark.text
     }, 'text') as string;
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint
+    }, 'tint') as string;
+    const dangerColor = useThemeColor({
+        light: colors.light.danger,
+        dark: colors.dark.danger
+    }, 'danger') as string;
 
     const handleTextChange = useCallback((text: string) => {
         // Remove any non-numeric characters
@@ -39,14 +47,14 @@ const OtpField = ({
                     },
                     pinCodeContainerStyle: {
                         ...styles.pinCodeContainerStyle,
-                        borderColor: error ? colors.light.danger : colors.light.tint,
+                        borderColor: error ? dangerColor : tintColor,
                     },
                     pinCodeTextStyle: {
                         ...styles.pinCodeTextStyle,
                         color,
                     },
                 }}
-                focusColor={error ? colors.light.danger : colors.light.tint}   
+                focusColor={error ? dangerColor : tintColor}   
                 numberOfDigits={6}
                 onTextChange={handleTextChange}
             />
