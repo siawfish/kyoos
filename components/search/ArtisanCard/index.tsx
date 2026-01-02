@@ -1,13 +1,17 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity, Image, StyleProp, ViewStyle } from "react-native";
+import { BlurView } from "expo-blur";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { colors } from "@/constants/theme/colors";
 import { Feather } from "@expo/vector-icons";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { Skill, Worker } from "@/redux/search/types";
 import { calculateWorkerAverageRate, calculateWorkerCost, calculateWorkerHourlyRate } from "@/constants/helpers";
-import PriceTag from "@/components/search/PriceTag";
+import { useAppSelector } from "@/store/hooks";
+import { selectUser } from "@/redux/app/selector";
+import numeral from "numeral";
 
 interface ArtisanCardProps {
     artisan: Worker;
@@ -17,11 +21,51 @@ interface ArtisanCardProps {
     onPress?: (id: string) => void;
 }
 
+const formatPrice = (price: number) => {
+    return numeral(price).format('0,0');
+};
+
 const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkills, onPress }: ArtisanCardProps) => {
-    const cardBackgroundColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.black,
+    const user = useAppSelector(selectUser);
+    const currency = user?.settings?.currency || 'GHS';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+
+    const backgroundColor = useThemeColor({
+        light: colors.light.background + 'F0',
+        dark: colors.dark.background + 'F0',
     }, 'background');
+
+    const blurTint = useThemeColor({
+        light: 'light',
+        dark: 'dark',
+    }, 'background');
+
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text,
+    }, 'text');
+
+    const secondaryColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary,
+    }, 'secondary');
+
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
+
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint,
+    }, 'tint');
+
+    const miscColor = useThemeColor({
+        light: colors.light.misc,
+        dark: colors.dark.misc,
+    }, 'misc');
 
     const handleCardPress = () => {
         onPress?.(artisan.id);
@@ -30,100 +74,139 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkill
     const workerCost = useMemo(() => calculateWorkerCost(artisan, requiredSkills, estimatedDuration || 0), [artisan, requiredSkills, estimatedDuration]);
     const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan, requiredSkills), [artisan, requiredSkills]);
     const averageRate = useMemo(() => calculateWorkerAverageRate(artisan), [artisan]);
+    
+    const displayPrice = workerCost > 0 ? workerCost : (hourlyRate || averageRate);
+    const priceSuffix = workerCost > 0 ? '' : '/hr';
 
     return (
         <TouchableOpacity 
-            style={[styles.artisanCard, { backgroundColor: cardBackgroundColor }, containerStyle]}
+            style={[styles.artisanCard, containerStyle]}
             onPress={handleCardPress}
+            activeOpacity={0.8}
         >
-            <View style={styles.header}>
-                <View style={styles.avatarContainer}>
-                    <View style={[styles.avatar, { backgroundColor: colors.light.lightTint }]}>
-                        {artisan.avatar ? (
-                            <Image source={{ uri: artisan.avatar }} style={styles.avatarImage} />
-                        ) : (
-                            <ThemedText style={styles.avatarText}>
-                                {artisan.name.charAt(0).toUpperCase()}
-                            </ThemedText>
-                        )}
-                    </View>
-                    <View style={styles.verifiedBadge}>
-                        <Image source={require('@/assets/images/verified.png')} style={styles.verifiedImage} />
-                    </View>
-                </View>
-                
-                <View style={styles.priceContainer}>
-                    <ThemedText style={styles.priceLabel}>Starting from</ThemedText>
-                    {
-                        workerCost > 0 ? (
-                            <PriceTag price={workerCost} />
-                        ) : (
-                            <PriceTag price={hourlyRate || averageRate} suffix="/hr" />
-                        )
-                    }
-                </View>
-            </View>
-
-            <View style={styles.content}>
-                <View style={styles.nameRow}>
-                    <ThemedText type="defaultSemiBold" style={styles.businessName}>
-                        {artisan.name}
-                    </ThemedText>
-                </View>
-                
-                <View style={styles.ratingContainer}>
-                    <Feather name="star" size={14} color={colors.light.tint} />
-                    <ThemedText style={styles.rating}>{artisan.rating}</ThemedText>
-                    <ThemedText style={styles.reviewCount}>(723 reviews)</ThemedText>
-                </View>
-
-                <View style={styles.locationContainer}>
-                    <Feather name="map-pin" size={12} color={colors.light.secondary} />
-                    <ThemedText style={styles.location} numberOfLines={1}>
-                        {artisan.location?.address}
-                    </ThemedText>
-                </View>
-
-                <View style={styles.skillsContainer}>
-                    {artisan.skills.slice(0, 2).map((skill) => (
-                        <View key={skill?.id} style={styles.skillTag}>
-                            <ThemedText style={styles.skillText}>{skill?.name}</ThemedText>
+            <BlurView 
+                intensity={80} 
+                tint={blurTint as 'light' | 'dark'} 
+                style={[styles.cardContainer, { backgroundColor, borderColor }]}
+            >
+                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                <View style={styles.cardContent}>
+                    {/* Header Section */}
+                    <View style={styles.header}>
+                        <View style={styles.avatarContainer}>
+                            <View style={[styles.avatar, { backgroundColor: miscColor, borderColor }]}>
+                                {artisan.avatar ? (
+                                    <Image source={{ uri: artisan.avatar }} style={styles.avatarImage} />
+                                ) : (
+                                    <ThemedText style={[styles.avatarText, { color: textColor }]}>
+                                        {artisan.name.charAt(0).toUpperCase()}
+                                    </ThemedText>
+                                )}
+                            </View>
+                            <View style={styles.verifiedBadge}>
+                                <Image source={require('@/assets/images/verified.png')} style={styles.verifiedImage} />
+                            </View>
                         </View>
-                    ))}
-                    {artisan.skills.length > 2 && (
-                        <View style={styles.moreSkills}>
-                            <ThemedText style={styles.moreSkillsText}>
-                                +{artisan.skills.length - 2} more
+                        
+                        <View style={styles.priceContainer}>
+                            <ThemedText style={[styles.priceLabel, { color: secondaryColor }]}>
+                                STARTING FROM
+                            </ThemedText>
+                            <View style={styles.priceRow}>
+                                <ThemedText style={[styles.currency, { color: textColor }]}>
+                                    {currency}
+                                </ThemedText>
+                                <ThemedText style={[styles.price, { color: textColor }]}>
+                                    {formatPrice(displayPrice)}
+                                </ThemedText>
+                                {priceSuffix && (
+                                    <ThemedText style={[styles.priceSuffix, { color: secondaryColor }]}>
+                                        {priceSuffix}
+                                    </ThemedText>
+                                )}
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Content Section */}
+                    <View style={styles.content}>
+                        <View style={styles.nameRow}>
+                            <ThemedText style={[styles.businessName, { color: textColor }]}>
+                                {artisan.name}
                             </ThemedText>
                         </View>
-                    )}
+                        
+                        <View style={styles.ratingContainer}>
+                            <Feather name="star" size={14} color={tintColor} />
+                            <ThemedText style={[styles.rating, { color: textColor }]}>
+                                {artisan.rating}
+                            </ThemedText>
+                            <ThemedText style={[styles.reviewCount, { color: secondaryColor }]}>
+                                (723 reviews)
+                            </ThemedText>
+                        </View>
+
+                        <View style={styles.locationContainer}>
+                            <Feather name="map-pin" size={12} color={secondaryColor} />
+                            <ThemedText style={[styles.location, { color: secondaryColor }]} numberOfLines={1}>
+                                {artisan.location?.address}
+                            </ThemedText>
+                        </View>
+
+                        <View style={styles.skillsContainer}>
+                            {artisan.skills.slice(0, 2).map((skill) => (
+                                <View key={skill?.id} style={[styles.skillTag, { borderColor, backgroundColor: miscColor }]}>
+                                    <ThemedText style={[styles.skillText, { color: textColor }]}>
+                                        {skill?.name}
+                                    </ThemedText>
+                                </View>
+                            ))}
+                            {artisan.skills.length > 2 && (
+                                <View style={styles.moreSkills}>
+                                    <ThemedText style={[styles.moreSkillsText, { color: secondaryColor }]}>
+                                        +{artisan.skills.length - 2} more
+                                    </ThemedText>
+                                </View>
+                            )}
+                        </View>
+                    </View>
                 </View>
-            </View>
+            </BlurView>
         </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
     artisanCard: {
-        padding: widthPixel(16),
-        borderRadius: widthPixel(16),
         width: '100%',
         minWidth: widthPixel(300),
+    },
+    cardContainer: {
+        flexDirection: 'row',
+        borderWidth: 0.5,
+        borderLeftWidth: 0,
+        overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-        height: heightPixel(200),
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 6,
+    },
+    accentBar: {
+        width: widthPixel(4),
+    },
+    cardContent: {
+        flex: 1,
+        padding: widthPixel(16),
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: heightPixel(12),
+        marginBottom: heightPixel(16),
     },
     avatarContainer: {
         position: 'relative',
@@ -131,24 +214,22 @@ const styles = StyleSheet.create({
     avatar: {
         width: widthPixel(56),
         height: widthPixel(56),
-        borderRadius: widthPixel(28),
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 0.5,
     },
     avatarImage: {
         width: widthPixel(56),
         height: widthPixel(56),
-        borderRadius: widthPixel(28),
     },
     avatarText: {
         fontSize: fontPixel(20),
-        fontWeight: '600',
-        color: colors.light.tint,
+        fontFamily: 'Bold',
     },
     verifiedBadge: {
         position: 'absolute',
-        bottom: -2,
-        right: -2,
+        bottom: -widthPixel(2),
+        right: -widthPixel(2),
         width: widthPixel(20),
         height: widthPixel(20),
         alignItems: 'center',
@@ -162,49 +243,64 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     priceLabel: {
-        fontSize: fontPixel(12),
-        color: colors.light.secondary,
-        marginBottom: heightPixel(2),
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.2,
+        marginBottom: heightPixel(4),
+    },
+    priceRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        gap: widthPixel(4),
+    },
+    currency: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 0.5,
     },
     price: {
-        fontSize: fontPixel(20),
-        fontWeight: '700',
-        color: colors.light.tint,
+        fontSize: fontPixel(18),
+        fontFamily: 'Bold',
+        letterSpacing: -0.3,
+    },
+    priceSuffix: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Regular',
     },
     content: {
         flex: 1,
     },
     nameRow: {
-        marginBottom: heightPixel(6),
+        marginBottom: heightPixel(8),
     },
     businessName: {
-        fontSize: fontPixel(16),
-        fontWeight: '600',
+        fontSize: fontPixel(18),
+        fontFamily: 'Bold',
+        letterSpacing: -0.3,
     },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: heightPixel(6),
+        marginBottom: heightPixel(8),
+        gap: widthPixel(4),
     },
     rating: {
-        marginLeft: widthPixel(4),
         fontSize: fontPixel(14),
-        fontWeight: '500',
+        fontFamily: 'SemiBold',
     },
     reviewCount: {
-        marginLeft: widthPixel(4),
         fontSize: fontPixel(12),
-        color: colors.light.secondary,
+        fontFamily: 'Regular',
     },
     locationContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: heightPixel(12),
+        gap: widthPixel(4),
     },
     location: {
-        marginLeft: widthPixel(4),
         fontSize: fontPixel(12),
-        color: colors.light.secondary,
+        fontFamily: 'Regular',
         flex: 1,
     },
     skillsContainer: {
@@ -213,23 +309,21 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     skillTag: {
-        backgroundColor: colors.light.lightTint,
-        paddingHorizontal: widthPixel(8),
-        paddingVertical: heightPixel(4),
-        borderRadius: widthPixel(6),
+        paddingHorizontal: widthPixel(10),
+        paddingVertical: heightPixel(6),
+        borderWidth: 0.5,
     },
     skillText: {
         fontSize: fontPixel(11),
-        color: colors.light.tint,
-        fontWeight: '500',
+        fontFamily: 'Medium',
     },
     moreSkills: {
-        paddingHorizontal: widthPixel(8),
-        paddingVertical: heightPixel(4),
+        paddingHorizontal: widthPixel(10),
+        paddingVertical: heightPixel(6),
     },
     moreSkillsText: {
         fontSize: fontPixel(11),
-        color: colors.light.secondary,
+        fontFamily: 'Regular',
     },
 });
 

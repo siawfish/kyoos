@@ -1,10 +1,12 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { View, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { colors } from "@/constants/theme/colors";
 import { Feather } from "@expo/vector-icons";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import BackButton from "@/components/ui/BackButton";
 import { useRouter } from "expo-router";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
@@ -18,17 +20,38 @@ interface ArtisanOptionsProps {
 }
 
 const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOptionsProps) => {
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+    
     const backgroundColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.black
+        light: colors.light.background,
+        dark: colors.dark.background
     }, 'background');
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text,
     }, 'text');
+    const secondaryColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary,
+    }, 'secondary');
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint,
+    }, 'tint');
+    const miscColor = useThemeColor({
+        light: colors.light.misc,
+        dark: colors.dark.misc,
+    }, 'misc');
+    
     const router = useRouter();
-    const snapPoints = useMemo(() => ['25%'], []);
-    const withChildrenSnapPoints = useMemo(() => ['55%'], []);
+    const snapPoints = useMemo(() => ['30%'], []);
+    const withChildrenSnapPoints = useMemo(() => ['65%'], []);
     const bottomSheetRef = useRef<BottomSheet>(null);
 
     const handleSheetChanges = useCallback((index: number) => {
@@ -54,7 +77,7 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
             animationType="fade"
         >
             <View style={styles.modalOverlay}>
-                <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
                 <TouchableWithoutFeedback onPress={onClose}>
                     <View style={StyleSheet.absoluteFill} />
                 </TouchableWithoutFeedback>
@@ -64,31 +87,84 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     onChange={handleSheetChanges}
                     onClose={onClose}
                     enablePanDownToClose
+                    enableDynamicSizing={false}
+                    handleIndicatorStyle={{ backgroundColor: borderColor, width: widthPixel(40) }}
                     backgroundStyle={{
                         backgroundColor,
-                        borderTopLeftRadius: 15,
-                        borderTopRightRadius: 15,
+                        borderTopLeftRadius: 0,
+                        borderTopRightRadius: 0,
                     }}
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
-                        <View style={styles.childrenContainer}>
-                            {children}
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <View style={styles.headerLeft}>
+                                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                                <View style={styles.headerLabelRow}>
+                                    <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
+                                        ARTISAN OPTIONS
+                                    </ThemedText>
+                                </View>
+                                <ThemedText 
+                                    style={[styles.headerTitle, { color: textColor }]}
+                                    lightColor={colors.light.text}
+                                    darkColor={colors.dark.text}
+                                >
+                                    {artisan?.name || 'Service Provider'}
+                                </ThemedText>
+                            </View>
+                            <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
                         </View>
-                        <TouchableOpacity 
-                            style={styles.bottomSheetItem} 
-                            onPress={handleBookNow}
-                        >
-                            <Feather name="calendar" size={24} color={textColor} />
-                            <ThemedText style={styles.bottomSheetText}>Book Now</ThemedText>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            style={styles.bottomSheetItem}
-                            onPress={handleSeeProfile}
-                        >
-                            <Feather name="user" size={24} color={textColor} />
-                            <ThemedText style={styles.bottomSheetText}>See Profile</ThemedText>
-                        </TouchableOpacity>
+
+                        {/* Children Container */}
+                        {children && (
+                            <View style={[styles.childrenContainer, { borderBottomColor: borderColor }]}>
+                                {children}
+                            </View>
+                        )}
+
+                        {/* Action Items */}
+                        <View style={styles.actionsContainer}>
+                            <TouchableOpacity 
+                                style={[styles.actionItem, { borderColor }]} 
+                                onPress={handleBookNow}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.actionAccent, { backgroundColor: tintColor }]} />
+                                <View style={styles.actionContent}>
+                                    <Feather name="calendar" size={20} color={tintColor} />
+                                    <View style={styles.actionTextContainer}>
+                                        <ThemedText style={[styles.actionTitle, { color: textColor }]}>
+                                            Book Now
+                                        </ThemedText>
+                                        <ThemedText style={[styles.actionSubtitle, { color: secondaryColor }]}>
+                                            Schedule a service appointment
+                                        </ThemedText>
+                                    </View>
+                                </View>
+                                <Feather name="chevron-right" size={18} color={secondaryColor} />
+                            </TouchableOpacity>
+                            
+                            <TouchableOpacity 
+                                style={[styles.actionItem, { borderColor }]}
+                                onPress={handleSeeProfile}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.actionAccent, { backgroundColor: tintColor }]} />
+                                <View style={styles.actionContent}>
+                                    <Feather name="user" size={20} color={tintColor} />
+                                    <View style={styles.actionTextContainer}>
+                                        <ThemedText style={[styles.actionTitle, { color: textColor }]}>
+                                            See Profile
+                                        </ThemedText>
+                                        <ThemedText style={[styles.actionSubtitle, { color: secondaryColor }]}>
+                                            View full profile and portfolio
+                                        </ThemedText>
+                                    </View>
+                                </View>
+                                <Feather name="chevron-right" size={18} color={secondaryColor} />
+                            </TouchableOpacity>
+                        </View>
                     </BottomSheetView>
                 </BottomSheet>
             </View>
@@ -103,21 +179,83 @@ const styles = StyleSheet.create({
     },
     bottomSheetContent: {
         flex: 1,
-        padding: widthPixel(16),
         paddingBottom: heightPixel(40),
     },
-    bottomSheetItem: {
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        paddingHorizontal: widthPixel(20),
+        paddingTop: heightPixel(20),
+        paddingBottom: heightPixel(24),
+    },
+    headerLeft: {
+        flex: 1,
+    },
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(16),
+    },
+    headerLabelRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: heightPixel(8),
+    },
+    headerLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+    },
+    headerTitle: {
+        fontSize: fontPixel(24),
+        fontFamily: 'Bold',
+        letterSpacing: -0.5,
+        lineHeight: fontPixel(28),
+    },
+    closeButton: {
+        marginTop: heightPixel(8),
+    },
+    childrenContainer: {
+        paddingHorizontal: widthPixel(20),
+        paddingBottom: heightPixel(20),
+        borderBottomWidth: 0.5,
+        marginBottom: heightPixel(20),
+    },
+    actionsContainer: {
+        paddingHorizontal: widthPixel(20),
+        gap: heightPixel(12),
+    },
+    actionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 0.5,
+        borderLeftWidth: 0,
+        overflow: 'hidden',
+    },
+    actionAccent: {
+        width: widthPixel(4),
+        height: '100%',
+    },
+    actionContent: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: widthPixel(12),
-        paddingVertical: heightPixel(12),
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(16),
     },
-    bottomSheetText: {
+    actionTextContainer: {
+        flex: 1,
+    },
+    actionTitle: {
         fontSize: fontPixel(16),
-        fontFamily: 'Medium',
+        fontFamily: 'Bold',
+        marginBottom: heightPixel(2),
     },
-    childrenContainer: {
-        marginBottom: heightPixel(16),
+    actionSubtitle: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Regular',
     },
 });
 

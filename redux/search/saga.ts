@@ -2,7 +2,7 @@
  * Gets the repositories of the game from Game
  */
 
-import {call, put, select, takeLatest} from 'redux-saga/effects';
+import { call, put, select, takeLatest, delay } from 'redux-saga/effects';
 import { actions } from '@/redux/search/slice';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -16,6 +16,7 @@ import { selectUserLocation } from '../app/selector';
 
 export function* search() {
     try {
+        yield delay(5000);
         const search: string = yield select(selectSearch);
         const media: Media[] = yield select(selectMedia);
         const location: Location = yield select(selectUserLocation);
