@@ -4,13 +4,12 @@ import { ProfileForm } from '@/redux/auth/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import Toast from 'react-native-toast-message';
-import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectProfileForm } from './selector';
 import { actions } from './slice';
 
 export function* saveUserBasicInformation() {
     try {
-        yield delay(500);
         const userForm: ProfileForm = yield select(selectProfileForm);  
         const { data, error } = yield call(updateUser, {
             name: userForm.name.value,
@@ -22,6 +21,11 @@ export function* saveUserBasicInformation() {
             throw new Error(error);
         }
         yield put(appActions.setUser(data));
+        Toast.show({
+            type: 'success',
+            text1: 'Profile Update',
+            text2: 'User profile updated successfully',
+        });
     } catch (error: any) {
         const errorMessage = error?.error || error?.message || 'Failed to save user form';
         Toast.show({
