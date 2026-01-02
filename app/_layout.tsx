@@ -2,7 +2,7 @@ import Main from '@/components/navigation/Main';
 import { createToastConfig } from '@/components/ui/Toast';
 import { heightPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { persistor, store } from '@/store';
 import { PortalProvider } from '@gorhom/portal';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -52,8 +52,27 @@ const DarkNavigationTheme = {
   fonts: DefaultTheme.fonts,
 };
 
+// Wrapper component that uses theme hook inside Provider
+function ThemedApp() {
+  const theme = useAppTheme();
+
+  return (
+    <ThemeProvider value={theme === 'dark' ? DarkNavigationTheme : LightNavigationTheme}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <PortalProvider>
+          <Main />
+          <Toast 
+            config={createToastConfig(theme)} 
+            topOffset={heightPixel(60)}
+          />
+          <StatusBar style={theme} />
+        </PortalProvider>
+      </GestureHandlerRootView>
+    </ThemeProvider>
+  );
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     Bold: require('../assets/fonts/maison-neue/fonnts.com-Maison_Neue_Bold.ttf'),
     Medium: require('../assets/fonts/maison-neue/fonnts.com-Maison_Neue_Book.ttf'),
@@ -79,18 +98,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkNavigationTheme : LightNavigationTheme}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <PortalProvider>
-              <Main />
-              <Toast 
-                config={createToastConfig(colorScheme || 'light')} 
-                topOffset={heightPixel(60)}
-              />
-              <StatusBar style="auto" />
-            </PortalProvider>
-          </GestureHandlerRootView>
-        </ThemeProvider>
+        <ThemedApp />
       </PersistGate>
     </Provider>
   );
