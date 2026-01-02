@@ -5,17 +5,16 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectUser } from "@/redux/app/selector";
+import { selectIsUpdatingNotifications, selectUser } from "@/redux/app/selector";
 import { actions } from "@/redux/app/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
-import { useState } from "react";
 import { ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
   
 const NotificationsScreen = () => {
   const user = useAppSelector(selectUser)
   const dispatch = useAppDispatch()
-  const [isLoading, setIsLoading] = useState(false)
+  const isUpdatingNotifications = useAppSelector(selectIsUpdatingNotifications)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
 
@@ -35,10 +34,8 @@ const NotificationsScreen = () => {
   }, 'background');
 
   const handlePushNotificationToggle = () => {
-    setIsLoading(true)
     dispatch(actions.updateNotifications({
       pushNotification: !user?.settings?.notifications?.pushNotification,
-      callback: () => setIsLoading(false)
     }))
   }
 
@@ -64,7 +61,7 @@ const NotificationsScreen = () => {
             color={colors.light.tint}
             onToggle={handlePushNotificationToggle}
             value={user?.settings?.notifications?.pushNotification as boolean}
-            disabled={isLoading}
+            disabled={isUpdatingNotifications}
           />
         </View>
 

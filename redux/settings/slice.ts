@@ -26,11 +26,6 @@ export const initialState: ContainerState = {
       value: '',
       error: '',
     },
-    location: {
-      address: '',
-      lat: 0,
-      lng: 0,
-    },
     isLoading: false,
   },
 }

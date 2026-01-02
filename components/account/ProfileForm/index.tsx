@@ -8,7 +8,7 @@ import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
 import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
-import { RegisterForm, RegisterFormFields } from '@/redux/auth/types';
+import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
 
 export default function ProfileForm({
     registerForm,
@@ -17,7 +17,7 @@ export default function ProfileForm({
     onSubmit,
     submitOnBlur=false
 }: {
-    registerForm: RegisterForm;
+    registerForm: RegisterForm | ProfileFormType;
     onSetFormValues: (key: RegisterFormFields, value: string) => void;
     onSetFormErrors: (key: RegisterFormFields, value: string) => void;
     onSubmit: () => void;

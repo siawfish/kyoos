@@ -3,6 +3,7 @@ import { BookingStatuses, PermissionType, StatusColors } from '@/redux/app/types
 import { formatRelative } from 'date-fns'
 import * as Location from 'expo-location';
 import { Location as LocationType } from '@/redux/auth/types';
+import { getForegroundPermissionsAsync, PermissionStatus } from 'expo-location';
 
 export const timeToString = (time: number) => {
     const date = new Date(time);
@@ -120,7 +121,9 @@ export const calculateWorkerAverageRate = (worker: Worker): number => {
 
 export const getCurrentLocation = async (): Promise<LocationType | null> => {
   try {
-    const { coords } = await Location.getCurrentPositionAsync({});
+    const { coords } = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High
+    });
     const address = await Location.reverseGeocodeAsync({
       latitude: coords.latitude,
       longitude: coords.longitude,

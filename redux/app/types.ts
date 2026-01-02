@@ -60,6 +60,8 @@ export interface AppState {
     user: User | null;
     hasSeenOnboarding: boolean;
     location: LocationForm;
+    isUpdatingTheme: boolean;
+    isUpdatingNotifications: boolean;
 }
 
 export interface LocationForm extends Location {

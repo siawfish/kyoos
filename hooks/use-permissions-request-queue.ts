@@ -16,7 +16,7 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UseP
   const [cameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission] = useMediaLibraryPermissions();
   const [permissionsQueue, setPermissionsQueue] = useState<PermissionType[]>([]);
-  const [locationPermission, setLocationPermission] = useState<PermissionStatus | undefined>(PermissionStatus.GRANTED);
+  const [locationPermission, setLocationPermission] = useState<PermissionStatus | undefined>(PermissionStatus.UNDETERMINED);
   const dispatch = useDispatch();
   const pathname = usePathname();
 

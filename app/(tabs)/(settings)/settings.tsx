@@ -14,10 +14,10 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, 
 
 const settingsSections = [
   {
-    title: 'Account Settings',
+    title: 'Profile',
     icon: 'person-outline',
     color: colors.light.blue,
-    href: '/(tabs)/(settings)/(account)',
+    href: '/(tabs)/(settings)/profile',
   },
   {
     title: 'Appearance',

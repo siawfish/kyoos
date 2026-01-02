@@ -7,6 +7,8 @@ export const initialState: AppState = {
   token: null,
   user: null,
   hasSeenOnboarding: false,
+  isUpdatingTheme: false,
+  isUpdatingNotifications: false,
   location: {
     lat: 0,
     lng: 0,
@@ -42,13 +44,17 @@ const appSlice = createSlice({
     },
     updateTheme: (state, action: PayloadAction<{
       theme: Theme;
-      callback: () => void;
     }>) => {
+      state.isUpdatingTheme = true;
       if (state.user) {
         state.user.settings.theme = action.payload.theme;
       }
     },
+    updateThemeCompleted: (state) => {
+      state.isUpdatingTheme = false;
+    },
     reverseTheme: (state) => {
+      state.isUpdatingTheme = false;
       if (state.user) {
         state.user.settings.theme = state.user.settings.theme === Theme.DARK ? Theme.LIGHT : Theme.DARK;
       }
@@ -56,11 +62,14 @@ const appSlice = createSlice({
     reverseGeocodeLocation: (state, action: PayloadAction<{latlng: string, store?: StoreName}>) => {},
     updateNotifications: (state, action: PayloadAction<{
       pushNotification: boolean;
-      callback: () => void;
     }>) => {
+      state.isUpdatingNotifications = true;
       if (state.user) {
         state.user.settings.notifications.pushNotification = action.payload.pushNotification;
       }
+    },
+    updateNotificationsCompleted: (state) => {
+      state.isUpdatingNotifications = false;
     },
     setLocation: (state, action: PayloadAction<LocationForm>) => {
       state.location = action.payload;

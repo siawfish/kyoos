@@ -5,18 +5,18 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectUser } from "@/redux/app/selector";
+import { selectIsUpdatingTheme, selectUser } from "@/redux/app/selector";
 import { actions } from "@/redux/app/slice";
 import { Theme } from "@/redux/app/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 
 const AppearanceScreen = () => {
   const user = useAppSelector(selectUser)
-  const [isLoading, setIsLoading] = useState(false)
+  const isUpdatingTheme = useAppSelector(selectIsUpdatingTheme)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const dispatch = useAppDispatch()
@@ -44,11 +44,9 @@ const AppearanceScreen = () => {
   }, [colorScheme, user?.settings?.theme])
 
   const handleThemeChange = () => {
-    setIsLoading(true)
     const theme = isDarkMode ? Theme.LIGHT : Theme.DARK
     dispatch(actions.updateTheme({
       theme,
-      callback: () => setIsLoading(false)
     }))
   }
 
@@ -74,7 +72,7 @@ const AppearanceScreen = () => {
             color={colors.light.tint}
             onToggle={handleThemeChange}
             value={isDarkMode}
-            disabled={isLoading}
+            disabled={isUpdatingTheme}
           />
         </View>
 

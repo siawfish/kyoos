@@ -39,3 +39,13 @@ export const selectUserLocationIsMapPickerOpen = createSelector(
     [selectUserLocation],
     (location) => location?.isMapPickerOpen,
 );
+
+export const selectIsUpdatingTheme = createSelector(
+    [selectDomain],
+    (app) => app?.isUpdatingTheme,
+);
+
+export const selectIsUpdatingNotifications = createSelector(
+    [selectDomain],
+    (app) => app?.isUpdatingNotifications,
+);

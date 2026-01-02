@@ -102,7 +102,6 @@ export function* setIsUploadingAsset(action: PayloadAction<{
 
 export function* updateTheme(action: PayloadAction<{
   theme: Theme;
-  callback: () => void;
 }>) {
     try {
         const response: ApiResponse<User> = yield call(request, {
@@ -125,13 +124,12 @@ export function* updateTheme(action: PayloadAction<{
             text2: errorMessage,
         });
     } finally {
-        action.payload.callback();
+        yield put(actions.updateThemeCompleted());
     }
 }
 
 export function* updateNotifications(action: PayloadAction<{
   pushNotification: boolean;
-  callback: () => void;
 }>) {
     try {
         const response: ApiResponse<User> = yield call(request, {
@@ -154,7 +152,7 @@ export function* updateNotifications(action: PayloadAction<{
             text2: errorMessage,
         });
     } finally {
-        action.payload.callback();
+        yield put(actions.updateNotificationsCompleted());
     }
 } 
 

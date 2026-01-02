@@ -25,6 +25,7 @@ export interface RegisterForm {
   location: LocationForm;
 }
 
+export type ProfileForm = Omit<RegisterForm, 'location'>;
 export interface GhanaCardForm {
   number: FormElement;
   front: FormElement;

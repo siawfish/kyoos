@@ -90,14 +90,22 @@ export default function Layout() {
     }
   }, [locationPermission, setCurrentLocation]);
 
-  // Show tab bar by default - we're in the tabs layout
-  // Only hide for specific routes if needed (currently showing for all routes)
-  const [showTabBar, setShowTabBar] = useState(true);
+  const [showTabBar, setShowTabBar] = useState(false);
 
   useEffect(() => {
-    // You can add logic here to hide tab bar for specific routes if needed
-    // For now, always show it since we're in the tabs layout
-    setShowTabBar(true);
+    const mainRoutes = [
+      '/',
+      '/(search)',
+      '/bookings',
+      '/(bookings)/bookings',
+      '/messaging',
+      '/(messaging)/messaging',
+      '/settings',
+      '/(settings)/settings',
+    ];
+
+    const shouldShowTabBar = mainRoutes.includes(pathname);
+    setShowTabBar(shouldShowTabBar);
   }, [pathname]);
 
   useEffect(() => {

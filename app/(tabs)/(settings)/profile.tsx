@@ -1,21 +1,25 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ProfileForm from '@/components/account/ProfileForm';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectUserForm, selectUserFormIsLoading } from '@/redux/settings/selector';
+import { selectProfileForm, selectProfileFormIsLoading } from '@/redux/settings/selector';
 import { actions } from '@/redux/settings/slice';
 import { useEffect, useMemo } from 'react';
 import { selectUser } from '@/redux/app/selector';
+import BackButton from '@/components/ui/BackButton';
+import { router } from 'expo-router';
+import { heightPixel, widthPixel } from '@/constants/normalize';
+import Button from '@/components/ui/Button';
 
 export default function ProfileScreen() {
-    const isLoading = useAppSelector(selectUserFormIsLoading);
-    const profileForm = useAppSelector(selectUserForm);
+    const isLoading = useAppSelector(selectProfileFormIsLoading);
+    const formValues = useAppSelector(selectProfileForm);
     const user = useAppSelector(selectUser);
     const dispatch = useAppDispatch();
 
     const hasUserChanged = useMemo(() => {
-        return user?.name !== profileForm?.name?.value || user?.email !== profileForm?.email?.value || user?.gender !== profileForm?.gender?.value || user?.avatar !== profileForm?.avatar?.value;
-    }, [user, profileForm]);
+        return user?.name !== formValues?.name?.value || user?.email !== formValues?.email?.value || user?.gender !== formValues?.gender?.value || user?.avatar !== formValues?.avatar?.value;
+    }, [user, formValues]);
 
     useEffect(() => {
         if (user) {
@@ -26,21 +30,38 @@ export default function ProfileScreen() {
         }
     }, [user, dispatch]);
 
+    const handleSave = () => {
+        if(!hasUserChanged) return;
+        dispatch(actions.submitProfileForm())
+    }
+
     return (
         <ThemedSafeAreaView 
             style={styles.container}
         >
+            <BackButton
+                containerStyle={styles.backButton}
+                iconName="arrow-left"
+                onPress={() => router.back()}
+            />
             <ProfileForm 
-                isLoading={isLoading} 
                 onSetFormValues={(key, value) => dispatch(actions.setProfileFormValue({key, value}))} 
                 onSetFormErrors={(key, value) => dispatch(actions.setProfileFormErrors({key, value}))} 
                 onSubmit={() => {
                     if(!hasUserChanged) return;
                     dispatch(actions.submitProfileForm())
                 }} 
-                registerForm={profileForm} 
+                registerForm={formValues} 
                 submitOnBlur
             />
+            <View style={styles.footer}>
+                <Button
+                    label="SAVE"
+                    isLoading={isLoading}
+                    onPress={handleSave}
+                    style={styles.button}
+                />
+            </View>
         </ThemedSafeAreaView>
     );
 }
@@ -48,5 +69,16 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    }
+    },
+    backButton: {
+        marginHorizontal: widthPixel(16),
+        marginTop: heightPixel(16),
+    },
+    footer: {
+        paddingHorizontal: widthPixel(16),
+        paddingBottom: heightPixel(20),
+    },
+    button: {
+        marginHorizontal: 0,
+    },
 });

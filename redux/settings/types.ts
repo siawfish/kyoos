@@ -1,7 +1,7 @@
-import { RegisterForm } from "@/redux/auth/types";
+import { ProfileForm } from "@/redux/auth/types";
 
 export interface SettingsState {
-    profileForm: RegisterForm;
+    profileForm: ProfileForm;
 }
 
 export type ContainerState = SettingsState;
