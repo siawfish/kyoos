@@ -1,9 +1,10 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -139,15 +140,17 @@ const SPRING_CONFIG = {
 };
 
 export default function BottomTab({ state, descriptors, navigation }: BottomTabBarProps) {
-  const colorScheme = useColorScheme();
+  const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   
-  // Inverted island colors
-  const islandBg = colorScheme === 'dark' ? colors.dark.background : colors.light.white;
-  const iconColor = colorScheme === 'dark' ? colors.light.secondary : colors.dark.secondary;
-  const activeIconColor = colorScheme === 'dark' ? colors.dark.background : colors.light.white;
-  const activeBgColor = colorScheme === 'dark' ? colors.light.white : colors.dark.background;
-  const borderColor = colorScheme === 'dark' ? colors.dark.grey : colors.light.grey;
+  const isDark = theme === 'dark';
+  
+  // Tab bar colors - properly themed for dark mode
+  const islandBg = isDark ? colors.dark.background : colors.light.white;
+  const iconColor = isDark ? colors.dark.secondary : colors.light.secondary;
+  const activeIconColor = isDark ? colors.dark.background : colors.light.white;
+  const activeBgColor = isDark ? colors.dark.tint : colors.light.tint;
+  const borderColor = isDark ? colors.dark.tint : colors.light.grey;
 
   // Track tab layouts
   const tabLayouts = useRef<TabItemLayout[]>([]);
