@@ -1,13 +1,14 @@
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
-import ThemedText from '@/components/ui/Themed/ThemedText';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, useColorScheme, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 
 interface RescheduleProps {
@@ -20,11 +21,10 @@ interface CustomDayProps {
     state?: string;
     onPress?: (date: DateData) => void;
     selectedDate?: string;
+    isDark?: boolean;
 }
 
-const CustomDay = ({ date, state, onPress, selectedDate }: CustomDayProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+const CustomDay = ({ date, state, onPress, selectedDate, isDark = false }: CustomDayProps) => {
     const borderColor = isDark ? colors.dark.white : colors.light.black;
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const isSelected = date?.dateString === selectedDate;
@@ -36,13 +36,14 @@ const CustomDay = ({ date, state, onPress, selectedDate }: CustomDayProps) => {
             style={[
                 styles.dayContainer,
                 isSelected && { backgroundColor: borderColor },
+                isToday && { borderWidth: 1, borderColor: textColor },
             ]}
             disabled={state === 'disabled'}
         >
             <Text
                 style={[
                     styles.dayText,
-                    { color: isSelected ? (isDark ? colors.light.black : colors.dark.white) : (isToday ? colors.light.tint : textColor) },
+                    { color: isSelected ? (isDark ? colors.light.black : colors.dark.white) : textColor },
                     state === 'disabled' && { opacity: 0.3 },
                 ]}
             >
@@ -56,8 +57,8 @@ const Reschedule = ({
     onClose,
     isOpen,
 }:RescheduleProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
     const [selectedDate, setSelectedDate] = useState<string>('');
 
     const backgroundColor = useThemeColor(
@@ -68,8 +69,14 @@ const Reschedule = ({
       "background"
     );
     const borderColor = isDark ? colors.dark.white : colors.light.black;
-    const textColor = isDark ? colors.dark.text : colors.light.text;
-    const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const textColor = useThemeColor({
+      light: colors.light.text,
+      dark: colors.dark.text
+    }, 'text');
+    const labelColor = useThemeColor({
+      light: colors.light.secondary,
+      dark: colors.dark.secondary
+    }, 'text');
 
   if (!isOpen) return null;
 
@@ -122,27 +129,27 @@ const Reschedule = ({
                             [selectedDate]: {
                                 selected: true,
                                 selectedColor: borderColor,
-                                selectedTextColor: isDark ? colors.light.black : colors.dark.white,
+                                selectedTextColor: textColor,
                             }
                         }}
-                        dayComponent={(props) => <CustomDay {...props} selectedDate={selectedDate} />}
+                        dayComponent={(props) => <CustomDay {...props} selectedDate={selectedDate} isDark={isDark} />}
                     theme={{
                         calendarBackground: backgroundColor, 
                         dayTextColor: textColor,
                         textSectionTitleColor: labelColor,
-                            selectedDayBackgroundColor: borderColor,
-                            selectedDayTextColor: isDark ? colors.light.black : colors.dark.white,
-                        todayTextColor: colors.light.tint,
+                        selectedDayBackgroundColor: borderColor,
+                        selectedDayTextColor: textColor,
+                        todayTextColor: isDark ? colors.dark.secondary : colors.light.tint,
                         dotColor: colors.light.tint,
                         monthTextColor: textColor,
-                            textDisabledColor: labelColor,
-                            arrowColor: borderColor,
-                            textDayFontFamily: 'Regular',
-                            textMonthFontFamily: 'Bold',
-                            textDayHeaderFontFamily: 'SemiBold',
-                            textDayFontSize: fontPixel(14),
-                            textMonthFontSize: fontPixel(16),
-                            textDayHeaderFontSize: fontPixel(10),
+                        textDisabledColor: labelColor,
+                        arrowColor: borderColor,
+                        textDayFontFamily: 'Regular',
+                        textMonthFontFamily: 'Bold',
+                        textDayHeaderFontFamily: 'SemiBold',
+                        textDayFontSize: fontPixel(14),
+                        textMonthFontSize: fontPixel(16),
+                        textDayHeaderFontSize: fontPixel(10),
                         }}
                         style={styles.calendar}
                     />

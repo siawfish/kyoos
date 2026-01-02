@@ -1,4 +1,4 @@
-import { Media } from "@/types";
+import { Media } from "@/redux/app/types";
 
 export interface Message {
   id: string;

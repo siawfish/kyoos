@@ -1,11 +1,12 @@
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface SettingsItemProps {
     title: string;
@@ -18,8 +19,8 @@ interface SettingsItemProps {
 
 const SettingsItem = ({ title, icon, color, borderColor, href, onPress }: SettingsItemProps) => {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
   const caretColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'text');
 
   // Check if this is Delete Account (keep original color behavior)

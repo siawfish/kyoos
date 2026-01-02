@@ -1,8 +1,9 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
+import { useAppTheme } from '@/hooks/use-app-theme'
 import { addDays, format, isSameDay, startOfWeek } from 'date-fns'
 import React, { useMemo } from 'react'
-import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
 interface WeekCalendarProps {
@@ -12,10 +13,10 @@ interface WeekCalendarProps {
 }
 
 const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCalendarProps) => {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
+  const theme = useAppTheme()
+  const isDark = theme === 'dark'
 
-  const cardBg = isDark ? colors.dark.background : colors.light.background
+  const cardBg = isDark ? 'transparent' : colors.light.background
   const borderColor = isDark ? colors.dark.white : colors.light.black
   const textColor = isDark ? colors.dark.text : colors.light.text
   const labelColor = isDark ? colors.dark.secondary : colors.light.secondary
@@ -117,7 +118,7 @@ export default WeekCalendar
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
     marginBottom: heightPixel(24),
     borderWidth: 0.5,
     borderTopWidth: 0,

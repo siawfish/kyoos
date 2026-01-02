@@ -4,21 +4,21 @@ import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectIsUpdatingTheme, selectUser } from "@/redux/app/selector";
+import { selectIsUpdatingTheme } from "@/redux/app/selector";
 import { actions } from "@/redux/app/slice";
 import { Theme } from "@/redux/app/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
 import { useMemo } from "react";
-import { ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 
 const AppearanceScreen = () => {
-  const user = useAppSelector(selectUser)
   const isUpdatingTheme = useAppSelector(selectIsUpdatingTheme)
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
+  const theme = useAppTheme()
+  const isDark = theme === 'dark'
   const dispatch = useAppDispatch()
 
   const backgroundColor = useThemeColor({
@@ -37,11 +37,8 @@ const AppearanceScreen = () => {
   }, 'background');
 
   const isDarkMode = useMemo(() => {
-    if(user?.settings?.theme === Theme.SYSTEM) {
-      return colorScheme === 'dark'
-    }
-    return user?.settings?.theme === Theme.DARK
-  }, [colorScheme, user?.settings?.theme])
+    return theme === 'dark'
+  }, [theme])
 
   const handleThemeChange = () => {
     const theme = isDarkMode ? Theme.LIGHT : Theme.DARK
@@ -101,8 +98,7 @@ const styles = StyleSheet.create({
     paddingBottom: heightPixel(100),
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(20),
   },
   accentBar: {

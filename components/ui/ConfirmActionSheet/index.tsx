@@ -1,10 +1,11 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
+import { Image, Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import BackButton from '../BackButton';
 import { ThemedText } from '../Themed/ThemedText';
 
@@ -36,8 +37,8 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
   icon=<Image source={require('@/assets/images/caution.png')} style={styles.icon} />,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
   
   const backgroundColor = useThemeColor(
     {

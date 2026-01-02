@@ -1,12 +1,13 @@
 import Thumbnails from '@/components/ui/Thumbnails'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
+import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/bookings/types'
 import { Media } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { format } from 'date-fns'
 import React from 'react'
-import { Image, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import Status from './Status'
 
@@ -17,8 +18,8 @@ interface BookingDetailsProps {
 const BookingDetails = ({
     booking
 }:BookingDetailsProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
@@ -131,7 +132,7 @@ export default BookingDetails
 
 const styles = StyleSheet.create({
     mainContainer: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         gap: heightPixel(24),
         paddingBottom: heightPixel(100),
     },

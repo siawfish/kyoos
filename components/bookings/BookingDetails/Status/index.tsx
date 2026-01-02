@@ -1,8 +1,9 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { BookingStatuses } from '@/redux/app/types';
 import React from 'react';
-import { StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface StatusProps {
     status?: BookingStatuses;
@@ -40,8 +41,8 @@ const getStatusStyle = (status: BookingStatuses, isDark: boolean) => {
 const Status = ({
     status = BookingStatuses.PENDING
 }:StatusProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
     const statusStyle = getStatusStyle(status, isDark);
 
     return (

@@ -4,41 +4,52 @@ import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { formatRelativeDate } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { format, isSameDay } from 'date-fns';
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AgendaEntry } from 'react-native-calendars';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectBookings, selectIsLoading } from '@/redux/bookings/selector';
+import { actions } from '@/redux/bookings/slice';
+import { Booking } from '@/redux/bookings/types';
 
 interface BookingAgendaEntry extends AgendaEntry {
-  booking?: any;
+  booking?: Booking;
 }
 
-// Mock data for preview - bookings spread across different days
-// TODO: Replace with actual data from Redux
-const mockBookings: any[] = [];
-
 export default function BookingsScreen() {
-  // TODO: Replace with actual data from Redux
-  const allBookings = mockBookings;
-  const isLoading = false;
+  const dispatch = useDispatch();
+  const allBookings = useSelector(selectBookings);
+  const isLoading = useSelector(selectIsLoading);
+
+  useEffect(() => {
+    dispatch(actions.fetchBookings());
+  }, [dispatch]);
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
 
-  const textColor = isDark ? colors.dark.text : colors.light.text;
-  const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text
+  }, 'text');
+  const subtitleColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = isDark ? colors.dark.secondary : colors.light.black;
 
-  const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background}, 'background');
+  const cardBg = isDark ? 'transparent' : colors.light.background;
 
   // Calculate booking counts per day for the calendar indicators
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    allBookings.forEach((booking: any) => {
-      // TODO: Adjust based on actual booking data structure
-      const dateKey = booking?.service?.appointmentDateTime?.date?.value || format(selectedDate, 'yyyy-MM-dd');
+    allBookings.forEach((booking: Booking) => {
+      const dateKey = booking.service.appointmentDateTime.date.value;
       counts[dateKey] = (counts[dateKey] || 0) + 1;
     });
     return counts;
@@ -46,19 +57,18 @@ export default function BookingsScreen() {
 
   // Filter bookings for the selected date
   const filteredBookings = useMemo(() => {
-    return allBookings.filter((booking: any) => {
-      // TODO: Adjust based on actual booking data structure
-      const bookingDate = booking?.service?.appointmentDateTime?.date?.value;
+    return allBookings.filter((booking: Booking) => {
+      const bookingDate = booking.service.appointmentDateTime.date.value;
       if (!bookingDate) return false;
       return isSameDay(new Date(bookingDate), selectedDate);
     });
   }, [allBookings, selectedDate]);
 
   // Convert filtered bookings to agenda items
-  const agendaItems: BookingAgendaEntry[] = filteredBookings.map((booking: any) => ({
-    name: `${booking?.service?.description || 'Booking'} with ${booking?.client?.name || 'Client'}`,
+  const agendaItems: BookingAgendaEntry[] = filteredBookings.map((booking: Booking) => ({
+    name: `${booking.service.description} with ${booking.client.name}`,
     height: 80,
-    day: booking?.service?.appointmentDateTime?.date?.value || format(selectedDate, 'yyyy-MM-dd'),
+    day: booking.service.appointmentDateTime.date.value,
     booking
   }));
   
@@ -99,8 +109,8 @@ export default function BookingsScreen() {
           </View>
         ) : filteredBookings.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={[styles.emptyCard, { borderColor: accentColor, backgroundColor }]}>
-              <View style={[styles.emptyAccent, { backgroundColor: accentColor }]} />
+            <View style={[styles.emptyCard, { borderColor, backgroundColor: cardBg }]}>
+              <View style={[styles.emptyAccent, { backgroundColor: borderColor }]} />
               <View style={styles.emptyInner}>
                 <Image source={require('@/assets/images/empty-list.png')} style={styles.emptyImage} />
                 <Text style={[styles.emptyTitle, { color: textColor }]}>
@@ -140,8 +150,7 @@ const styles = StyleSheet.create({
     paddingBottom: heightPixel(40),
   },
   header: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(24),
   },
   accentBar: {
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingTop: heightPixel(20),
   },
   emptyCard: {
@@ -208,7 +217,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bookingsList: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     gap: heightPixel(12),
   },
 });

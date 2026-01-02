@@ -1,10 +1,11 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
+import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/bookings/types'
 import { BookingStatuses } from '@/redux/app/types'
 import { router } from 'expo-router'
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
 
 interface BookingAgendaEntry extends AgendaEntry {
@@ -35,14 +36,14 @@ const getStatusColor = (status: BookingStatuses, isDark: boolean) => {
 const BookingCard = ({
     reservation, 
 }: BookingCardProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
     const booking = reservation.booking;
 
     if (!booking) return null;
 
-    const cardBg = isDark ? colors.dark.background : colors.light.background;
-    const borderColor = isDark ? colors.dark.white : colors.light.black;
+    const cardBg = isDark ? 'transparent' : colors.light.background;
+    const borderColor = isDark ? colors.dark.secondary : colors.light.black;
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const statusColor = getStatusColor(booking.status, isDark);

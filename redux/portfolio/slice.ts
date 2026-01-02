@@ -1,5 +1,4 @@
-import { KeyValue } from '@/redux/app/types';
-import { Media } from '@/types';
+import { KeyValue, Media } from '@/redux/app/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { Comment, ContainerState, Portfolio, PortfolioPayload } from './types';

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform, Text, useColorScheme } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform, Text } from 'react-native';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
@@ -25,11 +26,17 @@ export default function ProfileForm({
 }) {
     const [, setIsDisabled] = useState(false);
 
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
-    const textColor = isDark ? colors.dark.text : colors.light.text;
-    const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text
+    }, 'text');
+    const subtitleColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary
+    }, 'text');
     const accentColor = isDark ? colors.dark.white : colors.light.black;
     const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
 

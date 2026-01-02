@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     },
     backButton: {
         marginHorizontal: widthPixel(16),
-        marginTop: heightPixel(16),
+        // marginTop: heightPixel(16),
     },
     footer: {
         paddingHorizontal: widthPixel(16),

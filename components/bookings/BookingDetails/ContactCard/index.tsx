@@ -2,19 +2,20 @@ import user from "@/assets/images/individual.png";
 import IconButton from '@/components/ui/IconButton';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { Booking } from '@/redux/bookings/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 interface ContactCardProps {
     booking: Booking;
 }
 
 const ContactCard = ({ booking }: ContactCardProps) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     const cardBg = isDark ? colors.dark.background : colors.light.background;
     const borderColor = isDark ? colors.dark.white : colors.light.black;
@@ -41,7 +42,7 @@ const ContactCard = ({ booking }: ContactCardProps) => {
                             )}
                         </View>
                     </View>
-                    <Link href="/(drawer)/(messaging)/1" asChild>
+                    <Link href="/(tabs)/(messaging)/1" asChild>
                         <IconButton style={[styles.btn, { borderColor }]}>
                             <Ionicons
                                 name="chatbubble-outline"

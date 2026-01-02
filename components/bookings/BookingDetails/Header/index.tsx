@@ -52,9 +52,8 @@ export default Header
 
 const styles = StyleSheet.create({
     header: {
-        paddingHorizontal: widthPixel(20),
-        paddingBottom: heightPixel(12),
-        paddingTop: heightPixel(8),
+      paddingHorizontal: widthPixel(16),
+      paddingBottom: heightPixel(12),
     },
     backButtonContainer: {
         flexDirection: 'row',

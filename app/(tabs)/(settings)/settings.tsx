@@ -4,12 +4,13 @@ import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions } from '@/redux/app/slice';
 import { useAppDispatch } from '@/store/hooks';
 import Constants from 'expo-constants';
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 const settingsSections = [
@@ -56,8 +57,8 @@ const deleteAccountSections = [
 
 const SettingsScreen = () => {
   const dispatch = useAppDispatch();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
   
   const backgroundColor = useThemeColor({
     light: colors.light.background,
@@ -68,10 +69,6 @@ const SettingsScreen = () => {
   const labelColor = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
-  }, 'text');
-  const textColor = useThemeColor({
-    light: colors.light.text,
-    dark: colors.dark.text
   }, 'text');
   const cardBg = useThemeColor({
     light: colors.light.background,
@@ -203,8 +200,7 @@ const styles = StyleSheet.create({
     paddingBottom: heightPixel(100),
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(20),
   },
   accentBar: {
@@ -218,7 +214,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   sectionLabelContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(12),
     marginTop: heightPixel(8),
   },
@@ -228,14 +224,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   settingsGroup: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
     marginBottom: heightPixel(16),
     borderWidth: 0.5,
     borderRadius: 0,
     overflow: 'hidden',
   },
   logoutButton: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
     paddingVertical: heightPixel(16),
     paddingHorizontal: widthPixel(16),
     borderWidth: 0.5,

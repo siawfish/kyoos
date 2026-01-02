@@ -4,19 +4,20 @@ import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectIsUpdatingNotifications, selectUser } from "@/redux/app/selector";
 import { actions } from "@/redux/app/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
   
 const NotificationsScreen = () => {
   const user = useAppSelector(selectUser)
   const dispatch = useAppDispatch()
   const isUpdatingNotifications = useAppSelector(selectIsUpdatingNotifications)
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
+  const theme = useAppTheme()
+  const isDark = theme === 'dark'
 
   const backgroundColor = useThemeColor({
     light: colors.light.background,
@@ -90,8 +91,7 @@ const styles = StyleSheet.create({
     paddingBottom: heightPixel(100),
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(20),
   },
   accentBar: {

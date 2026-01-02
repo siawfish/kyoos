@@ -1,58 +1,119 @@
-'use client';
-
-import { useState, useRef } from 'react';
-import { 
-  View, 
-  ScrollView, 
-  TouchableOpacity, 
-  Image, 
-  TextInput, 
-  Dimensions, 
-  ViewStyle,
-  KeyboardAvoidingView,
-  Platform,
-  ImageStyle
-} from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import BackButton from '@/components/ui/BackButton';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { ThemedView } from '@/components/ui/Themed/ThemedView';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { selectUser } from '@/redux/app/selector';
+import { Media, MimeType } from '@/redux/app/types';
+import { selectMessages } from '@/redux/messaging/selector';
+import { actions } from '@/redux/messaging/slice';
+import { Message } from '@/redux/messaging/types';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { FlashList } from '@shopify/flash-list';
+import { BlurView } from 'expo-blur';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { ThemedView } from '@/components/ui/Themed/ThemedView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { colors } from '@/constants/theme/colors';
-import { heightPixel, widthPixel, fontPixel } from '@/constants/normalize';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { Link, router, useLocalSearchParams } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  ImageStyle,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
-interface Message {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: Date;
-  attachments?: {
-    type: 'image' | 'video' | 'pdf';
-    uri: string;
-    name?: string;
-  }[];
-}
+const VideoPlayer = ({ 
+  uri, 
+  contentFit = "cover", 
+  showControls = false, 
+  autoPlay = false,
+  style
+}: { 
+  uri: string; 
+  contentFit?: "contain" | "cover"; 
+  showControls?: boolean; 
+  autoPlay?: boolean;
+  style?: ViewStyle;
+}) => {
+  const player = useVideoPlayer(uri, (player) => {
+    player.muted = !showControls;
+    if (autoPlay) {
+      player.play();
+    }
+  });
+
+  return (
+    <VideoView 
+      player={player} 
+      contentFit={contentFit}
+      nativeControls={showControls}
+      style={style}
+    />
+  );
+};
 
 export default function ConversationScreen() {
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const whiteColor = useThemeColor({}, 'white');
-  const primaryColor = useThemeColor({}, 'tint');
-  const greyColor = useThemeColor({}, 'misc');
-  const dangerColor = useThemeColor({}, 'danger');
-  const subTextColor = useThemeColor({}, 'secondary');
-  const inputBackgroundColor = useThemeColor({}, 'white');
-  const navButtonBackgroundColor = useThemeColor({}, 'background');
-
-  const [messages, setMessages] = useState<Message[]>([]);
+  const appTheme = useAppTheme();
+  const isDark = appTheme === 'dark';
+  const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
+  const whiteColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
+  const primaryColor = useThemeColor({ light: colors.light.tint, dark: colors.dark.tint }, 'tint');
+  const greyColor = useThemeColor({ light: colors.light.misc, dark: colors.dark.misc }, 'misc');
+  const dangerColor = useThemeColor({ light: colors.light.danger, dark: colors.dark.danger }, 'danger');
+  const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
+  const inputBackgroundColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
+  const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = accentColor;
+  const labelColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
+  
+  const messages = useSelector(selectMessages);
   const [inputText, setInputText] = useState('');
-  const [attachments, setAttachments] = useState<{ type: 'image' | 'video' | 'pdf'; uri: string; name?: string }[]>([]);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [attachments, setAttachments] = useState<Media[]>([]);
+  const [isAttachmentSheetOpen, setIsAttachmentSheetOpen] = useState(false);
+  const scrollViewRef = useRef<any>(null);
+  const attachmentSheetRef = useRef<BottomSheet>(null);
+  const dispatch = useDispatch();
   const screenWidth = Dimensions.get('window').width;
-  const maxMediaWidth = Math.min(screenWidth * 0.7, 300);
+  const { id } = useLocalSearchParams();
+  const user = useSelector(selectUser);
+  const conversation = messages.find(m => m.id === id);
+  const sender = conversation?.participants.find(p => p.id !== user?.id);
+
+  const snapPoints = useMemo(() => ['40%'], []);
+
+  const handleAttachmentSheetOpen = useCallback(() => {
+    setIsAttachmentSheetOpen(true);
+  }, []);
+
+  const handleAttachmentSheetClose = useCallback(() => {
+    setIsAttachmentSheetOpen(false);
+  }, []);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    if (index === -1) {
+      handleAttachmentSheetClose();
+    }
+  }, [handleAttachmentSheetClose]);
 
   const pickDocument = async () => {
     try {
@@ -62,9 +123,9 @@ export default function ConversationScreen() {
 
       if (result.assets && result.assets[0]) {
         setAttachments([...attachments, { 
-          type: 'pdf', 
+          type: MimeType.PDF, 
           uri: result.assets[0].uri,
-          name: result.assets[0].name
+          id: result.assets[0].name,
         }]);
       }
     } catch (err) {
@@ -81,70 +142,64 @@ export default function ConversationScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
-      const type = asset.type === 'video' ? 'video' : 'image';
-      setAttachments([...attachments, { type, uri: asset.uri }]);
+      const type = asset.type === 'video' ? MimeType.MP4 : MimeType.JPEG;
+      setAttachments([...attachments, { type, uri: asset.uri, id: asset.fileName as string }]);
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera permissions to take photos!');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const type = asset.type === 'video' ? MimeType.MP4 : MimeType.JPEG;
+        setAttachments([...attachments, { type, uri: asset.uri, id: asset.fileName as string || 'photo.jpg' }]);
+      }
+    } catch (err) {
+      console.error('Error taking photo:', err);
     }
   };
 
   const sendMessage = () => {
     if (inputText.trim() === '' && attachments.length === 0) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: inputText,
-      sender: 'user',
-      timestamp: new Date(),
-      attachments: attachments.length > 0 ? [...attachments] : undefined,
-    };
-
-    setMessages([...messages, newMessage]);
+    dispatch(actions.sendMessage({
+      conversationId: id as string,
+      message: {
+        content: inputText,
+        attachments: attachments,
+      }
+    }));
     setInputText('');
     setAttachments([]);
     
-    // Scroll to bottom after sending message
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
   };
 
-  const VideoPlayer = ({ 
-    uri, 
-    style, 
-    showControls, 
-    contentFit 
-  }: { 
-    uri: string; 
-    style: ViewStyle; 
-    showControls: boolean;
-    contentFit: 'contain' | 'cover';
-  }) => {
-    const player = useVideoPlayer(uri, (player) => {
-      player.muted = !showControls;
-      player.loop = false;
-    });
-
-    return (
-      <VideoView
-        player={player}
-        style={style}
-        contentFit={contentFit}
-        nativeControls={showControls}
-        allowsFullscreen={showControls}
-      />
-    );
-  };
-
-  const renderMediaGrid = (attachments: Message['attachments']) => {
-    if (!attachments) return null;
+  const renderMediaGrid = (messageAttachments: Message['attachments']) => {
+    if (!messageAttachments) return null;
     
-    const itemsPerRow = attachments.length === 1 ? 1 : 
-                       attachments.length === 2 ? 2 : 
-                       attachments.length === 3 ? 3 : 2;
+    const itemsPerRow = messageAttachments.length === 1 ? 1 : 
+                       messageAttachments.length === 2 ? 2 : 
+                       messageAttachments.length === 3 ? 3 : 2;
                        
     const containerWidth = Math.min(screenWidth * 0.6, 250);
     const spacing = widthPixel(2);
     const itemWidth = (containerWidth - (spacing * (itemsPerRow - 1))) / itemsPerRow;
-    const rows = Math.ceil(attachments.length / itemsPerRow);
+    const rows = Math.ceil(messageAttachments.length / itemsPerRow);
     
     return (
       <View style={{ 
@@ -161,12 +216,12 @@ export default function ConversationScreen() {
               justifyContent: 'flex-start',
             }}
           >
-            {attachments.slice(rowIndex * itemsPerRow, (rowIndex + 1) * itemsPerRow).map((attachment, index) => (
+            {messageAttachments.slice(rowIndex * itemsPerRow, (rowIndex + 1) * itemsPerRow).map((attachment, index) => (
               <View 
                 key={index} 
                 style={{ 
                   width: itemWidth, 
-                  height: attachment.type === 'pdf' ? heightPixel(60) : itemWidth,
+                  height: attachment.type === MimeType.PDF ? heightPixel(60) : itemWidth,
                 }}
               >
                 {renderAttachmentPreview(attachment, true, itemWidth)}
@@ -179,34 +234,40 @@ export default function ConversationScreen() {
   };
 
   const renderAttachmentPreview = (
-    attachment: { type: string; uri: string; name?: string }, 
+    attachment: Media, 
     isInMessage: boolean = false,
     forcedWidth?: number
   ) => {
     const containerStyle: ViewStyle = isInMessage ? {
       width: forcedWidth,
-      height: attachment.type === 'pdf' ? 'auto' : forcedWidth,
-      borderRadius: 8,
+      height: attachment.type === MimeType.PDF ? 'auto' : forcedWidth,
+      borderRadius: 0,
       overflow: 'hidden',
       backgroundColor: inputBackgroundColor,
+      borderWidth: 0.5,
+      borderColor: borderColor,
     } : {
       width: widthPixel(60),
       height: heightPixel(60),
-      borderRadius: 4,
+      borderRadius: 0,
       overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: borderColor,
     };
 
     const mediaStyle = isInMessage ? {
       width: '100%',
       height: '100%',
-      borderRadius: 8,
+      borderRadius: 0,
     } : {
       width: '100%',
       height: '100%',
     };
 
     switch (attachment.type) {
-      case 'image':
+      case MimeType.JPEG:
+      case MimeType.JPG:
+      case MimeType.PNG:
         return (
           <View style={containerStyle}>
             <Image
@@ -216,14 +277,16 @@ export default function ConversationScreen() {
             />
           </View>
         );
-      case 'video':
+      case MimeType.MP4:
+      case MimeType.MOV:
         return (
           <View style={containerStyle}>
             <VideoPlayer
               uri={attachment.uri}
-              style={mediaStyle as ViewStyle}
+              contentFit={isInMessage ? "contain" : "cover"}
               showControls={isInMessage}
-              contentFit={isInMessage ? 'contain' : 'cover'}
+              autoPlay={false}
+              style={mediaStyle as ViewStyle}
             />
             {!isInMessage && (
               <View style={{
@@ -241,7 +304,7 @@ export default function ConversationScreen() {
             )}
           </View>
         );
-      case 'pdf':
+      case MimeType.PDF:
         return (
           <View style={[
             containerStyle,
@@ -261,7 +324,7 @@ export default function ConversationScreen() {
             />
             {isInMessage && (
               <ThemedText style={{ marginLeft: widthPixel(8), flex: 1 }} numberOfLines={1}>
-                {attachment.name || 'PDF Document'}
+                {attachment.id || 'PDF Document'}
               </ThemedText>
             )}
           </View>
@@ -272,175 +335,478 @@ export default function ConversationScreen() {
   };
 
   return (
-    <ThemedSafeAreaView style={{ flex: 1 }}>
+    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.headerSection}>
+        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+        <View style={styles.header}>
+          <BackButton onPress={() => router.back()} iconName="arrow-left" />
+          <View style={styles.headerRight}>
+            {sender?.avatar ? (
+              <Image source={{ uri: sender.avatar }} style={styles.headerAvatar} />
+            ) : (
+              <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
+                <ThemedText style={[styles.headerAvatarText, { color: isDark ? colors.dark.black : colors.light.white }]}>
+                  {sender?.name?.charAt(0).toUpperCase() || '?'}
+                </ThemedText>
+              </View>
+            )}
+            <Link href="/(tabs)/(bookings)/bookings" asChild>
+              <TouchableOpacity>
+                <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
+              </TouchableOpacity>
+            </Link>
+          </View>
+        </View>
+      </View>
+      
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 0}
       >
-        <ThemedView style={{ flex: 1 }}>  
-          <ScrollView
-            ref={scrollViewRef}
-            style={{ flex: 1 }}
-            contentContainerStyle={{ 
-              paddingVertical: heightPixel(16),
-              paddingHorizontal: widthPixel(16),
-              gap: heightPixel(16) 
-          }}
-            keyboardShouldPersistTaps="handled"
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
-          >
-            {messages.map((message) => (
+        <FlashList
+          ref={scrollViewRef}
+          data={messages.find(m => m.id === id)?.messages as Message[]}
+          contentContainerStyle={styles.listContainer}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
+          renderItem={({ item: message }) => {
+            const isOwnMessage = message.senderId === user?.id;
+            return (
               <View
-                key={message.id}
-                style={{
-                  alignSelf: message.sender === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '80%',
-                  width: 'auto',
-                }}
+                style={[
+                  styles.messageWrapper,
+                  isOwnMessage ? styles.messageWrapperRight : styles.messageWrapperLeft
+                ]}
               >
                 <View
-                  style={{
-                    backgroundColor: message.sender === 'user' ? primaryColor : navButtonBackgroundColor,
-                    paddingHorizontal: widthPixel(12),
-                    paddingVertical: heightPixel(12),
-                    borderRadius: 16,
-                    borderBottomRightRadius: message.sender === 'user' ? 4 : 16,
-                    borderBottomLeftRadius: message.sender === 'user' ? 16 : 4,
-                    width: 'auto',
-                  }}
+                  style={[
+                    styles.messageBubble,
+                    { 
+                      backgroundColor: isOwnMessage ? primaryColor : whiteColor,
+                      borderColor: borderColor,
+                    }
+                  ]}
                 >
                   {message.content && (
                     <ThemedText
-                      type='subtitle'
-                      style={{
-                        color: message.sender === 'user' ? whiteColor : textColor,
-                      }}
+                      style={[
+                        styles.messageText,
+                        { color: isOwnMessage ? whiteColor : textColor }
+                      ]}
                     >
                       {message.content}
                     </ThemedText>
                   )}
                   
                   {message.attachments && message.attachments.length > 0 && (
-                    <View style={{ 
-                      marginTop: message.content ? heightPixel(8) : 0,
-                      width: 'auto',
-                    }}>
+                    <View style={styles.attachmentsContainer}>
                       {renderMediaGrid(message.attachments)}
                     </View>
                   )}
                 </View>
               </View>
-            ))}
-          </ScrollView>
+            );
+          }}
+        />
 
-          <ThemedView 
-            lightColor={colors.light.white}
-            darkColor={colors.dark.black}
-            style={{ 
-              paddingVertical: heightPixel(16),
-              paddingHorizontal: widthPixel(16),
-              borderTopWidth: 1, 
-              borderTopColor: greyColor,
-            }}
-          >
-            {attachments.length > 0 && (
-              <ScrollView
-                horizontal
-                style={{ marginBottom: heightPixel(8), paddingTop: heightPixel(8) }}
-                contentContainerStyle={{ gap: heightPixel(8), paddingHorizontal: widthPixel(4) }}
-              >
-                {attachments.map((attachment, index) => (
-                  <View 
-                    key={index} 
-                    style={{ 
-                      width: widthPixel(60), 
-                      height: heightPixel(60),
-                      marginTop: heightPixel(8),
+        <ThemedView 
+          lightColor={colors.light.white}
+          darkColor={colors.dark.black}
+          style={[
+            styles.inputContainer,
+            { borderTopColor: borderColor }
+          ]}
+        >
+          {attachments.length > 0 && (
+            <ScrollView
+              horizontal
+              style={styles.attachmentsPreview}
+              contentContainerStyle={styles.attachmentsPreviewContent}
+            >
+              {attachments.map((attachment, index) => (
+                <View 
+                  key={index} 
+                  style={styles.attachmentPreviewItem}
+                >
+                  {renderAttachmentPreview(attachment, false)}
+                  <TouchableOpacity
+                    style={[styles.attachmentCloseButton, { backgroundColor: dangerColor }]}
+                    onPress={() => {
+                      setAttachments(attachments.filter((_, i) => i !== index));
                     }}
                   >
-                    {renderAttachmentPreview(attachment, false)}
-                    <TouchableOpacity
-                      style={{
-                        position: 'absolute',
-                        top: -heightPixel(8),
-                        right: -widthPixel(8),
-                        backgroundColor: dangerColor,
-                        borderRadius: 12,
-                        width: widthPixel(20),
-                        height: heightPixel(20),
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1,
-                      }}
-                      onPress={() => {
-                        setAttachments(attachments.filter((_, i) => i !== index));
-                      }}
-                    >
-                      <Ionicons name="close" size={fontPixel(14)} color={whiteColor} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </ScrollView>
-            )}
+                    <Ionicons name="close" size={fontPixel(14)} color={isDark ? colors.dark.black : colors.light.white} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
 
-            <ThemedView 
-              lightColor={colors.light.white}
-              darkColor={colors.dark.black}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+          <View style={styles.inputRow}>
+            <TouchableOpacity onPress={handleAttachmentSheetOpen}>
+              <Ionicons name="attach-outline" size={fontPixel(24)} color={primaryColor} />
+            </TouchableOpacity>
+            
+            <View
+              style={[
+                styles.textInputContainer,
+                { 
+                  borderColor: borderColor,
+                  backgroundColor: inputBackgroundColor,
+                }
+              ]}
             >
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <TouchableOpacity onPress={pickImage}>
-                  <Ionicons name="image" size={fontPixel(24)} color={primaryColor} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={pickDocument}>
-                  <Ionicons name="document" size={fontPixel(24)} color={primaryColor} />
-                </TouchableOpacity>
-              </View>
-              
-              <ThemedView
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderRadius: 20,
-                  paddingHorizontal: widthPixel(16),
-                  paddingVertical: heightPixel(8),
-                  minHeight: heightPixel(40),
-                  maxHeight: heightPixel(100),
-                }}
-              >
-                <TextInput
-                  value={inputText}
-                  onChangeText={setInputText}
-                  placeholder="Message"
-                  placeholderTextColor={subTextColor}
-                  style={{ 
-                    flex: 1, 
-                    color: textColor,
-                    fontSize: fontPixel(16),
-                  }}
-                  multiline
-                  scrollEnabled
-                  selectionColor={primaryColor}
-                  cursorColor={primaryColor}
-                />
-              </ThemedView>
+              <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Message"
+                placeholderTextColor={subTextColor}
+                style={[
+                  styles.textInput,
+                  { color: textColor }
+                ]}
+                multiline
+                scrollEnabled
+                selectionColor={primaryColor}
+                cursorColor={primaryColor}
+              />
+            </View>
 
-              <TouchableOpacity
-                onPress={sendMessage}
-                disabled={inputText.trim() === '' && attachments.length === 0}
-              >
-                <Ionicons
-                  name="send"
-                  size={24}
-                  color={inputText.trim() === '' && attachments.length === 0 ? greyColor : primaryColor}
-                />
-              </TouchableOpacity>
-            </ThemedView>
-          </ThemedView>
+            <TouchableOpacity
+              onPress={sendMessage}
+              disabled={inputText.trim() === '' && attachments.length === 0}
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: isDark ? colors.dark.white : colors.light.black,
+                  borderColor: isDark ? colors.dark.white : colors.light.black,
+                  opacity: inputText.trim() === '' && attachments.length === 0 
+                    ? 0.5 
+                    : 1,
+                }
+              ]}
+            >
+              <Ionicons
+                name="send"
+                size={fontPixel(24)}
+                color={inputText.trim() === '' && attachments.length === 0 
+                  ? greyColor 
+                  : (isDark ? colors.dark.black : colors.light.white)}
+              />
+            </TouchableOpacity>
+          </View>
         </ThemedView>
       </KeyboardAvoidingView>
+
+      {isAttachmentSheetOpen && (
+        <Modal
+          visible={isAttachmentSheetOpen}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleAttachmentSheetClose}
+        >
+          <View style={styles.modalOverlay}>
+            <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+            <TouchableWithoutFeedback onPress={handleAttachmentSheetClose}>
+              <View style={StyleSheet.absoluteFill} />
+            </TouchableWithoutFeedback>
+            <BottomSheet
+              ref={attachmentSheetRef}
+              index={0}
+              snapPoints={snapPoints}
+              onChange={handleSheetChanges}
+              onClose={handleAttachmentSheetClose}
+              enablePanDownToClose={true}
+              enableDynamicSizing={false}
+              backgroundStyle={{
+                backgroundColor,
+                borderTopLeftRadius: 0,
+                borderTopRightRadius: 0,
+                borderTopWidth: 0.5,
+                borderColor,
+              }}
+            >
+              <BottomSheetView style={[styles.attachmentSheetContent, { backgroundColor }]}>
+                <View style={styles.attachmentSheetHeader}>
+                  <View style={styles.attachmentSheetHeaderLeft}>
+                    <View style={[styles.attachmentSheetAccentBar, { backgroundColor: borderColor }]} />
+                    <Text style={[styles.attachmentSheetLabel, { color: labelColor }]}>ATTACHMENT OPTIONS</Text>
+                    <ThemedText 
+                      style={[styles.attachmentSheetTitle, { color: textColor }]} 
+                      lightColor={colors.light.text} 
+                      darkColor={colors.dark.text}
+                    >
+                      Attachment Options
+                    </ThemedText>
+                  </View>
+                  <BackButton iconName="x" onPress={handleAttachmentSheetClose} containerStyle={styles.attachmentSheetCloseButton} />
+                </View>
+
+                <View style={styles.attachmentOptionsContainer}>
+                  <TouchableOpacity 
+                    style={[
+                      styles.attachmentOptionButton, 
+                      { 
+                        borderColor,
+                        backgroundColor,
+                      }
+                    ]}
+                    onPress={() => {
+                      handleAttachmentSheetClose();
+                      pickImage();
+                    }}
+                  >
+                    <Ionicons name="image-outline" size={fontPixel(18)} color={textColor} />
+                    <ThemedText 
+                      style={[styles.attachmentOptionText, { color: textColor }]} 
+                      lightColor={colors.light.text} 
+                      darkColor={colors.dark.text}
+                    >
+                      SELECT FROM GALLERY
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[
+                      styles.attachmentOptionButton, 
+                      { 
+                        borderColor,
+                        backgroundColor,
+                      }
+                    ]}
+                    onPress={() => {
+                      handleAttachmentSheetClose();
+                      pickDocument();
+                    }}
+                  >
+                    <Ionicons name="document-text-outline" size={fontPixel(18)} color={textColor} />
+                    <ThemedText 
+                      style={[styles.attachmentOptionText, { color: textColor }]} 
+                      lightColor={colors.light.text} 
+                      darkColor={colors.dark.text}
+                    >
+                      SELECT DOCUMENT
+                    </ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[
+                      styles.attachmentOptionButton, 
+                      { 
+                        borderColor,
+                        backgroundColor,
+                      }
+                    ]}
+                    onPress={() => {
+                      handleAttachmentSheetClose();
+                      takePhoto();
+                    }}
+                  >
+                    <Ionicons name="camera-outline" size={fontPixel(18)} color={textColor} />
+                    <ThemedText 
+                      style={[styles.attachmentOptionText, { color: textColor }]} 
+                      lightColor={colors.light.text} 
+                      darkColor={colors.dark.text}
+                    >
+                      TAKE A PHOTO
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </BottomSheetView>
+            </BottomSheet>
+          </View>
+        </Modal>
+      )}
     </ThemedSafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  headerSection: {
+    paddingHorizontal: widthPixel(16),
+    paddingBottom: heightPixel(20),
+  },
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(12),
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  headerAvatar: {
+    width: widthPixel(32),
+    height: widthPixel(32),
+    borderRadius: 0,
+  },
+  headerAvatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 0,
+  },
+  headerAvatarText: {
+    color: 'white',
+    fontSize: fontPixel(16),
+    fontFamily: 'Bold',
+  },
+  listContainer: {
+    paddingVertical: heightPixel(20),
+    paddingHorizontal: widthPixel(16),
+    paddingBottom: heightPixel(100),
+  },
+  messageWrapper: {
+    width: '100%',
+    marginBottom: heightPixel(12),
+  },
+  messageWrapperLeft: {
+    alignItems: 'flex-start',
+  },
+  messageWrapperRight: {
+    alignItems: 'flex-end',
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    paddingHorizontal: widthPixel(16),
+    paddingVertical: heightPixel(12),
+    borderWidth: 0.5,
+    borderRadius: 0,
+  },
+  messageText: {
+    fontSize: fontPixel(15),
+    fontFamily: 'Regular',
+    lineHeight: fontPixel(22),
+  },
+  attachmentsContainer: {
+    marginTop: heightPixel(8),
+  },
+  inputContainer: {
+    paddingVertical: heightPixel(16),
+    paddingHorizontal: widthPixel(16),
+    borderTopWidth: 0.5,
+    paddingBottom: Platform.OS === 'ios' ? heightPixel(16) : heightPixel(16),
+  },
+  attachmentsPreview: {
+    marginBottom: heightPixel(8),
+    paddingTop: heightPixel(8),
+  },
+  attachmentsPreviewContent: {
+    gap: widthPixel(8),
+    paddingHorizontal: widthPixel(4),
+  },
+  attachmentPreviewItem: {
+    width: widthPixel(60),
+    height: heightPixel(60),
+    position: 'relative',
+  },
+  attachmentCloseButton: {
+    position: 'absolute',
+    top: -heightPixel(8),
+    right: -widthPixel(8),
+    borderRadius: 0,
+    width: widthPixel(20),
+    height: heightPixel(20),
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(8),
+  },
+  textInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 0,
+    borderWidth: 0.5,
+    paddingHorizontal: widthPixel(16),
+    paddingVertical: heightPixel(8),
+    minHeight: heightPixel(40),
+    maxHeight: heightPixel(100),
+  },
+  textInput: {
+    flex: 1,
+    fontSize: fontPixel(15),
+    fontFamily: 'Regular',
+  },
+  sendButton: {
+    width: widthPixel(40),
+    height: widthPixel(40),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderRadius: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  attachmentSheetContent: {
+    flex: 1,
+    paddingTop: heightPixel(20),
+    paddingBottom: heightPixel(20),
+    overflow: 'hidden',
+  },
+  attachmentSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: widthPixel(16),
+    paddingBottom: heightPixel(24),
+  },
+  attachmentSheetHeaderLeft: {
+    flex: 1,
+  },
+  attachmentSheetAccentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(16),
+  },
+  attachmentSheetLabel: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+    marginBottom: heightPixel(8),
+  },
+  attachmentSheetTitle: {
+    fontSize: fontPixel(24),
+    fontFamily: 'Bold',
+    letterSpacing: -0.5,
+    lineHeight: fontPixel(28),
+  },
+  attachmentSheetCloseButton: {
+    marginTop: heightPixel(8),
+  },
+  attachmentOptionsContainer: {
+    paddingHorizontal: widthPixel(16),
+    gap: heightPixel(12),
+  },
+  attachmentOptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(12),
+    paddingVertical: heightPixel(16),
+    paddingHorizontal: widthPixel(16),
+    borderWidth: 0.5,
+    borderRadius: 0,
+  },
+  attachmentOptionText: {
+    fontSize: fontPixel(14),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1,
+  },
+});

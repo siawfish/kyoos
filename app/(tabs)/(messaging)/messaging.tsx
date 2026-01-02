@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { format } from 'date-fns';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import EmptyList from '@/components/ui/EmptyList';
@@ -11,6 +11,7 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { User } from '@/redux/app/types';
@@ -21,8 +22,8 @@ import { Conversation } from '@/redux/messaging/types';
 const ConversationItem = ({ item } : { item: Conversation }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
   
   const tintColor = useThemeColor({
     light: colors.light.tint,
@@ -106,8 +107,8 @@ export default function MessagingScreen() {
   const dispatch = useDispatch();
   const messages = useSelector(selectMessages);
   const isLoading = useSelector(selectIsLoading);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     dispatch(actions.fetchMessages());
@@ -163,9 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSection: {
-    paddingTop: heightPixel(32),
     paddingBottom: heightPixel(20),
-    // paddingHorizontal: widthPixel(20),
   },
   accentBar: {
     width: widthPixel(40),
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   listContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(100),
   },
   emptyList: {
