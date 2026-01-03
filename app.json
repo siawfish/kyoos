@@ -23,7 +23,10 @@
         "tinted": "./assets/images/icon-tinted.png"
       },
       "buildNumber": "1.0.0",
-      "versionCode": 1
+      "versionCode": 1,
+      "config": {
+        "googleMapsApiKey": "EXPO_PUBLIC_GOOGLE_API_KEY"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -38,7 +41,12 @@
       ],
       "package": "com.divsandviews.kyoos",
       "buildNumber": "1.0.0",
-      "versionCode": 1
+      "versionCode": 1,
+      "config": {
+        "googleMaps": {
+          "apiKey": "EXPO_PUBLIC_GOOGLE_API_KEY"
+        }
+      }
     },
     "web": {
       "output": "static",

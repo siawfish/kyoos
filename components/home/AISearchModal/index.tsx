@@ -22,7 +22,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectIsLoading, selectSearch } from '@/redux/search/selector';
+import { selectIsLoading, selectSearch, selectMedia } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import Button from '@/components/ui/Button';
 import AttachMedia from '@/components/ui/AttachMedia';
@@ -48,6 +48,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
     const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
     const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
     const search = useAppSelector(selectSearch);
+    const media = useAppSelector(selectMedia);
     const isLoading = useAppSelector(selectIsLoading);
     const dispatch = useAppDispatch();
     const inputRef = useRef<TextInput>(null);
@@ -119,7 +120,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
         if (visible) {
             setLocalSearch(search);
             setSelectedSuggestion(null);
-            setSelectedMedia(null);
+            setSelectedMedia(media && media.length > 0 ? media[0] : null);
             bottomSheetRef.current?.expand();
             setTimeout(() => {
                 inputRef.current?.focus();
@@ -127,7 +128,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
         } else {
             bottomSheetRef.current?.close();
         }
-    }, [visible, search]);
+    }, [visible, search, media]);
 
     const handleSearch = useCallback(() => {
         if (localSearch.trim() && !isLoading) {

@@ -67,7 +67,7 @@ export default function WorkerMapMarker({ worker, skills, pinColor, estimatedDur
             
             {/* Marker Card */}
             <BlurView 
-                intensity={80} 
+                intensity={40} 
                 tint={blurTint as 'light' | 'dark'} 
                 style={[styles.markerCard, { backgroundColor, borderColor }]}
             >

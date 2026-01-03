@@ -24,8 +24,8 @@ const SearchInputTrigger = ({
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '95',
-        dark: colors.dark.background + '95',
+        light: colors.light.background + 'F0',
+        dark: colors.dark.background + 'F0',
     }, 'background');
 
     const textColor = useThemeColor({
@@ -64,7 +64,7 @@ const SearchInputTrigger = ({
     }, [pulseAnim]);
 
     return (
-        <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
+        <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
             <TouchableOpacity 
                 onPress={onPress} 
                 style={[styles.inputContainer, { borderColor }]}

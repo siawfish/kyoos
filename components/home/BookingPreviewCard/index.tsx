@@ -37,8 +37,8 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '95',
-        dark: colors.dark.background + '95',
+        light: colors.light.background + 'F0',
+        dark: colors.dark.background + 'F0',
     }, 'background');
 
     const textColor = useThemeColor({
@@ -60,7 +60,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
 
     if (!booking) {
         return (
-            <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
+            <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
                 <View style={[styles.emptyContent, { borderColor }]}>
                     <Feather name="calendar" size={20} color={secondaryColor} />
                     <ThemedText style={[styles.emptyText, { color: secondaryColor }]}>
@@ -79,7 +79,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
     };
 
     return (
-        <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
+        <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
             <TouchableOpacity 
                 onPress={handlePress}
                 style={[styles.card, { borderColor }]}

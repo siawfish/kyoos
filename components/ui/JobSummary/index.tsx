@@ -1,10 +1,11 @@
 import { StyleSheet, View, ViewStyle, TouchableOpacity, Animated, Easing } from "react-native";
+import { BlurView } from 'expo-blur';
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { ThemedView } from "@/components/ui/Themed/ThemedView";
 import { colors } from "@/constants/theme/colors";
 import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
 import { Feather } from '@expo/vector-icons';
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { Summary } from "@/redux/search/types";
 import { convertFromMillisecondsToHours } from "@/constants/helpers";
 import { useAppSelector } from "@/store/hooks";
@@ -21,15 +22,44 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
     const animatedHeight = useRef(new Animated.Value(0)).current;
     const chevronRotation = useRef(new Animated.Value(0)).current;
     const user = useAppSelector(selectUser);
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+    const accentColor = isDark ? colors.dark.white : colors.light.black;
+
     const backgroundColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.black
-    }, 'white');
+        light: colors.light.background + '95',
+        dark: colors.dark.background + '95',
+    }, 'background');
+
+    const blurTint = useThemeColor({
+        light: 'light',
+        dark: 'dark',
+    }, 'background');
+
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text,
+    }, 'text');
 
     const secondaryColor = useThemeColor({
         light: colors.light.secondary,
         dark: colors.dark.secondary,
     }, 'secondary');
+
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
+
+    const tintColor = useThemeColor({
+        light: colors.light.tint,
+        dark: colors.dark.tint,
+    }, 'tint');
+
+    const miscColor = useThemeColor({
+        light: colors.light.misc,
+        dark: colors.dark.misc,
+    }, 'misc');
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
@@ -53,37 +83,43 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
     }, [isExpanded, animatedHeight, chevronRotation]);
 
     return (
-        <ThemedView 
-            style={[
-                styles.summaryContainer, 
-                { backgroundColor },
-                containerStyle
-            ]}
+        <BlurView 
+            intensity={80} 
+            tint={blurTint as 'light' | 'dark'} 
+            style={[styles.summaryContainer, { backgroundColor, borderColor }, containerStyle]}
         >
-            <TouchableOpacity 
-                style={styles.summaryHeader} 
-                onPress={toggleExpanded}
-                activeOpacity={0.7}
-            >
-                <View style={styles.headerContent}>
-                    <ThemedText type="subtitle" style={styles.summaryTitle}>Job Summary</ThemedText>
-                    <Animated.View style={{
-                        transform: [{
-                            rotate: chevronRotation.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: ['0deg', '180deg']
-                            })
-                        }]
-                    }}>
-                        <Feather 
-                            name="chevron-down" 
-                            size={20} 
-                            color={colors.light.secondary} 
-                        />
-                    </Animated.View>
-                </View>
-                <View style={styles.divider} />
-            </TouchableOpacity>
+            <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+            <View style={styles.contentWrapper}>
+                <TouchableOpacity 
+                    style={styles.summaryHeader} 
+                    onPress={toggleExpanded}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.headerContent}>
+                        <View style={styles.headerLeft}>
+                            <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
+                                JOB SUMMARY
+                            </ThemedText>
+                            <ThemedText style={[styles.summaryTitle, { color: textColor }]}>
+                                Service Details
+                            </ThemedText>
+                        </View>
+                        <Animated.View style={{
+                            transform: [{
+                                rotate: chevronRotation.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['0deg', '180deg']
+                                })
+                            }]
+                        }}>
+                            <Feather 
+                                name="chevron-down" 
+                                size={20} 
+                                color={tintColor} 
+                            />
+                        </Animated.View>
+                    </View>
+                </TouchableOpacity>
 
             <Animated.View style={{
                 maxHeight: animatedHeight.interpolate({
@@ -95,68 +131,59 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
                 <View style={styles.summaryContent}>
                     <View style={styles.summaryRow}>
                         <View style={styles.summaryLabelContainer}>
-                            <Feather name="clock" size={16} color={colors.light.secondary} />
+                            <Feather name="clock" size={16} color={secondaryColor} />
                             <ThemedText 
-                                type="defaultSemiBold" 
-                                lightColor={colors.light.secondary}
-                                style={styles.summaryLabel}
+                                style={[styles.summaryLabel, { color: secondaryColor }]}
                             >
-                                Estimated Duration
+                                ESTIMATED DURATION
                             </ThemedText>
                         </View>
                         <ThemedText 
-                            style={[styles.summaryValue, !summary?.estimatedDuration && styles.emptyValue]} 
-                            lightColor={!summary?.estimatedDuration ? secondaryColor : undefined}
+                            style={[styles.summaryValue, { color: textColor }, !summary?.estimatedDuration && styles.emptyValue]} 
                         >
                             {`${convertFromMillisecondsToHours(summary?.estimatedDuration)} hours` || 'Not specified'}
                         </ThemedText>
                     </View>
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: borderColor }]} />
 
                     <View style={styles.summaryRow}>
                         <View style={styles.summaryLabelContainer}>
-                            <Feather name="tool" size={16} color={colors.light.secondary} />
+                            <Feather name="tool" size={16} color={secondaryColor} />
                             <ThemedText 
-                                type="defaultSemiBold" 
-                                lightColor={colors.light.secondary}
-                                style={styles.summaryLabel}
+                                style={[styles.summaryLabel, { color: secondaryColor }]}
                             >
-                                Required Skills
+                                REQUIRED SKILLS
                             </ThemedText>
                         </View>
                         <View style={styles.skillsList}>
                             {summary?.requiredSkills?.length > 0 ? (
                                 summary.requiredSkills.map((skill, index) => (
-                                    <View key={index} style={styles.skillTag}>
-                                        <ThemedText style={styles.skillText}>{skill.name}</ThemedText>
+                                    <View key={index} style={[styles.skillTag, { borderColor, backgroundColor: miscColor }]}>
+                                        <ThemedText style={[styles.skillText, { color: textColor }]}>{skill.name}</ThemedText>
                                     </View>
                                 ))
                             ) : (
                                 <ThemedText 
-                                    style={[styles.summaryValue, styles.emptyValue]}
-                                    lightColor={secondaryColor}
+                                    style={[styles.summaryValue, styles.emptyValue, { color: secondaryColor }]}
                                 >
                                     No specific skills required
                                 </ThemedText>
                             )}
                         </View>
                     </View>
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: borderColor }]} />
 
                     <View style={styles.summaryRow}>
                         <View style={styles.summaryLabelContainer}>
-                            <Feather name="package" size={16} color={colors.light.secondary} />
+                            <Feather name="package" size={16} color={secondaryColor} />
                             <ThemedText 
-                                type="defaultSemiBold" 
-                                lightColor={colors.light.secondary}
-                                style={styles.summaryLabel}
+                                style={[styles.summaryLabel, { color: secondaryColor }]}
                             >
-                                Tools Required
+                                TOOLS REQUIRED
                             </ThemedText>
                         </View>
                         <ThemedText 
-                            style={[styles.summaryValue, styles.toolsValue, !summary?.estimatedDuration && styles.emptyValue]} 
-                            lightColor={!summary?.estimatedDuration ? secondaryColor : undefined}
+                            style={[styles.summaryValue, styles.toolsValue, { color: textColor }, !summary?.estimatedDuration && styles.emptyValue]} 
                         >
                             {summary.requiredTools.join(', ')}
                         </ThemedText>
@@ -164,34 +191,33 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
                 </View>
             </Animated.View>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: borderColor }]} />
             
             <View style={[styles.summaryRow, styles.priceRow]}>
                 <View style={styles.summaryLabelContainer}>
                     <ThemedText 
-                        type="defaultSemiBold" 
-                        lightColor={colors.light.tint}
-                        style={[styles.summaryLabel, styles.priceLabel]}
+                        style={[styles.summaryLabel, styles.priceLabel, { color: tintColor }]}
                     >
-                        Estimated Price
+                        ESTIMATED PRICE
                     </ThemedText>
                 </View>
                 <ThemedText 
-                    type="defaultSemiBold" 
-                    lightColor={summary?.estimatedPrice ? colors.light.tint : secondaryColor}
-                    style={[styles.priceValue, !summary?.estimatedPrice && styles.emptyValue]}
+                    style={[styles.priceValue, { color: summary?.estimatedPrice ? tintColor : secondaryColor }, !summary?.estimatedPrice && styles.emptyValue]}
                 >
                     {summary?.estimatedPrice ? `${user?.settings?.currency} ${summary?.estimatedPrice}` : 'To be discussed'}
                 </ThemedText>
             </View>
-        </ThemedView>
+            </View>
+        </BlurView>
     );
 }
 
 const styles = StyleSheet.create({
     summaryContainer: {
-        padding: widthPixel(16),
-        borderRadius: widthPixel(12),
+        flexDirection: 'row',
+        borderWidth: 0.5,
+        borderLeftWidth: 0,
+        overflow: 'hidden',
         marginHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
         shadowColor: "#000",
@@ -199,9 +225,16 @@ const styles = StyleSheet.create({
             width: 0,
             height: 2,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 6,
+    },
+    accentBar: {
+        width: widthPixel(4),
+    },
+    contentWrapper: {
+        flex: 1,
+        padding: widthPixel(16),
     },
     summaryHeader: {
         marginBottom: heightPixel(0),
@@ -209,15 +242,25 @@ const styles = StyleSheet.create({
     headerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: heightPixel(8),
+        alignItems: 'flex-start',
+        marginBottom: heightPixel(16),
+    },
+    headerLeft: {
+        flex: 1,
+    },
+    headerLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(4),
     },
     summaryTitle: {
         fontSize: fontPixel(20),
+        fontFamily: 'Bold',
+        letterSpacing: -0.5,
     },
     divider: {
-        height: 1,
-        backgroundColor: colors.light.secondary + '20',
+        height: 0.5,
     },
     summaryContent: {
         gap: heightPixel(16),
@@ -235,27 +278,31 @@ const styles = StyleSheet.create({
         minWidth: widthPixel(140),
     },
     summaryLabel: {
-        fontSize: fontPixel(14),
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.2,
     },
     summaryValue: {
         flex: 1,
         textAlign: 'right',
         fontSize: fontPixel(14),
+        fontFamily: 'Medium',
     },
     skillsList: {
         flex: 1,
         alignItems: 'flex-end',
         gap: heightPixel(8),
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
     },
     skillTag: {
-        backgroundColor: colors.light.tint + '20',
-        paddingHorizontal: widthPixel(8),
-        paddingVertical: heightPixel(4),
-        borderRadius: widthPixel(16),
+        paddingHorizontal: widthPixel(10),
+        paddingVertical: heightPixel(6),
+        borderWidth: 0.5,
     },
     skillText: {
-        color: colors.light.tint,
-        fontSize: fontPixel(12),
+        fontSize: fontPixel(11),
         fontFamily: 'Medium',
     },
     priceRow: {

@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { StyleSheet, View, TouchableOpacity, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
+import type MapView from 'react-native-maps';
+import ThemedMapView from '@/components/ui/ThemedMapView';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -32,8 +34,8 @@ export default function HomeScreen() {
     const toggleRotation = useRef(new Animated.Value(0)).current;
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '95',
-        dark: colors.dark.background + '95',
+        light: colors.light.background + 'F0',
+        dark: colors.dark.background + 'F0',
     }, 'background');
 
     const blurTint = useThemeColor({
@@ -150,7 +152,7 @@ export default function HomeScreen() {
     return (
         <ThemedSafeAreaView style={styles.container}>
             {/* Map Background */}
-            <MapView
+            <ThemedMapView
                 ref={mapRef}
                 style={styles.map}
                 initialRegion={ACCRA_REGION}
@@ -178,11 +180,11 @@ export default function HomeScreen() {
                         />
                     </Marker>
                 ))}
-            </MapView>
+            </ThemedMapView>
 
             {/* Floating Header with Location and Booking */}
             <View style={styles.floatingHeader}>
-                <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.headerContainer, { backgroundColor }]}>
+                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.headerContainer, { backgroundColor }]}>
                     <View style={styles.headerContent}>
                         <View style={styles.locationInfo}>
                             <Feather name="map-pin" size={16} color={tintColor} />
@@ -203,7 +205,7 @@ export default function HomeScreen() {
                                 onPress={toggleBookingCard}
                                 activeOpacity={0.7}
                             >
-                                <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.toggleContent, { backgroundColor }]}>
+                                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.toggleContent, { backgroundColor }]}>
                                     <ThemedText style={[styles.toggleText, { color: secondaryColor }]}>
                                         {activeBooking ? 'BOOKING' : 'NO BOOKINGS'}
                                     </ThemedText>
@@ -264,7 +266,7 @@ export default function HomeScreen() {
 
             {/* Floating Stats/Info */}
             <View style={styles.statsContainer}>
-                <BlurView intensity={80} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor }]}>
+                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor }]}>
                     <ThemedText style={[styles.statValue, { color: textColor }]}>
                         {DUMMY_NEARBY_ARTISANS.length}
                     </ThemedText>

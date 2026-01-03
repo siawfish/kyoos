@@ -58,7 +58,7 @@ const Button = forwardRef<View, ButtonProps>(({
                 type='defaultSemiBold'
                 style={[
                     {
-                        color
+                      color
                     },
                     labelStyle
                 ]}
@@ -69,6 +69,8 @@ const Button = forwardRef<View, ButtonProps>(({
     </TouchableOpacity>
   )
 })
+
+Button.displayName = 'Button';
 
 const styles = StyleSheet.create({
   button: {

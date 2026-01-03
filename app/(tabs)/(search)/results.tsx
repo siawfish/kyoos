@@ -2,7 +2,7 @@ import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { widthPixel, heightPixel, fontPixel } from "@/constants/normalize";
 import { useRouter } from "expo-router";
-import { StyleSheet, View, ScrollView, Image, TouchableOpacity, Alert, Animated } from "react-native";
+import { StyleSheet, View, ScrollView, Image, TouchableOpacity, Animated } from "react-native";
 import { colors } from "@/constants/theme/colors";
 import { Feather } from '@expo/vector-icons';
 import Button from "@/components/ui/Button";
@@ -13,13 +13,17 @@ import { selectMedia, selectClosestWorkers, selectRecommendedWorkers, selectSear
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Media } from "@/redux/app/types";
 import JobSummary from "@/components/ui/JobSummary";
-import MapView, { Marker } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
+import type MapView from 'react-native-maps';
+import ThemedMapView from '@/components/ui/ThemedMapView';
 import { BlurView } from 'expo-blur';
 import BackButton from "@/components/ui/BackButton";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { actions } from "../../../redux/search/slice";
 import WorkerMapMarker from "@/components/ui/WorkerMapMarker";
 import ArtisanOptions from "@/components/ui/ArtisanOptions";
+import AISearchModal from "@/components/home/AISearchModal";
+import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 
 const INITIAL_REGION = {
   latitude: 5.5560,
@@ -40,8 +44,8 @@ const SearchPromptPreview = ({ search, media }: { search: string, media: Media[]
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '90',
-        dark: colors.dark.background + '90',
+        light: colors.light.background + '95',
+        dark: colors.dark.background + '95',
     }, 'background');
 
 
@@ -50,7 +54,7 @@ const SearchPromptPreview = ({ search, media }: { search: string, media: Media[]
         dark: colors.dark.black
     }, 'white');
     return (
-        <BlurView intensity={60} tint={blurTint as any} style={[styles.promptContainer, { backgroundColor }]}>
+        <BlurView intensity={80} tint={blurTint as any} style={[styles.promptContainer, { backgroundColor }]}>
             <View style={styles.promptHeader}>
                 <View style={styles.promptHeaderContent}>
                     <Feather name="search" size={16} color={tintColor} />
@@ -95,12 +99,12 @@ const ArtisanList = ({ title, artisans, requiredSkills, estimatedDuration, onPre
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '90',
-        dark: colors.dark.background + '90',
+        light: colors.light.background + '95',
+        dark: colors.dark.background + '95',
     }, 'background');
 
     return (
-        <BlurView intensity={60} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
+        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>{title}</ThemedText>
             {artisans?.length > 0 ? (
                 <ScrollView 
@@ -140,6 +144,8 @@ export default function Results() {
     const [showCards, setShowCards] = useState(true);
     const dispatch = useAppDispatch();
     const [selectedArtisan, setSelectedArtisan] = useState<string | null>(null);
+    const [searchModalVisible, setSearchModalVisible] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     // Animation values
     const cardsOpacity = useRef(new Animated.Value(1)).current;
@@ -158,21 +164,14 @@ export default function Results() {
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '90',
-        dark: colors.dark.background + '90',
+        light: colors.light.background + '95',
+        dark: colors.dark.background + '95',
     }, 'background');
 
     const secondaryColor = useThemeColor({
         light: colors.light.secondary,
         dark: colors.dark.secondary,
     }, 'secondary');
-
-    const confirmCancelSearch = () => {
-        Alert.alert('Cancel Search', 'Are you sure you want to cancel the search?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Confirm', onPress: handleCancelSearch },
-        ]);
-    }
 
     const handleCancelSearch = () => {
         router.push('/(tabs)/(search)');
@@ -245,8 +244,10 @@ export default function Results() {
         ]).start();
     };
 
+    const mapRef = useRef<MapView>(null);
+
     // Create unified list of workers with recommended workers taking precedence
-    const getUnifiedWorkers = () => {
+    const getUnifiedWorkers = useCallback(() => {
         const recommendedIds = new Set(recommendedWorkers.map(worker => worker.id));
         const unifiedWorkers = [...recommendedWorkers];
         
@@ -258,16 +259,14 @@ export default function Results() {
         });
         
         return unifiedWorkers;
-    };
-
-    const mapRef = useRef<MapView>(null);
+    }, [recommendedWorkers, closestWorkers]);
 
     const unifiedWorkers = useMemo(() => {
         return getUnifiedWorkers();
-    }, [recommendedWorkers, closestWorkers, requiredSkills]);
+    }, [getUnifiedWorkers]);
 
     // Function to fit all markers on the map
-    const fitAllMarkers = () => {
+    const fitAllMarkers = useCallback(() => {
         if (mapRef.current && unifiedWorkers.length > 0) {
             const validCoordinates = unifiedWorkers
                 .map(worker => {
@@ -296,7 +295,7 @@ export default function Results() {
                 });
             }
         }
-    };
+    }, [unifiedWorkers]);
 
     // Fit markers when map is ready and workers are loaded
     useEffect(() => {
@@ -308,7 +307,7 @@ export default function Results() {
             
             return () => clearTimeout(timer);
         }
-    }, [unifiedWorkers]);
+    }, [unifiedWorkers, fitAllMarkers]);
 
     // Calculate map region based on worker coordinates
     const mapRegion = useMemo(() => {
@@ -368,7 +367,7 @@ export default function Results() {
     return (
         <ThemedSafeAreaView style={styles.container}>
             {/* Map Background */}
-            <MapView
+            <ThemedMapView
                 ref={mapRef}
                 style={styles.map}
                 initialRegion={mapRegion}
@@ -410,6 +409,8 @@ export default function Results() {
                                             longitude,
                                         }}
                                         onPress={() => {
+                                            // Set selected artisan to trigger ArtisanOptions
+                                            setSelectedArtisan(artisan.id);
                                             // Animate to marker region when pressed
                                             if (mapRef.current) {
                                                 mapRef.current.animateToRegion({
@@ -434,12 +435,12 @@ export default function Results() {
                         </>
                     )
                 }
-            </MapView>
+            </ThemedMapView>
 
             {/* Empty State Overlay for Map View */}
             {(requiredSkills.length === 0 || unifiedWorkers.length === 0) && !showCards && (
                 <View style={styles.mapEmptyStateContainer}>
-                    <BlurView intensity={60} tint={blurTint as any} style={[styles.mapEmptyState, { backgroundColor }]}>
+                        <BlurView intensity={80} tint={blurTint as any} style={[styles.mapEmptyState, { backgroundColor }]}>
                         <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />
                         <ThemedText style={styles.emptyListText}>
                             We currently don&apos;t have service personels for this issue. Please try again later. Skilled professionals are being added every hour.
@@ -451,11 +452,11 @@ export default function Results() {
             {/* Floating Header - Always visible */}
             <View style={styles.floatingHeader}>
                 <View style={styles.headerButtonsContainer}>
-                    <BackButton onPress={confirmCancelSearch} />
+                    <BackButton onPress={() => setShowCancelConfirm(true)} />
                     <View style={styles.headerRightButtons}>
                         {/* Reset Map Button - Only show when in map view */}
                         {!showCards && (
-                            <BlurView intensity={60} tint={blurTint as any} style={[styles.resetButton, { backgroundColor }]}>
+                            <BlurView intensity={80} tint={blurTint as any} style={[styles.resetButton, { backgroundColor }]}>
                                 <TouchableOpacity 
                                     onPress={fitAllMarkers}
                                     style={styles.resetButtonInner}
@@ -471,7 +472,7 @@ export default function Results() {
                         <Animated.View style={{
                             transform: [{ scale: buttonScale }]
                         }}>
-                            <BlurView intensity={60} tint={blurTint as any} style={[styles.toggleButton, { backgroundColor }]}>
+                            <BlurView intensity={80} tint={blurTint as any} style={[styles.toggleButton, { backgroundColor }]}>
                                 <TouchableOpacity 
                                     onPress={handleToggleCards}
                                     style={styles.toggleButtonInner}
@@ -519,7 +520,7 @@ export default function Results() {
                         containerStyle={{ marginHorizontal: 0, marginTop: 0, marginBottom: 16 }}
                     />
                     {(requiredSkills.length === 0 || unifiedWorkers.length === 0) ? (
-                        <BlurView intensity={60} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
+                        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
                             <View style={[styles.emptyListContainer, { backgroundColor: backgroundColor + '80' }]}>
                                 {/* display empty icon */}
                                 <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />
@@ -554,15 +555,19 @@ export default function Results() {
                 <Button
                     label="Modify Search"
                     icon={<Feather name="edit" size={20} color={colors.light.white} />}
-                    onPress={() => router.back()}
+                    onPress={() => setSearchModalVisible(true)}
                     style={styles.backButton}
                     darkBackgroundColor={colors.light.tint}
                     lightBackgroundColor={colors.light.black}
+                    labelStyle={{ color: tintColor }}
                 />
             </View>
             <ArtisanOptions
                 isVisible={!!selectedArtisan}
-                onClose={() => setSelectedArtisan(null)}
+                onClose={() => {
+                    setSelectedArtisan(null);
+                    fitAllMarkers();
+                }}
                 artisan={unifiedWorkers.find(worker => worker.id === selectedArtisan) as Worker}
             >
                 {
@@ -575,6 +580,19 @@ export default function Results() {
                     )
                 }
             </ArtisanOptions>
+            <AISearchModal 
+                visible={searchModalVisible}
+                onClose={() => setSearchModalVisible(false)}
+            />
+            <ConfirmActionSheet
+                isOpen={showCancelConfirm}
+                isOpenChange={setShowCancelConfirm}
+                title="Cancel Search"
+                description="Are you sure you want to cancel the search?"
+                onConfirm={handleCancelSearch}
+                confirmText="Confirm"
+                cancelText="Cancel"
+            />
         </ThemedSafeAreaView>
     );
 }
@@ -593,7 +611,7 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     searchPromptContainer: {
-        marginTop: heightPixel(50),
+        marginTop: heightPixel(66),
         paddingHorizontal: widthPixel(16),
     },
     backButtonContainer: {
@@ -606,12 +624,10 @@ const styles = StyleSheet.create({
         zIndex: 1000,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: widthPixel(12),
         overflow: 'hidden',
     },
     backButton: {
         paddingHorizontal: widthPixel(16),
-        borderRadius: 28,
         maxHeight: heightPixel(40),
     },
     scrollContainerBottom: {
@@ -620,7 +636,6 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: heightPixel(16),
-        borderRadius: widthPixel(12),
         padding: widthPixel(16),
         overflow: 'hidden',
     },
@@ -641,7 +656,6 @@ const styles = StyleSheet.create({
     },
     promptContainer: {
         marginVertical: heightPixel(8),
-        borderRadius: widthPixel(12),
         overflow: 'hidden',
     },
     promptHeader: {
@@ -665,8 +679,6 @@ const styles = StyleSheet.create({
     },
     promptDescriptionContainer: {
         padding: widthPixel(16),
-        borderBottomLeftRadius: widthPixel(12),
-        borderBottomRightRadius: widthPixel(12),
     },
     mediaContainer: {
         flexDirection: 'row',
@@ -676,7 +688,6 @@ const styles = StyleSheet.create({
         width: widthPixel(80),
         height: widthPixel(80),
         marginRight: widthPixel(8),
-        borderRadius: widthPixel(6),
         overflow: 'hidden',
     },
     mediaImage: {
@@ -686,13 +697,11 @@ const styles = StyleSheet.create({
     },
     jobSummaryContainer: {
         marginVertical: heightPixel(8),
-        borderRadius: widthPixel(12),
         padding: widthPixel(16),
         overflow: 'hidden',
     },
     emptyContainer: {
         padding: widthPixel(24),
-        borderRadius: widthPixel(12),
         marginVertical: heightPixel(16),
         alignItems: 'center',
         gap: heightPixel(12),
@@ -712,7 +721,6 @@ const styles = StyleSheet.create({
     },
     emptyListContainer: {
         padding: widthPixel(16),
-        borderRadius: widthPixel(8),
         marginTop: heightPixel(8),
     },
     emptyListText: {
@@ -725,7 +733,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: heightPixel(8),
     },
     headerRightButtons: {
         flexDirection: 'row',
@@ -733,7 +740,6 @@ const styles = StyleSheet.create({
         gap: widthPixel(8),
     },
     toggleButton: {
-        borderRadius: widthPixel(24),
         overflow: 'hidden',
         width: widthPixel(48),
         height: widthPixel(48),
@@ -745,7 +751,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     resetButton: {
-        borderRadius: widthPixel(24),
         overflow: 'hidden',
         width: widthPixel(48),
         height: widthPixel(48),
@@ -787,7 +792,6 @@ const styles = StyleSheet.create({
         zIndex: 3,
     },
     mapEmptyState: {
-        borderRadius: widthPixel(16),
         padding: widthPixel(24),
         alignItems: 'center',
     },
