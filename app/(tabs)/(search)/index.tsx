@@ -20,6 +20,7 @@ import AISearchModal from '@/components/home/AISearchModal';
 import WorkerMapMarker from '@/components/ui/WorkerMapMarker';
 import ArtisanOptions from '@/components/ui/ArtisanOptions';
 import ArtisanCard from '@/components/search/ArtisanCard';
+import UserLocation from '@/components/search/UserLocation';
 
 export default function HomeScreen() {
     const [searchModalVisible, setSearchModalVisible] = useState(false);
@@ -47,6 +48,11 @@ export default function HomeScreen() {
         light: colors.light.text,
         dark: colors.dark.text,
     }, 'text');
+
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
 
     const secondaryColor = useThemeColor({
         light: colors.light.secondary,
@@ -184,19 +190,9 @@ export default function HomeScreen() {
 
             {/* Floating Header with Location and Booking */}
             <View style={styles.floatingHeader}>
-                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.headerContainer, { backgroundColor }]}>
+                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.headerContainer, { backgroundColor, borderColor }]}>
                     <View style={styles.headerContent}>
-                        <View style={styles.locationInfo}>
-                            <Feather name="map-pin" size={16} color={tintColor} />
-                            <View style={styles.locationText}>
-                                <ThemedText style={[styles.locationLabel, { color: secondaryColor }]}>
-                                    YOUR LOCATION
-                                </ThemedText>
-                                <ThemedText style={[styles.locationAddress, { color: textColor }]} numberOfLines={1}>
-                                    Accra, Ghana
-                                </ThemedText>
-                            </View>
-                        </View>
+                        <UserLocation />
                         
                         <View style={styles.headerRight}>
                             {/* Booking Toggle Button */}
@@ -315,6 +311,7 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         overflow: 'hidden',
+        borderWidth: 0.5,
     },
     headerContent: {
       flexDirection: 'row',
@@ -322,25 +319,6 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       paddingHorizontal: widthPixel(16),
       paddingVertical: heightPixel(12),
-    },
-    locationInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: widthPixel(10),
-      flex: 1,
-    },
-    locationText: {
-      flex: 1,
-    },
-    locationLabel: {
-      fontSize: fontPixel(9),
-      fontFamily: 'SemiBold',
-      letterSpacing: 1.2,
-      marginBottom: heightPixel(2),
-    },
-    locationAddress: {
-      fontSize: fontPixel(14),
-      fontFamily: 'Medium',
     },
     headerRight: {
       flexDirection: 'row',

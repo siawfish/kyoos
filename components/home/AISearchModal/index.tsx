@@ -3,7 +3,6 @@ import {
     StyleSheet, 
     View, 
     Modal,
-    TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
     ScrollView,
@@ -13,7 +12,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetView, BottomSheetFooter } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView, BottomSheetFooter, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import BackButton from '@/components/ui/BackButton';
@@ -51,7 +50,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
     const media = useAppSelector(selectMedia);
     const isLoading = useAppSelector(selectIsLoading);
     const dispatch = useAppDispatch();
-    const inputRef = useRef<TextInput>(null);
+    const inputRef = useRef<any>(null);
     const bottomSheetRef = useRef<BottomSheet>(null);
     const pulseAnim = useRef(new Animated.Value(1)).current;
     const theme = useAppTheme();
@@ -226,6 +225,9 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                         onClose={onClose}
                         enablePanDownToClose
                         enableDynamicSizing={true}
+                        keyboardBehavior="extend"
+                        keyboardBlurBehavior="restore"
+                        android_keyboardInputMode="adjustResize"
                         handleIndicatorStyle={{ backgroundColor: borderColor, width: widthPixel(40) }}
                         backgroundStyle={{
                             backgroundColor,
@@ -266,8 +268,9 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                         {/* Content */}
                         <ScrollView 
                             style={styles.content}
-                            keyboardShouldPersistTaps="handled"
+                            keyboardShouldPersistTaps="never"
                             showsVerticalScrollIndicator={false}
+                            keyboardDismissMode="on-drag"
                         >
                             {/* Search Input */}
                             <View style={[styles.inputWrapper, { borderColor }]}>
@@ -290,7 +293,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                                             </TouchableOpacity>
                                         )}
                                     </View>
-                                    <TextInput
+                                    <BottomSheetTextInput
                                         ref={inputRef}
                                         style={[styles.textInput, { color: textColor }]}
                                         placeholder="e.g., I need someone to fix my kitchen sink that's been leaking for a week..."

@@ -441,6 +441,15 @@ export default function Results() {
                 }
             </ThemedMapView>
 
+            {/* Blur overlay when cards are shown */}
+            {showCards && (
+                <BlurView 
+                    intensity={40} 
+                    tint={blurTint as any} 
+                    style={[StyleSheet.absoluteFill, styles.mapBlurOverlay]}
+                />
+            )}
+
             {/* Empty State Overlay for Map View */}
             {(requiredSkills.length === 0 || unifiedWorkers.length === 0) && !showCards && (
                 <View style={styles.mapEmptyStateContainer}>
@@ -607,6 +616,9 @@ const styles = StyleSheet.create({
     },
     map: {
         ...StyleSheet.absoluteFillObject,
+        zIndex: 0,
+    },
+    mapBlurOverlay: {
         zIndex: 0,
     },
     floatingScrollContainer: {

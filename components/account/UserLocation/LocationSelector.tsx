@@ -1,12 +1,15 @@
 import React from 'react';
-import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
 import { FlashList } from '@shopify/flash-list';
+import { Feather } from '@expo/vector-icons';
 import { colors } from '@/constants/theme/colors';
-import { heightPixel, widthPixel } from '@/constants/normalize';
+import { heightPixel, widthPixel, fontPixel } from '@/constants/normalize';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import InputField from '@/components/ui/TextInput';
 import LocationMapPicker from './LocationMapPicker';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -19,11 +22,38 @@ export default function LocationSelector() {
   const dispatch = useAppDispatch();
   const location = useAppSelector(selectUserLocation);
   const isMapPickerOpen = useAppSelector(selectUserLocationIsMapPickerOpen);
-  const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
   
   const backgroundColor = useThemeColor({
     light: colors.light.background,
     dark: colors.dark.background,
+  }, 'background');
+
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text,
+  }, 'text');
+
+  const secondaryColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary,
+  }, 'secondary');
+
+  const borderColor = useThemeColor({
+    light: colors.light.grey,
+    dark: colors.dark.grey,
+  }, 'grey');
+
+  const tintColor = useThemeColor({
+    light: colors.light.tint,
+    dark: colors.dark.tint,
+  }, 'tint');
+
+  const inputBackground = useThemeColor({
+    light: colors.light.background + '95',
+    dark: colors.dark.background + '95',
   }, 'background');
 
   const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocomplete(
@@ -49,70 +79,92 @@ export default function LocationSelector() {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <BackButton 
-          iconName='arrow-left'
-          onPress={() => router.back()}
-        />
-      </View>
-      <View style={styles.header}>
-        <ThemedText type="title">Where are you located?</ThemedText>
-        <ThemedText 
-          type="default" 
-          lightColor={colors.light.secondary}
-          darkColor={colors.dark.secondary}
-          style={styles.subtitle}
-        >
-          This helps us connect you with nearby artisans
-        </ThemedText>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <InputField
-          label="Location"
-          isLoading={isSearching}
-          value={location?.address || ''}
-          clearButtonMode="never"
-          error={searchError?.message || location?.error}
-          onChangeText={(text) => {
-            dispatch(actions.setLocation({
-              ...location,
-              address: text,
-              error: '',
-            }));
-            setTerm(text);
-          }}
-          placeholder="Enter your location"
-          errorStyle={styles.error}
-          style={[styles.input, { backgroundColor: inputBackground }]}
-        />
-        
-        <TouchableOpacity style={styles.pickContainer} onPress={() => dispatch(actions.openMapPicker())}>
-          <Image source={require('@/assets/images/map-marker.png')} style={styles.pickIcon} />
-          <ThemedText type="default" style={styles.description}>
-            Pick location
-          </ThemedText>
-        </TouchableOpacity>
-        
-        {locationResults.length > 0 && (
-          <View style={[styles.listView, { backgroundColor: inputBackground }]}>
-            <FlashList
-              data={locationResults}
-              renderItem={({ item }) => (
-                <View 
-                  style={styles.row}
-                  onTouchEnd={() => onLocationSelect(item)}
-                >
-                  <ThemedText type="default" style={styles.description}>
-                    {item.description}
-                  </ThemedText>
-                </View>
-              )}
-              keyExtractor={(item) => item.place_id}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+          <View style={styles.header}>
+            <BackButton 
+              iconName='arrow-left'
+              onPress={() => router.back()}
             />
           </View>
-        )}
-      </View>
+          <ThemedText style={[styles.label, { color: secondaryColor }]}>
+            YOUR LOCATION
+          </ThemedText>
+          <ThemedText style={[styles.title, { color: textColor }]}>
+            Where are you located?
+          </ThemedText>
+          <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+            This helps us connect you with nearby artisans
+          </ThemedText>
+        </View>
+
+        {/* Input Section */}
+        <View style={styles.inputSection}>
+          <InputField
+            label="SEARCH LOCATION"
+            isLoading={isSearching}
+            value={location?.address || ''}
+            clearButtonMode="never"
+            error={searchError?.message || location?.error}
+            onChangeText={(text) => {
+              dispatch(actions.setLocation({
+                ...location,
+                address: text,
+                error: '',
+              }));
+              setTerm(text);
+            }}
+            placeholder="Enter your location"
+            errorStyle={styles.error}
+            style={{ backgroundColor: inputBackground }}
+          />
+          
+          <TouchableOpacity 
+            style={styles.pickContainer} 
+            onPress={() => dispatch(actions.openMapPicker())}
+            activeOpacity={0.7}
+          >
+            <View style={styles.pickContent}>
+              <Feather name="map-pin" size={20} color={tintColor} />
+              <ThemedText style={[styles.pickText, { color: textColor }]}>
+                Pick location on map
+              </ThemedText>
+            </View>
+            <Feather name="chevron-right" size={18} color={secondaryColor} />
+          </TouchableOpacity>
+          
+          {locationResults.length > 0 && (
+            <BlurView 
+              intensity={80} 
+              tint={isDark ? 'dark' : 'light'} 
+              style={[styles.listView, { backgroundColor: inputBackground, borderColor }]}
+            >
+              <FlashList
+                data={locationResults}
+                renderItem={({ item }) => (
+                  <TouchableOpacity 
+                    style={[styles.row, { borderBottomColor: borderColor }]}
+                    onPress={() => onLocationSelect(item)}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="map-pin" size={16} color={secondaryColor} />
+                    <ThemedText style={[styles.description, { color: textColor }]} numberOfLines={2}>
+                      {item.description}
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.place_id}
+              />
+            </BlurView>
+          )}
+        </View>
+      </ScrollView>
 
       <LocationMapPicker
         isOpen={isMapPickerOpen}
@@ -129,51 +181,86 @@ export default function LocationSelector() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: heightPixel(16),
   },
-  header: {
-    marginTop: heightPixel(16),
-    marginHorizontal: widthPixel(16),
-  },
-  subtitle: {
-    fontSize: widthPixel(16),
-  },
-  inputContainer: {
-    marginTop: heightPixel(32),
+  scrollView: {
     flex: 1,
   },
-  input: {
-    width: '100%',
+  scrollContent: {
+    paddingBottom: heightPixel(40),
   },
-  listView: {
-    width: '100%',
-    borderRadius: 5,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    marginTop: heightPixel(4),
-    height: heightPixel(300),
+  headerSection: {
+    paddingHorizontal: widthPixel(20),
+    paddingBottom: heightPixel(20),
   },
-  row: {
-    padding: widthPixel(15),
-    borderBottomWidth: 1,
-    borderBottomColor: colors.light.misc,
+  accentBar: {
+    width: widthPixel(40),
+    height: heightPixel(4),
+    marginBottom: heightPixel(20),
   },
-  description: {
-    fontSize: widthPixel(14),
+  header: {
+    marginBottom: heightPixel(16),
+  },
+  label: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+    marginBottom: heightPixel(8),
+  },
+  title: {
+    fontSize: fontPixel(32),
+    fontFamily: 'Bold',
+    lineHeight: fontPixel(38),
+    letterSpacing: -1,
+    marginBottom: heightPixel(12),
+  },
+  subtitle: {
+    fontSize: fontPixel(15),
+    fontFamily: 'Regular',
+    lineHeight: fontPixel(22),
+  },
+  inputSection: {
+    // gap: heightPixel(12),
   },
   pickContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: widthPixel(8),
     paddingHorizontal: widthPixel(16),
-    paddingTop: heightPixel(8),
+    // paddingVertical: heightPixel(16),
   },
-  pickIcon: {
-    width: widthPixel(30),
-    height: widthPixel(30),
+  pickContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(12),
+  },
+  pickText: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Medium',
+  },
+  listView: {
+    width: '100%',
+    borderWidth: 0.5,
+    borderLeftWidth: 0,
+    overflow: 'hidden',
+    marginTop: heightPixel(4),
+    maxHeight: heightPixel(300),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(12),
+    padding: widthPixel(16),
+    borderBottomWidth: 0.5,
+  },
+  description: {
+    flex: 1,
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
   },
   error: {
     right: widthPixel(16),
