@@ -6,12 +6,13 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { selectIsLikingPortfolio } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
 import { useDispatch, useSelector } from 'react-redux';
 import { router } from 'expo-router';
 import React, { useMemo } from 'react';
-import { Image, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const Actions = ({
     likes,
@@ -31,8 +32,8 @@ const Actions = ({
     const dispatch = useDispatch();
     const isLikingPortfolio = useSelector(selectIsLikingPortfolio);
     // const skills = useSelector(selectSkills);
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     // const skillsObj = useMemo(() => {
     //     return skills.filter((skill) => skillIds.includes(skill.id));

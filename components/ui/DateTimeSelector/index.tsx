@@ -1,9 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View, ViewStyle, Animated, Easing, TextStyle, Modal, TouchableWithoutFeedback, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ViewStyle, Animated, Easing, TextStyle, Modal, TouchableWithoutFeedback, Platform, Text } from 'react-native';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { colors } from '@/constants/theme/colors';
-import { fontPixel, widthPixel } from '@/constants/normalize';
+import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, isToday, isTomorrow } from 'date-fns';
@@ -28,6 +29,9 @@ const DateTimeSelector = ({
 }: DateTimeSelectorProps) => {
     const [showDatePicker, setShowDatePicker] = React.useState(false);
     
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+    
     const backgroundColor = useThemeColor({
         light: colors.light.misc,
         dark: colors.dark.misc,
@@ -38,10 +42,21 @@ const DateTimeSelector = ({
         dark: colors.dark.text,
     }, 'text');
 
+
     const tintColor = useThemeColor({
         light: colors.light.tint,
         dark: colors.dark.tint,
     }, 'tint');
+
+    const accentColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    const cardBg = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
 
     // Animated borderWidth
     const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
@@ -53,7 +68,7 @@ const DateTimeSelector = ({
             useNativeDriver: false,
             easing: Easing.inOut(Easing.ease)
         }).start();
-    }, [showDatePicker]);
+    }, [showDatePicker, borderWidthAnim]);
 
     const onFocus = () => {
         setShowDatePicker(true);
@@ -71,11 +86,6 @@ const DateTimeSelector = ({
     };
 
     const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
-    const modalBackgroundColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.background,
-    }, 'background');
 
     const formatDate = (date: Date) => {
         if (isToday(date)) {
@@ -125,13 +135,30 @@ const DateTimeSelector = ({
                 >
                     <TouchableWithoutFeedback onPress={onBlur}>
                         <View style={styles.modalOverlay}>
-                            <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+                            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
                             <TouchableWithoutFeedback>
-                                <View style={[styles.modalContent, { backgroundColor: modalBackgroundColor }]}>
+                                <View style={[styles.modalContent, { backgroundColor: cardBg }]}>
+                                    {/* Header */}
                                     <View style={styles.modalHeader}>
-                                        <View style={styles.modalTitleContainer}>
-                                            <Feather name="calendar" size={24} color={tintColor} />
-                                            <ThemedText type='title' style={styles.modalTitle}>Select Date & Time</ThemedText>
+                                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                                        <View style={styles.headerContent}>
+                                            <View style={styles.headerLabelRow}>
+                                                <Feather 
+                                                    name="calendar" 
+                                                    size={16} 
+                                                    color={isDark ? colors.dark.secondary : colors.light.secondary} 
+                                                />
+                                                <Text 
+                                                    style={[
+                                                        styles.headerLabel, 
+                                                        { 
+                                                            color: isDark ? colors.dark.secondary : colors.light.secondary 
+                                                        }
+                                                    ]}
+                                                >
+                                                    SELECT DATE & TIME
+                                                </Text>
+                                            </View>
                                         </View>
                                     </View>
                                     <DateTimePicker
@@ -190,31 +217,37 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'transparent',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: colors.light.white,
-        borderTopLeftRadius: widthPixel(16),
-        borderTopRightRadius: widthPixel(16),
-        padding: widthPixel(16),
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
+        paddingBottom: heightPixel(40),
     },
     modalHeader: {
-        paddingBottom: widthPixel(16),
-        borderBottomWidth: 0.3,
-        borderBottomColor: colors.light.secondary,
-        marginBottom: widthPixel(8)
+        paddingHorizontal: widthPixel(20),
+        paddingTop: heightPixel(20),
+        paddingBottom: heightPixel(16),
     },
-    modalTitleContainer: {
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(16),
+    },
+    headerContent: {
+        // flex: 1,
+    },
+    headerLabelRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: widthPixel(8)
+        gap: widthPixel(8),
     },
-    modalTitle: {
-        fontSize: fontPixel(18),
-        textAlign: 'center'
+    headerLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
     },
 });
 
-export default DateTimeSelector; 
+export default DateTimeSelector;

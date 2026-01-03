@@ -3,11 +3,12 @@ import ThemedText from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, useColorScheme, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export function Options({
     onEdit,
@@ -18,8 +19,8 @@ export function Options({
     onDelete: () => void,
     label?: string,
 }) {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
 

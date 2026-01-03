@@ -1,6 +1,5 @@
 import { StyleSheet, View, Image, ViewStyle, StyleProp } from 'react-native'
 import React from 'react'
-import { ThemedView } from '@/components/ui/Themed/ThemedView'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import user from "@/assets/images/individual.png";
@@ -8,6 +7,7 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText'
 import { AntDesign, SimpleLineIcons } from '@expo/vector-icons'
 import Button from '@/components/ui/Button'
 import { useThemeColor } from '@/hooks/use-theme-color'
+import { useAppTheme } from '@/hooks/use-app-theme'
 import { Link } from 'expo-router'
 
 interface ProfileCardProps {
@@ -15,65 +15,112 @@ interface ProfileCardProps {
 }
 
 export default function ProfileCard({ containerStyle }: ProfileCardProps) {
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+
+    const cardBg = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
+
     const borderColor = useThemeColor({
         light: colors.light.black,
         dark: colors.dark.white
     }, 'background');
-  return (
-    <ThemedView
-        lightColor={colors.light.white}
-        darkColor={colors.dark.black}
-        style={[styles.container, containerStyle]}
-    >
-        <View style={styles.detailsContainer}>
-            <Image
-                source={user}
-                style={styles.img}
-            />
-            <View style={styles.details}>
-                <ThemedText type="subtitle" style={styles.name}>John Doe</ThemedText>
-                <ThemedText style={styles.rating} darkColor={colors.dark.text} lightColor={colors.light.text}>
-                    93/100 {' '}
-                    <AntDesign 
-                        name='star' 
-                        size={15} 
-                        color={colors.light.tint}
+
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text
+    }, 'text');
+
+    const labelColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary
+    }, 'text');
+
+    const accentColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    return (
+        <View style={[styles.container, { backgroundColor: cardBg, borderColor }, containerStyle]}>
+            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+            <View style={styles.content}>
+                <View style={styles.detailsContainer}>
+                    <Image
+                        source={user}
+                        style={styles.img}
                     />
-                </ThemedText>
+                    <View style={styles.details}>
+                        <ThemedText 
+                            type="subtitle" 
+                            style={[styles.name, { color: textColor }]}
+                        >
+                            John Doe
+                        </ThemedText>
+                        <View style={styles.ratingContainer}>
+                            <ThemedText 
+                                style={[styles.ratingLabel, { color: labelColor }]} 
+                                darkColor={colors.dark.secondary} 
+                                lightColor={colors.light.secondary}
+                            >
+                                RATING
+                            </ThemedText>
+                            <ThemedText 
+                                style={[styles.rating, { color: textColor }]} 
+                                darkColor={colors.dark.text} 
+                                lightColor={colors.light.text}
+                            >
+                                93/100 {' '}
+                                <AntDesign 
+                                    name='star' 
+                                    size={14} 
+                                    color={textColor}
+                                />
+                            </ThemedText>
+                        </View>
+                    </View>
+                </View>
+               
+                <Link href={`/(tabs)/(search)/(booking)`} asChild>
+                    <Button 
+                        label="BOOK NOW" 
+                        style={styles.bookNowButton}
+                        labelStyle={styles.bookNowLabel}
+                        lightBackgroundColor={colors.light.black}
+                        darkBackgroundColor={colors.dark.white}
+                        icon={
+                            <SimpleLineIcons 
+                                name="calendar" 
+                                size={14} 
+                                color={isDark ? colors.dark.black : colors.light.white} 
+                            />
+                        }
+                    />
+                </Link>
             </View>
         </View>
-       
-        <Link href={`/(tabs)/(search)/(booking)`} asChild>
-            <Button 
-                label="Book Now" 
-                style={{...styles.bookNowButton, borderColor: borderColor}}
-                labelStyle={styles.bookNowLabel}
-                lightBackgroundColor={colors.light.black}
-                darkBackgroundColor={colors.dark.background}
-                icon={<SimpleLineIcons name="calendar" size={16} color={colors.light.white} />}
-            />
-        </Link>
-    </ThemedView>
-  )
+    )
 }
 
 const styles = StyleSheet.create({
     container: {
         width: '100%',
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    topAccent: {
+        height: heightPixel(3),
+        width: '100%',
+    },
+    content: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: widthPixel(16),
         paddingVertical: heightPixel(16),
-        borderRadius: widthPixel(16),
-        elevation: 3,
-        shadowColor: colors.light.text,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
     },
     detailsContainer: {
         flex: 1,
@@ -81,45 +128,41 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: widthPixel(16),
     },
-    name: {
-        fontSize: fontPixel(16),
-        fontWeight: 'bold',
-        maxWidth: widthPixel(200),
-    },
-    email: {
-        fontSize: fontPixel(12),
-    },
     details: {
-        gap: 2,
+        gap: heightPixel(4),
     },
-    iconButton: {
-        backgroundColor: 'transparent',
-        height: 'auto',
-        width: 'auto',
-        marginBottom: heightPixel(5)
+    name: {
+        fontSize: fontPixel(18),
+        fontFamily: 'Bold',
+        letterSpacing: -0.5,
+        maxWidth: widthPixel(140),
+    },
+    ratingContainer: {
+        gap: heightPixel(2),
     },
     ratingLabel: {
-        fontSize: fontPixel(12),
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.2,
     },
     rating: {
         fontSize: fontPixel(14),
-    },
-    marginTop: {
-        marginTop: heightPixel(5),
+        fontFamily: 'SemiBold',
     },
     img: { 
-        width: widthPixel(65), 
-        height: widthPixel(65),
-        borderRadius: widthPixel(65/2),
+        width: widthPixel(60), 
+        height: widthPixel(60),
+        borderRadius: 0,
     },
     bookNowButton: {
-        paddingHorizontal: widthPixel(16),
+        paddingHorizontal: widthPixel(20),
         marginHorizontal: 0,
-        borderRadius: 20,
-        height: heightPixel(40),
-        borderWidth: 1,
+        height: heightPixel(44),
+        minWidth: widthPixel(120),
     },
     bookNowLabel: {
-        fontSize: fontPixel(14),
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.2,
     }
 })

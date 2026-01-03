@@ -4,13 +4,14 @@ import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { selectUser } from '@/redux/app/selector';
 import { actions } from '@/redux/portfolio/slice';
 import { Portfolio } from '@/redux/portfolio/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { Options } from '../Options';
 import User from '../User';
 import Actions from './Actions';
@@ -24,8 +25,8 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
     const dispatch = useDispatch();
     const loggedInUser = useSelector(selectUser);
     const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     const cardBg = useThemeColor({
         light: colors.light.background,
@@ -40,26 +41,24 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
     const portfolioContent = () => {
         return (
             <>
-                <View style={[styles.leftAccent, { backgroundColor: borderColor }]} />
-                    <View style={styles.content}>
-                        <View style={styles.topContent}>
-                            <User
-                                name={loggedInUser?.name as string}
-                                avatar={loggedInUser?.avatar as string}
-                                createdAt={portfolio.createdAt}
-                            />
-                            <Options 
-                        onEdit={() => router.push(`/(tabs)/(portfolio)/add?id=${portfolio.id}`)}
-                                onDelete={() => setIsDeleteConfirmationOpen(true)}
-                            />
-                        </View>
-                        {
-                            portfolio?.assets?.length > 0 &&
-                            <Thumbnails 
-                                data={portfolio?.assets}
-                            />
-                        }
-                    <View>
+                <View style={[styles.content, { borderColor }]}>
+                    <View style={styles.topContent}>
+                        <User
+                            name={loggedInUser?.name as string}
+                            avatar={loggedInUser?.avatar as string}
+                            createdAt={portfolio.createdAt}
+                        />
+                        <Options 
+                            onEdit={() => router.push(`/(tabs)/(portfolio)/add?id=${portfolio.id}`)}
+                            onDelete={() => setIsDeleteConfirmationOpen(true)}
+                        />
+                    </View>
+                    {
+                        portfolio?.assets?.length > 0 &&
+                        <Thumbnails 
+                            data={portfolio?.assets}
+                        />
+                    }
                     <ThemedText 
                         darkColor={colors.dark.text} 
                         lightColor={colors.light.text} 
@@ -67,7 +66,6 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                     >
                         {portfolio.description}
                     </ThemedText>
-                    </View>
                     <Actions 
                         likes={portfolio.likes}
                         comments={portfolio.comments}
@@ -133,6 +131,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: widthPixel(16),
         gap: heightPixel(12),
+        borderWidth: 0.5,
     },
     topContent: {
         flexDirection: 'row',

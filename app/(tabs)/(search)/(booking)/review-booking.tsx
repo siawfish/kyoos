@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView } from "react-native";
+import { StyleSheet, View, ScrollView, Text } from "react-native";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import BackButton from "@/components/ui/BackButton";
@@ -7,7 +7,7 @@ import { colors } from "@/constants/theme/colors";
 import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
 import { useRouter } from "expo-router";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { Feather } from '@expo/vector-icons';
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectServiceLocationType, selectSummary, selectServiceTime, selectServiceDate, selectDescription, selectMedia, selectIsLoading, selectIsSuccess } from "../../../../redux/booking/selector";
 import { actions } from "../../../../redux/booking/slice";
@@ -30,15 +30,35 @@ export default function ReviewBooking() {
     const isLoading = useAppSelector(selectIsLoading);
     const isSuccess = useAppSelector(selectIsSuccess);
 
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
+
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text,
+    }, 'text');
+
+    const labelColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary,
+    }, 'text');
+
+    const accentColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    const borderColor = accentColor;
+
+    const cardBg = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
+
     const tintColor = useThemeColor({
         light: colors.light.tint,
         dark: colors.dark.tint,
     }, 'tint');
-
-    const borderColor = useThemeColor({
-        light: colors.light.grey,
-        dark: colors.dark.grey,
-    }, 'grey');
 
     const backgroundColor = useThemeColor({
         light: colors.light.white,
@@ -72,134 +92,192 @@ export default function ReviewBooking() {
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={styles.headerContainer}>
                 <BackButton
                     iconName="arrow-left"
                     onPress={() => router.back()}
                 />
-                <ThemedText type="title" style={styles.headerTitle}>Review Booking</ThemedText>
             </View>
 
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={styles.scrollView} 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                    <Text style={[styles.label, { color: labelColor }]}>REVIEW BOOKING</Text>
+                </View>
+
                 {/* Description Section */}
                 {description && (
-                    <View style={[styles.section, { borderColor }]}>
-                        <View style={styles.sectionHeader}>
-                            <Feather name="file-text" size={20} color={tintColor} />
-                            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                                Description
-                            </ThemedText>
+                    <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
                         </View>
-                        <ThemedText style={styles.sectionContent}>
-                            {description}
-                        </ThemedText>
+                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                            <View style={styles.cardContent}>
+                                <ThemedText 
+                                    style={[styles.sectionContent, { color: textColor }]}
+                                    darkColor={colors.dark.text}
+                                    lightColor={colors.light.text}
+                                >
+                                    {description}
+                                </ThemedText>
+                            </View>
+                        </View>
                     </View>
                 )}
 
                 {/* Media Section */}
                 {media && media.length > 0 && (
-                    <View style={[styles.section, { borderColor }]}>
-                        <View style={styles.sectionHeader}>
-                            <Feather name="image" size={20} color={tintColor} />
-                            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                                Media
-                            </ThemedText>
+                    <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>MEDIA</Text>
                         </View>
-                        <MediaPreviews 
-                            media={media}
-                            backgroundColor={backgroundColor}
-                            tintColor={tintColor}
-                            containerStyle={styles.mediaContainer}
-                        />
+                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                            <View style={styles.cardContent}>
+                                <MediaPreviews 
+                                    media={media}
+                                    backgroundColor={backgroundColor}
+                                    tintColor={tintColor}
+                                    containerStyle={styles.mediaContainer}
+                                />
+                            </View>
+                        </View>
                     </View>
                 )}
 
                 {/* Time Estimation */}
                 <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="clock" size={20} color={tintColor} />
-                        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                            Time Estimation
-                        </ThemedText>
+                    <View style={styles.sectionLabelContainer}>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>TIME ESTIMATION</Text>
                     </View>
-                    <View style={styles.estimationContainer}>
-                        <ThemedText style={styles.sectionContent}>
-                            Estimated Duration: {summary?.estimatedDuration || 'Not specified'}
-                        </ThemedText>
-                        <ThemedText style={[styles.sectionContent, styles.estimationNote]}>
-                            Note: Duration may vary based on complexity and unforeseen issues
-                        </ThemedText>
+                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                        <View style={styles.cardContent}>
+                            <ThemedText 
+                                style={[styles.sectionContent, { color: textColor }]}
+                                darkColor={colors.dark.text}
+                                lightColor={colors.light.text}
+                            >
+                                Estimated Duration: {summary?.estimatedDuration || 'Not specified'}
+                            </ThemedText>
+                            <ThemedText 
+                                style={[styles.estimationNote, { color: labelColor }]}
+                                darkColor={colors.dark.secondary}
+                                lightColor={colors.light.secondary}
+                            >
+                                Note: Duration may vary based on complexity and unforeseen issues
+                            </ThemedText>
+                        </View>
                     </View>
                 </View>
 
                 {/* Date & Time */}
                 {formattedDateTime && (
-                    <View style={[styles.section, { borderColor }]}>
-                        <View style={styles.sectionHeader}>
-                            <Feather name="calendar" size={20} color={tintColor} />
-                            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                                Date & Time
-                            </ThemedText>
+                    <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>DATE & TIME</Text>
                         </View>
-                        <ThemedText style={styles.sectionContent}>
-                            {formattedDateTime.date}
-                        </ThemedText>
-                        <ThemedText style={styles.sectionContent}>
-                            {formattedDateTime.time}
-                        </ThemedText>
+                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                            <View style={styles.cardContent}>
+                                <ThemedText 
+                                    style={[styles.sectionContent, { color: textColor }]}
+                                    darkColor={colors.dark.text}
+                                    lightColor={colors.light.text}
+                                >
+                                    {formattedDateTime.date}
+                                </ThemedText>
+                                <ThemedText 
+                                    style={[styles.sectionContent, { color: textColor }]}
+                                    darkColor={colors.dark.text}
+                                    lightColor={colors.light.text}
+                                >
+                                    {formattedDateTime.time}
+                                </ThemedText>
+                            </View>
+                        </View>
                     </View>
                 )}
 
                 {/* Service Location */}
-                <View style={[styles.section, { borderColor }]}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="map-pin" size={20} color={tintColor} />
-                        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                            Service Location
-                        </ThemedText>
+                <View style={styles.section}>
+                    <View style={styles.sectionLabelContainer}>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>SERVICE LOCATION</Text>
                     </View>
-                    <ThemedText style={styles.sectionContent}>
-                        {serviceLocationType === ServiceLocationType.SHOP ? 'At Artisan\'s Shop' : 'At Your Location'}
-                    </ThemedText>
+                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                        <View style={styles.cardContent}>
+                            <ThemedText 
+                                style={[styles.sectionContent, { color: textColor }]}
+                                darkColor={colors.dark.text}
+                                lightColor={colors.light.text}
+                            >
+                                {serviceLocationType === ServiceLocationType.SHOP ? 'At Artisan\'s Shop' : 'At Your Location'}
+                            </ThemedText>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Required Skills */}
                 {summary?.requiredSkills && summary.requiredSkills.length > 0 && (
-                    <View style={[styles.section, { borderColor }]}>
-                        <View style={styles.sectionHeader}>
-                            <Feather name="tool" size={20} color={tintColor} />
-                            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                                Required Skills
-                            </ThemedText>
+                    <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>REQUIRED SKILLS</Text>
                         </View>
-                        {summary.requiredSkills.map((skill, index) => (
-                            <ThemedText key={index} style={styles.sectionContent}>
-                                • {skill}
-                            </ThemedText>
-                        ))}
+                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                            <View style={styles.cardContent}>
+                                {summary.requiredSkills.map((skill, index) => (
+                                    <ThemedText 
+                                        key={index} 
+                                        style={[styles.sectionContent, { color: textColor }]}
+                                        darkColor={colors.dark.text}
+                                        lightColor={colors.light.text}
+                                    >
+                                        • {skill}
+                                    </ThemedText>
+                                ))}
+                            </View>
+                        </View>
                     </View>
                 )}
 
                 {/* Price Estimation */}
-                <View style={[styles.section, { borderColor }]}>
-                    <View style={styles.sectionHeader}>
-                        <Feather name="dollar-sign" size={20} color={tintColor} />
-                        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                            Price Estimation
-                        </ThemedText>
+                <View style={styles.section}>
+                    <View style={styles.sectionLabelContainer}>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>PRICE ESTIMATION</Text>
                     </View>
-                    <ThemedText style={styles.sectionContent}>
-                        Estimated Cost: {summary?.estimatedPrice || 'To be discussed'}
-                    </ThemedText>
-                    <ThemedText style={[styles.sectionContent, styles.estimationNote]}>
-                        Note: Final price may vary based on actual work required
-                    </ThemedText>
+                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
+                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                        <View style={styles.cardContent}>
+                            <ThemedText 
+                                style={[styles.sectionContent, { color: textColor }]}
+                                darkColor={colors.dark.text}
+                                lightColor={colors.light.text}
+                            >
+                                Estimated Cost: {summary?.estimatedPrice || 'To be discussed'}
+                            </ThemedText>
+                            <ThemedText 
+                                style={[styles.estimationNote, { color: labelColor }]}
+                                darkColor={colors.dark.secondary}
+                                lightColor={colors.light.secondary}
+                            >
+                                Note: Final price may vary based on actual work required
+                            </ThemedText>
+                        </View>
+                    </View>
                 </View>
             </ScrollView>
 
             <View style={styles.footer}>
                 <Button 
-                    label="Confirm Booking"
+                    label="CONFIRM BOOKING"
                     onPress={handleConfirmBooking}
                     isLoading={isLoading}
                 />
@@ -208,8 +286,8 @@ export default function ReviewBooking() {
             {isSuccess && (
                 <>
                     <BlurView
-                        intensity={20}
-                        tint="dark"
+                        intensity={60}
+                        tint={isDark ? 'dark' : 'light'}
                         style={StyleSheet.absoluteFill}
                     />
                     <SuccessOverlay
@@ -228,45 +306,65 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(16),
+    headerContainer: {
         paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(16),
+        paddingBottom: heightPixel(16),
     },
-    headerTitle: {
-        fontSize: fontPixel(24),
+    header: {
+        // paddingHorizontal: widthPixel(16),
+        marginBottom: heightPixel(24),
+    },
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(20),
+    },
+    label: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
     },
     scrollView: {
         flex: 1,
+    },
+    scrollContent: {
         paddingHorizontal: widthPixel(16),
+        paddingBottom: heightPixel(100),
     },
     section: {
         marginBottom: heightPixel(24),
-        paddingBottom: heightPixel(16),
-        borderBottomWidth: 1,
     },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
+    sectionLabelContainer: {
         marginBottom: heightPixel(12),
     },
-    sectionTitle: {
-        fontSize: fontPixel(16),
+    sectionLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+    },
+    card: {
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    topAccent: {
+        height: heightPixel(3),
+        width: '100%',
+    },
+    cardContent: {
+        padding: widthPixel(16),
+        gap: heightPixel(8),
     },
     sectionContent: {
-        fontSize: fontPixel(16),
-        marginBottom: heightPixel(4),
-    },
-    estimationContainer: {
-        marginBottom: heightPixel(8),
+        fontSize: fontPixel(15),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(22),
     },
     estimationNote: {
-        fontSize: fontPixel(14),
+        fontSize: fontPixel(13),
+        fontFamily: 'Regular',
         fontStyle: 'italic',
-        marginTop: heightPixel(8),
+        marginTop: heightPixel(4),
     },
     footer: {
         paddingVertical: heightPixel(16),

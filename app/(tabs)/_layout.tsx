@@ -1,4 +1,4 @@
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs, usePathname, useSegments } from 'expo-router';
 import { actions } from '@/redux/app/slice';
 import { useCallback, useEffect, useState } from 'react';
 import BottomTab from '@/components/ui/BottomTab';
@@ -57,6 +57,7 @@ const CustomTabBar = ({ showTabBar, ...props }: CustomTabBarProps) => {
 export default function Layout() {
   const dispatch = useAppDispatch();
   const pathname = usePathname();
+  const segments = useSegments();
   const { currentPermission, permissionsQueue, handleOnPermissionDenied, handleOnPermissionGranted, locationPermission } = usePermissionsRequestQueue({
     onLocationPermissionGranted: () => {
       setCurrentLocation();
@@ -104,9 +105,25 @@ export default function Layout() {
       '/(settings)/settings',
     ];
 
-    const shouldShowTabBar = mainRoutes.includes(pathname);
+    // Hide tab bar on booking routes - check both pathname and segments
+    // Check for booking routes (not bookings tab) - be specific to avoid matching /bookings
+    const hasBookingSegment = segments.some(segment => segment === '(booking)' || segment === 'booking');
+    const hasBookingInPath = (pathname.includes('/booking') || pathname.includes('(booking)')) && !pathname.includes('/bookings');
+    const isReviewBooking = pathname.includes('review-booking');
+    const endsWithBooking = pathname.endsWith('/booking') || pathname.endsWith('booking');
+    
+    const isBookingRoute = hasBookingSegment || hasBookingInPath || isReviewBooking || (endsWithBooking && !pathname.includes('/bookings'));
+    
+    // Hide tab bar on artisan routes - check both pathname and segments
+    const hasArtisanSegment = segments.some(segment => segment === '(artisan)' || segment === 'artisan');
+    const hasArtisanInPath = pathname.includes('/artisan') || pathname.includes('(artisan)');
+    const endsWithArtisan = pathname.endsWith('/artisan') || pathname.endsWith('artisan');
+    
+    const isArtisanRoute = hasArtisanSegment || hasArtisanInPath || endsWithArtisan;
+    
+    const shouldShowTabBar = !isBookingRoute && !isArtisanRoute && mainRoutes.includes(pathname);
     setShowTabBar(shouldShowTabBar);
-  }, [pathname]);
+  }, [pathname, segments]);
 
   useEffect(() => {
     dispatch(actions.getUser());

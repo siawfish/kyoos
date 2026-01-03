@@ -82,20 +82,6 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     flexDirection: 'row',
     gap: widthPixel(10),
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
   },
   disabled: {
     opacity: 0.5,

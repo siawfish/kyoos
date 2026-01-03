@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, Image, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, Image, NativeSyntheticEvent, NativeScrollEvent, Text } from "react-native";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import BackButton from "@/components/ui/BackButton";
@@ -6,16 +6,17 @@ import Button from "@/components/ui/Button";
 import { colors } from "@/constants/theme/colors";
 import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
 import { useRouter } from "expo-router";
-import { useRef, useLayoutEffect, useMemo, useState } from "react";
+import { useRef, useLayoutEffect, useMemo, useState, RefObject } from "react";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import DateTimeSelector from "@/components/ui/DateTimeSelector";
 import ServiceLocation from "@/components/ui/ServiceLocation";
-import { Feather } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectArtisan, selectServiceLocationType, selectSummary, selectServiceTime, selectServiceDate, selectDescription, selectMedia } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
+import { Summary } from "@/redux/search/types";
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -29,6 +30,9 @@ export default function BookingScreen() {
     const serviceLocationType = useAppSelector(selectServiceLocationType);
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
+
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     // Convert Redux date and time to Date object for the selector
     const selectedDate = useMemo(() => {
@@ -73,15 +77,27 @@ export default function BookingScreen() {
         dark: colors.dark.text,
     }, 'text');
 
+    const labelColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary,
+    }, 'text');
+
+    const accentColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    const borderColor = accentColor;
+
+    const cardBg = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
+
     const backgroundColor = useThemeColor({
         light: colors.light.white,
         dark: colors.dark.black
     }, 'white');
-
-    const secondaryColor = useThemeColor({
-        light: colors.light.secondary,
-        dark: colors.dark.secondary,
-    }, 'secondary');
 
     const tintColor = useThemeColor({
         light: colors.light.tint,
@@ -96,34 +112,11 @@ export default function BookingScreen() {
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.header}>
+            <View style={styles.headerContainer}>
                 <BackButton
                     iconName="arrow-left"
                     onPress={() => router.back()}
                 />
-                <View style={styles.headerContent}>
-                    <ThemedText type="title" style={styles.headerTitle}>Book Service</ThemedText>
-                    <View style={styles.headerSubtitle}>
-                        <ThemedText 
-                            type="defaultSemiBold" 
-                            lightColor={colors.light.secondary}
-                            darkColor={colors.dark.secondary}
-                        >
-                            with
-                        </ThemedText>
-                        <Image 
-                            source={require('@/assets/images/individual.png')} 
-                            style={styles.avatar}
-                        />
-                        <ThemedText 
-                            type="defaultSemiBold"
-                            lightColor={colors.light.tint}
-                            darkColor={colors.dark.tint}
-                        >
-                            {artisan?.name}
-                        </ThemedText>
-                    </View>
-                </View>
             </View>
 
             <KeyboardAvoidingView 
@@ -133,64 +126,92 @@ export default function BookingScreen() {
                 <ScrollView 
                     ref={scrollViewRef}
                     style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                     onScroll={handleScroll}
                     scrollEventThrottle={16}
                 >
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                        <Text style={[styles.label, { color: labelColor }]}>BOOK SERVICE</Text>
+                        <View style={styles.headerSubtitle}>
+                            <ThemedText 
+                                type="defaultSemiBold" 
+                                style={styles.subtitleText}
+                                darkColor={colors.dark.secondary}
+                                lightColor={colors.light.secondary}
+                            >
+                                with
+                            </ThemedText>
+                            <Image 
+                                source={require('@/assets/images/individual.png')} 
+                                style={styles.avatar}
+                            />
+                            <ThemedText 
+                                type="defaultSemiBold"
+                                style={styles.artisanName}
+                                darkColor={colors.dark.text}
+                                lightColor={colors.light.text}
+                            >
+                                {artisan?.name}
+                            </ThemedText>
+                        </View>
+                    </View>
+
                     {/* Description */}
                     {description && (
                         <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <Feather name="file-text" size={16} color={secondaryColor} />
-                                <ThemedText 
-                                    type="defaultSemiBold" 
-                                    style={styles.sectionTitle}
-                                    lightColor={colors.light.text}
-                                >
-                                    Description
-                                </ThemedText>
+                            <View style={styles.sectionLabelContainer}>
+                                <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
                             </View>
-                            <ThemedText 
-                                style={styles.description}
-                                lightColor={colors.light.text}
-                            >
-                                {description}
-                            </ThemedText>
+                            <View style={[styles.descriptionCard, { backgroundColor: cardBg, borderColor }]}>
+                                <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                                <View style={styles.descriptionContent}>
+                                    <ThemedText 
+                                        style={styles.description}
+                                        darkColor={colors.dark.text}
+                                        lightColor={colors.light.text}
+                                    >
+                                        {description}
+                                    </ThemedText>
+                                </View>
+                            </View>
                         </View>
                     )}
-                    
 
                     {/* Media */}
                     {media && media.length > 0 && (
                         <View style={styles.section}>
-                            <View style={styles.sectionHeader}>
-                                <Feather name="image" size={16} color={secondaryColor} />
-                                <ThemedText 
-                                    type="defaultSemiBold" 
-                                    style={styles.sectionTitle}
-                                    lightColor={colors.light.text}
-                                >
-                                    Media
-                                </ThemedText>
+                            <View style={styles.sectionLabelContainer}>
+                                <Text style={[styles.sectionLabel, { color: labelColor }]}>MEDIA</Text>
                             </View>
-                            <MediaPreviews 
-                                media={media}
-                                backgroundColor={backgroundColor}
-                                tintColor={tintColor}
-                                containerStyle={{ paddingHorizontal: 0 }}
-                            />
+                            <View style={[styles.mediaCard, { backgroundColor: cardBg, borderColor }]}>
+                                <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                                <View style={styles.mediaContent}>
+                                    <MediaPreviews 
+                                        media={media}
+                                        backgroundColor={backgroundColor}
+                                        tintColor={tintColor}
+                                        containerStyle={{ paddingHorizontal: 0 }}
+                                    />
+                                </View>
+                            </View>
                         </View>
                     )}
 
                     {/* Job Summary */}
-                    <JobSummary summary={summary} />
+                    <JobSummary summary={summary as unknown as Summary} />
 
                     {/* Date and Time Selection */}
                     <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>DATE & TIME</Text>
+                        </View>
                         <DateTimeSelector 
                             date={selectedDate}
                             onDateChange={handleDateChange}
-                            label="Date & Time"
+                            // label="Date & Time"
                             labelStyle={{ ...styles.label, color: textColor }}
                             containerStyle={styles.dateTimeContainer}
                             style={{ backgroundColor }}
@@ -208,8 +229,11 @@ export default function BookingScreen() {
 
                     {/* Service Location */}
                     <View style={styles.section}>
+                        <View style={styles.sectionLabelContainer}>
+                            <Text style={[styles.sectionLabel, { color: labelColor }]}>SERVICE LOCATION</Text>
+                        </View>
                         <ServiceLocation 
-                            scrollViewRef={scrollViewRef} 
+                            scrollViewRef={scrollViewRef as RefObject<ScrollView>} 
                             serviceLocationType={serviceLocationType} 
                             setServiceLocationType={(serviceLocationType) => dispatch(actions.setServiceLocationType(serviceLocationType))}
                         />
@@ -219,7 +243,7 @@ export default function BookingScreen() {
 
             <View style={styles.footer}>
                 <Button 
-                    label="Request Booking"
+                    label="REQUEST BOOKING"
                     disabled={!isRequestEnabled}
                     onPress={handleRequestBooking}
                 />
@@ -241,56 +265,88 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
+    headerContainer: {
         paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(16),
-        gap: widthPixel(16),
+        paddingBottom: heightPixel(16),
     },
-    headerContent: {
-        flex: 1,
+    header: {
+        paddingHorizontal: widthPixel(16),
+        marginBottom: heightPixel(24),
     },
-    headerTitle: {
-        fontSize: fontPixel(24),
+    accentBar: {
+        width: widthPixel(40),
+        height: heightPixel(4),
+        marginBottom: heightPixel(20),
+    },
+    label: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(12),
     },
     headerSubtitle: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: widthPixel(4),
+        gap: widthPixel(8),
+    },
+    subtitleText: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
     },
     avatar: {
-        width: widthPixel(20),
-        height: widthPixel(20),
-        borderRadius: widthPixel(10),
+        width: widthPixel(24),
+        height: widthPixel(24),
+        borderRadius: 0,
+    },
+    artisanName: {
+        fontSize: fontPixel(16),
+        fontFamily: 'Medium',
     },
     keyboardAvoid: {
         flex: 1,
-        marginTop: heightPixel(16)
     },
     scrollView: {
         flex: 1,
+    },
+    scrollContent: {
+        paddingBottom: heightPixel(100),
     },
     section: {
         marginBottom: heightPixel(24),
         paddingHorizontal: widthPixel(16),
     },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-        marginBottom: heightPixel(8),
+    sectionLabelContainer: {
+        marginBottom: heightPixel(12),
     },
-    sectionTitle: {
-        fontSize: fontPixel(16),
+    sectionLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+    },
+    descriptionCard: {
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    topAccent: {
+        height: heightPixel(3),
+        width: '100%',
+    },
+    descriptionContent: {
+        padding: widthPixel(16),
     },
     description: {
-        fontSize: fontPixel(16),
-        lineHeight: heightPixel(24),
+        fontSize: fontPixel(15),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(22),
     },
-    label: {
-        fontSize: fontPixel(16),
-        fontFamily: 'Bold',
+    mediaCard: {
+        borderWidth: 0.5,
+        borderTopWidth: 0,
+        overflow: 'hidden',
+    },
+    mediaContent: {
+        padding: widthPixel(16),
     },
     footer: {
         paddingVertical: heightPixel(16),

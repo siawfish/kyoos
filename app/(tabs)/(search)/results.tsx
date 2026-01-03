@@ -24,6 +24,7 @@ import WorkerMapMarker from "@/components/ui/WorkerMapMarker";
 import ArtisanOptions from "@/components/ui/ArtisanOptions";
 import AISearchModal from "@/components/home/AISearchModal";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 const INITIAL_REGION = {
   latitude: 5.5560,
@@ -152,6 +153,9 @@ export default function Results() {
     const cardsTranslateY = useRef(new Animated.Value(0)).current;
     const iconRotation = useRef(new Animated.Value(0)).current;
     const buttonScale = useRef(new Animated.Value(1)).current;
+
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     const tintColor = useThemeColor({
         light: colors.light.tint,
@@ -559,7 +563,7 @@ export default function Results() {
                     style={styles.backButton}
                     darkBackgroundColor={colors.light.tint}
                     lightBackgroundColor={colors.light.black}
-                    labelStyle={{ color: tintColor }}
+                    labelStyle={{ color: colors.dark.white }}
                 />
             </View>
             <ArtisanOptions
@@ -618,7 +622,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(16),
         paddingVertical: heightPixel(12),
         position: 'absolute',
-        bottom: 0,
+        bottom: heightPixel(16),
         left: widthPixel(16),
         right: widthPixel(16),
         zIndex: 1000,

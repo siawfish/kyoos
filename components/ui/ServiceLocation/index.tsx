@@ -1,6 +1,7 @@
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { colors } from '@/constants/theme/colors';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
@@ -15,16 +16,55 @@ type ServiceLocationProps = {
 }
 
 export default function ServiceLocation({ scrollViewRef, serviceLocationType, setServiceLocationType }: ServiceLocationProps) {
+    const theme = useAppTheme();
+    const isDark = theme === 'dark';
 
     const tintColor = useThemeColor({
         light: colors.light.tint,
         dark: colors.dark.tint,
     }, 'tint');
 
+    const textColor = useThemeColor({
+        light: colors.light.text,
+        dark: colors.dark.text,
+    }, 'text');
+
+    const labelColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary,
+    }, 'text');
+
+    const accentColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    const borderColor = accentColor;
+
+    const cardBg = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
+
     const inputBackgroundColor = useThemeColor({
         light: colors.light.white,
         dark: colors.dark.black
     }, 'white');
+
+    const activeBgColor = useThemeColor({
+        light: colors.light.black,
+        dark: colors.dark.white
+    }, 'background');
+
+    const activeTextColor = useThemeColor({
+        light: colors.light.white,
+        dark: colors.dark.black
+    }, 'text');
+
+    const inactiveBgColor = useThemeColor({
+        light: colors.light.background,
+        dark: colors.dark.background
+    }, 'background');
 
     const handlePersonPress = () => {
         setServiceLocationType(ServiceLocationType.PERSON);
@@ -36,60 +76,54 @@ export default function ServiceLocation({ scrollViewRef, serviceLocationType, se
 
     return (
         <ThemedView>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-                Service Location
-            </ThemedText>
-            <View style={styles.locationButtons}>
-                <View style={styles.locationButtonContainer}>
-                    <TouchableOpacity 
-                        style={[
-                            styles.locationButton,
-                            styles.leftBorderRadius,
-                            serviceLocationType === ServiceLocationType.SHOP && styles.activeLocationButton,
-                            { borderColor: tintColor }
-                        ]}
-                        onPress={() => setServiceLocationType(ServiceLocationType.SHOP)}
+            <View style={[styles.locationButtonContainer, { backgroundColor: cardBg, borderColor }]}>
+                <TouchableOpacity 
+                    style={[
+                        styles.locationButton,
+                        serviceLocationType === ServiceLocationType.SHOP 
+                            ? [styles.activeLocationButton, { backgroundColor: activeBgColor }]
+                            : [styles.inactiveLocationButton, { backgroundColor: inactiveBgColor }]
+                    ]}
+                    onPress={() => setServiceLocationType(ServiceLocationType.SHOP)}
+                >
+                    <Feather 
+                        name="home" 
+                        size={18} 
+                        color={serviceLocationType === ServiceLocationType.SHOP ? activeTextColor : textColor} 
+                    />
+                    <ThemedText 
+                        type="subtitle"
+                        style={styles.locationButtonText}
+                        darkColor={serviceLocationType === ServiceLocationType.SHOP ? colors.dark.black : colors.dark.text}
+                        lightColor={serviceLocationType === ServiceLocationType.SHOP ? colors.light.white : colors.light.text}
                     >
-                        <Feather 
-                            name="home" 
-                            size={18} 
-                            color={serviceLocationType === ServiceLocationType.SHOP ? colors.light.white : tintColor} 
-                        />
-                        <ThemedText 
-                            type="subtitle"
-                            style={[
-                                styles.locationButtonText,
-                                serviceLocationType === ServiceLocationType.SHOP && styles.activeLocationButtonText
-                            ]}
-                        >
-                            In Shop
-                        </ThemedText>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[
-                            styles.locationButton,
-                            styles.rightBorderRadius,
-                            serviceLocationType === ServiceLocationType.PERSON && styles.activeLocationButton,
-                            { borderColor: tintColor }
-                        ]}
-                        onPress={handlePersonPress}
+                        IN SHOP
+                    </ThemedText>
+                </TouchableOpacity>
+                <View style={[styles.separator, { backgroundColor: borderColor }]} />
+                <TouchableOpacity 
+                    style={[
+                        styles.locationButton,
+                        serviceLocationType === ServiceLocationType.PERSON 
+                            ? [styles.activeLocationButton, { backgroundColor: activeBgColor }]
+                            : [styles.inactiveLocationButton, { backgroundColor: inactiveBgColor }]
+                    ]}
+                    onPress={handlePersonPress}
+                >
+                    <Feather 
+                        name="map-pin" 
+                        size={18} 
+                        color={serviceLocationType === ServiceLocationType.PERSON ? activeTextColor : textColor} 
+                    />
+                    <ThemedText 
+                        type="subtitle"
+                        style={styles.locationButtonText}
+                        darkColor={serviceLocationType === ServiceLocationType.PERSON ? colors.dark.black : colors.dark.text}
+                        lightColor={serviceLocationType === ServiceLocationType.PERSON ? colors.light.white : colors.light.text}
                     >
-                        <Feather 
-                            name="map-pin" 
-                            size={18} 
-                            color={serviceLocationType === ServiceLocationType.PERSON ? colors.light.white : tintColor} 
-                        />
-                        <ThemedText 
-                            type="subtitle"
-                            style={[
-                                styles.locationButtonText,
-                                serviceLocationType === ServiceLocationType.PERSON && styles.activeLocationButtonText
-                            ]}
-                        >
-                            In Person
-                        </ThemedText>
-                    </TouchableOpacity>
-                </View>
+                        IN PERSON
+                    </ThemedText>
+                </TouchableOpacity>
             </View>
 
             {serviceLocationType === ServiceLocationType.PERSON && (
@@ -103,47 +137,33 @@ export default function ServiceLocation({ scrollViewRef, serviceLocationType, se
 }
 
 const styles = StyleSheet.create({
-    sectionTitle: {
-        marginBottom: heightPixel(8),
-        fontSize: fontPixel(16),
-    },
-    locationButtons: {
-        flexDirection: 'row',
-        marginHorizontal: -widthPixel(16),
-        paddingHorizontal: widthPixel(16),
-    },
     locationButtonContainer: {
         flexDirection: 'row',
-        borderRadius: widthPixel(4),
+        borderWidth: 0.5,
         overflow: 'hidden',
-        // marginLeft: widthPixel(16),
-        backgroundColor: colors.light.lightTint,
     },
     locationButton: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: widthPixel(8),
+        paddingVertical: heightPixel(14),
+        paddingHorizontal: widthPixel(16),
         gap: widthPixel(8),
-        // backgroundColor: colors.light.lightTint,
-    },
-    rightBorderRadius: {
-        borderTopRightRadius: widthPixel(4),
-        borderBottomRightRadius: widthPixel(4),
-    },
-    leftBorderRadius: {
-        borderTopLeftRadius: widthPixel(4),
-        borderBottomLeftRadius: widthPixel(4),
     },
     activeLocationButton: {
-        backgroundColor: colors.light.tint,
-        borderRadius: widthPixel(4),
+        // Active state handled by backgroundColor prop
+    },
+    inactiveLocationButton: {
+        // Inactive state handled by backgroundColor prop
+    },
+    separator: {
+        width: 0.5,
     },
     locationButtonText: {
-        fontSize: fontPixel(14),
-    },
-    activeLocationButtonText: {
-        color: colors.light.white,
+        fontSize: fontPixel(13),
+        fontFamily: 'SemiBold',
+        letterSpacing: 0.5,
     },
     marginTop: {
         marginTop: heightPixel(16),

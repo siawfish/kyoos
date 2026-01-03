@@ -92,23 +92,23 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkill
                 <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
                 <View style={styles.cardContent}>
                     {/* Header Section */}
-                    <View style={styles.header}>
-                        <View style={styles.avatarContainer}>
+            <View style={styles.header}>
+                <View style={styles.avatarContainer}>
                             <View style={[styles.avatar, { backgroundColor: miscColor, borderColor }]}>
-                                {artisan.avatar ? (
-                                    <Image source={{ uri: artisan.avatar }} style={styles.avatarImage} />
-                                ) : (
+                        {artisan.avatar ? (
+                            <Image source={{ uri: artisan.avatar }} style={styles.avatarImage} />
+                        ) : (
                                     <ThemedText style={[styles.avatarText, { color: textColor }]}>
-                                        {artisan.name.charAt(0).toUpperCase()}
-                                    </ThemedText>
-                                )}
-                            </View>
-                            <View style={styles.verifiedBadge}>
-                                <Image source={require('@/assets/images/verified.png')} style={styles.verifiedImage} />
-                            </View>
-                        </View>
-                        
-                        <View style={styles.priceContainer}>
+                                {artisan.name.charAt(0).toUpperCase()}
+                            </ThemedText>
+                        )}
+                    </View>
+                    <View style={styles.verifiedBadge}>
+                        <Image source={require('@/assets/images/verified.png')} style={styles.verifiedImage} />
+                    </View>
+                </View>
+                
+                <View style={styles.priceContainer}>
                             <ThemedText style={[styles.priceLabel, { color: secondaryColor }]}>
                                 STARTING FROM
                             </ThemedText>
@@ -125,18 +125,18 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkill
                                     </ThemedText>
                                 )}
                             </View>
-                        </View>
-                    </View>
+                </View>
+            </View>
 
                     {/* Content Section */}
-                    <View style={styles.content}>
-                        <View style={styles.nameRow}>
+            <View style={styles.content}>
+                <View style={styles.nameRow}>
                             <ThemedText style={[styles.businessName, { color: textColor }]}>
-                                {artisan.name}
-                            </ThemedText>
-                        </View>
-                        
-                        <View style={styles.ratingContainer}>
+                        {artisan.name}
+                    </ThemedText>
+                </View>
+                
+                <View style={styles.ratingContainer}>
                             <Feather name="star" size={14} color={tintColor} />
                             <ThemedText style={[styles.rating, { color: textColor }]}>
                                 {artisan.rating}
@@ -144,32 +144,32 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkill
                             <ThemedText style={[styles.reviewCount, { color: secondaryColor }]}>
                                 (723 reviews)
                             </ThemedText>
-                        </View>
+                </View>
 
-                        <View style={styles.locationContainer}>
+                <View style={styles.locationContainer}>
                             <Feather name="map-pin" size={12} color={secondaryColor} />
                             <ThemedText style={[styles.location, { color: secondaryColor }]} numberOfLines={1}>
-                                {artisan.location?.address}
-                            </ThemedText>
-                        </View>
+                        {artisan.location?.address}
+                    </ThemedText>
+                </View>
 
-                        <View style={styles.skillsContainer}>
-                            {artisan.skills.slice(0, 2).map((skill) => (
+                <View style={styles.skillsContainer}>
+                    {artisan.skills.slice(0, 2).map((skill) => (
                                 <View key={skill?.id} style={[styles.skillTag, { borderColor, backgroundColor: miscColor }]}>
                                     <ThemedText style={[styles.skillText, { color: textColor }]}>
                                         {skill?.name}
                                     </ThemedText>
-                                </View>
-                            ))}
-                            {artisan.skills.length > 2 && (
-                                <View style={styles.moreSkills}>
-                                    <ThemedText style={[styles.moreSkillsText, { color: secondaryColor }]}>
-                                        +{artisan.skills.length - 2} more
-                                    </ThemedText>
-                                </View>
-                            )}
                         </View>
-                    </View>
+                    ))}
+                    {artisan.skills.length > 2 && (
+                        <View style={styles.moreSkills}>
+                                    <ThemedText style={[styles.moreSkillsText, { color: secondaryColor }]}>
+                                +{artisan.skills.length - 2} more
+                            </ThemedText>
+                        </View>
+                    )}
+                </View>
+            </View>
                 </View>
             </BlurView>
         </TouchableOpacity>
