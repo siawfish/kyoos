@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { Booking, ContainerState } from './types';
+import { Booking, BookingsState } from './types';
 
-export const initialState: ContainerState = {
+export const initialState: BookingsState = {
   bookings: [],
   isLoading: false,
 };
@@ -11,7 +11,7 @@ interface RehydrateAction {
   type: typeof REHYDRATE;
   key: string;
   payload: {
-    bookings?: ContainerState;
+    bookings?: BookingsState;
   };
 }
 

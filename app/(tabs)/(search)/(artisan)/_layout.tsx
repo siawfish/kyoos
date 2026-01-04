@@ -6,6 +6,9 @@ export default function ArtisanLayout() {
       <Stack.Screen 
         name="artisan" 
       />
+      <Stack.Screen 
+        name="(portfolio)" 
+      />
     </Stack>
   );
 }

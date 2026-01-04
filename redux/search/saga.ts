@@ -5,6 +5,7 @@ import { actions } from '@/redux/search/slice';
 import { InitializeResponse, SearchResponse } from '@/redux/search/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
@@ -65,22 +66,24 @@ export function* search() {
     }
 }
 
-export function* onInitialize() {
+export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>) {
     try {
-        const location: Location = yield select(selectUserLocation);
         const { data, error, message } : ApiResponse<InitializeResponse> = yield call(request, {
             method: 'GET',
             url: '/api/users/search',
             params: {
-                lat: location.lat,
-                lng: location.lng,
-                skill: '35f3fc0c-d7bf-44e0-8c63-a8518b768073'
+                lat: action.payload.lat,
+                lng: action.payload.lng,
+                limit: 1000
             },
         });
         if (error || !data) {
             throw new Error(error || message || 'An error occurred while initializing');
         }
-        yield put(actions.setNearestWorkers(data.workers));
+        yield put(actions.setNearestWorkers({
+            workers: data.workers, 
+            total: data.pagination.total
+        }));
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while initializing';
         Toast.show({

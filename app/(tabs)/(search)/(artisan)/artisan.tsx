@@ -1,5 +1,4 @@
 import ProfileCard from "@/components/account/ProfileCard";
-import Portfolio from "@/components/portfolio/Portfolio";
 import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
 import BackButton from "@/components/ui/BackButton";
 import IconButton from "@/components/ui/IconButton";
@@ -9,11 +8,13 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectPortfolios } from "@/redux/portfolio/selector";
+import { actions } from "@/redux/portfolio/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function ArtisanScreen() {
@@ -22,6 +23,14 @@ export default function ArtisanScreen() {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const allWorkers = useAppSelector(selectAllWorkers);
+    const portfolios = useAppSelector(selectPortfolios);
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        if (artisanId) {
+            dispatch(actions.fetchPortfolios(artisanId));
+        }
+    }, [artisanId, dispatch]);
 
     const artisan = useMemo(() => allWorkers.find((worker) => worker.id === artisanId), [allWorkers, artisanId]);
 
@@ -46,21 +55,6 @@ export default function ArtisanScreen() {
         light: colors.light.background,
         dark: colors.dark.background
     }, 'background');
-
-    const portfolio = {
-        id: '1',
-        title: 'Portfolio 1',
-        description: 'Description 1',
-        assets: [],
-        skills: [],
-        likes: 0,
-        comments: 0,
-        hasLiked: false,
-        hasCommented: false,
-        createdAt: '2021-01-01',
-        updatedAt: '2021-01-01',
-        createdBy: '1',
-    };
 
     if (!artisan) {
         return (
@@ -148,7 +142,7 @@ export default function ArtisanScreen() {
                     <View style={styles.sectionLabelContainer}>
                         <Text style={[styles.sectionLabel, { color: labelColor }]}>RECENT WORKS</Text>
                     </View>
-                    <Portfolio portfolio={portfolio} />
+                    {/* <Portfolio portfolio={portfolio} /> */}
                 </View>
             </ScrollView>
         </ThemedSafeAreaView>

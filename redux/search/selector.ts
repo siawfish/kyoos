@@ -79,3 +79,8 @@ export const selectAllWorkers = createSelector(
     [selectRecommendedWorkers, selectClosestWorkers, selectNearestWorkers],
     (recommendedWorkers, closestWorkers, nearestWorkers) => [...(recommendedWorkers || []), ...(closestWorkers || []), ...(nearestWorkers || [])].filter(Boolean),
 );
+
+export const selectTotalNearbyWorkers = createSelector(
+    [selectDomain],
+    (search) => search?.totalNearbyWorkers || 0,
+);

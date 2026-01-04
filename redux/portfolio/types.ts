@@ -1,6 +1,5 @@
-import { Asset, FormElement } from "@/redux/app/types";
-import { Media } from "@/types";
-
+import { Asset, FormElement, Media } from "@/redux/app/types";
+import { Pagination } from "@/services/types";
 export interface Portfolio {
   id: string;
   description: string;
@@ -20,6 +19,11 @@ export interface PortfolioPayload {
   description: string;
   skills?: string[];
   assets?: Asset[];
+}
+
+export interface PortfoliosResponse {
+  portfolios: Portfolio[];
+  pagination: Pagination;
 }
 
 export interface PortfolioForm {
@@ -45,13 +49,13 @@ export interface Comment {
 
 export interface PortfolioState {
   portfolios: Portfolio[];
-  portfolioForm: PortfolioForm;
   comments: Comment[];
   isLoadingComments: boolean;
   commentForm: CommentForm;
   isLikingPortfolio: boolean;
   isLoading: boolean;
   error: string | null;
+  pagination: Pagination; 
 }
 
 export interface CommentForm {

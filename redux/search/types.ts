@@ -11,6 +11,7 @@ export interface SearchState {
     recommendedWorkers: Worker[];
     closestWorkers: Worker[];
     nearestWorkers: Worker[];
+    totalNearbyWorkers: number;
     isUpdatingLocation: boolean;
     searchReferenceId: string;
 }

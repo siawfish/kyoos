@@ -1,10 +1,10 @@
 import { Media } from '@/redux/app/types';
-import { ContainerState, Summary, Worker } from '@/redux/search/types';
+import { SearchState, Summary, Worker } from '@/redux/search/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 
 // The initial state of the GithubRepoForm container
-export const initialState: ContainerState = {
+export const initialState: SearchState = {
   isInitializing: false,
   isLoading: false,
   search: '',
@@ -19,6 +19,7 @@ export const initialState: ContainerState = {
   recommendedWorkers: [],
   closestWorkers: [],
   nearestWorkers: [],
+  totalNearbyWorkers: 0,
   searchReferenceId: '',
   isUpdatingLocation: false,
 }
@@ -27,7 +28,7 @@ interface RehydrateAction {
   type: typeof REHYDRATE;
   key: string;
   payload: {
-    search?: ContainerState;
+    search?: SearchState;
   };
 }
 
@@ -35,14 +36,15 @@ const searchSlice = createSlice({
   name: 'search',
   initialState,
   reducers: {
-    onInitialize: (state) => {
+    onInitialize: (state, action: PayloadAction<{lat: number, lng: number}>) => {
       state.isInitializing = true;
     },
     onInitializeCompleted: (state) => {
       state.isInitializing = false;
     },
-    setNearestWorkers: (state, action: PayloadAction<Worker[]>) => {
-      state.nearestWorkers = action.payload;
+    setNearestWorkers: (state, action: PayloadAction<{workers: Worker[], total: number}>) => {
+      state.nearestWorkers = action.payload.workers;
+      state.totalNearbyWorkers = action.payload.total;
     },
     onSearch: (state) => {
       state.isLoading = true;

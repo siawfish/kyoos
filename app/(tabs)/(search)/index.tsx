@@ -15,7 +15,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUserLocation } from '@/redux/app/selector';
 import { BookingStatuses } from '@/redux/app/types';
 import { selectBookings } from '@/redux/bookings/selector';
-import { selectIsInitializing, selectNearestWorkers } from '@/redux/search/selector';
+import { selectIsInitializing, selectNearestWorkers, selectTotalNearbyWorkers } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
@@ -36,14 +36,18 @@ export default function HomeScreen() {
     const location = useAppSelector(selectUserLocation);
     const dispatch = useAppDispatch();
     const isInitializing = useAppSelector(selectIsInitializing);
+    const totalNearbyWorkers = useAppSelector(selectTotalNearbyWorkers);
     // Animation values
     const bookingCardHeight = useRef(new Animated.Value(0)).current;
     const bookingCardOpacity = useRef(new Animated.Value(0)).current;
     const toggleRotation = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        dispatch(actions.onInitialize());
-    }, []);
+        dispatch(actions.onInitialize({
+            lat: location.lat || ACCRA_REGION.latitude,
+            lng: location.lng || ACCRA_REGION.longitude,
+        }));
+    }, [dispatch, location.lat, location.lng]);
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
@@ -169,6 +173,13 @@ export default function HomeScreen() {
         }
     };
 
+    // const handleRegionChange = (region: Region) => {
+    //     dispatch(actions.onInitialize({
+    //         lat: region.latitude,
+    //         lng: region.longitude,
+    //     }));
+    // };
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             {/* Map Background */}
@@ -186,6 +197,7 @@ export default function HomeScreen() {
                 showsCompass={false}
                 toolbarEnabled={false}
                 onMapReady={fitAllMarkers}
+                // onRegionChangeComplete={handleRegionChange}
             >
                 {nearestWorkers.map((artisan) => (
                     <Marker
@@ -201,6 +213,7 @@ export default function HomeScreen() {
                             pinColor={tintColor}
                             estimatedDuration={60}
                             onPress={handleMarkerPress}
+                            displayCost={false}
                         />
                     </Marker>
                 ))}
@@ -280,9 +293,9 @@ export default function HomeScreen() {
 
             {/* Floating Stats/Info */}
             <View style={styles.statsContainer}>
-                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor }]}>
+                <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor, borderColor }]}>
                     <ThemedText style={[styles.statValue, { color: textColor }]}>
-                        {nearestWorkers.length}
+                        {totalNearbyWorkers}
                     </ThemedText>
                     <ThemedText style={[styles.statLabel, { color: secondaryColor }]}>
                         NEARBY
@@ -388,6 +401,7 @@ const styles = StyleSheet.create({
       paddingVertical: heightPixel(12),
       alignItems: 'center',
       overflow: 'hidden',
+      borderWidth: 0.5,
     },
     statValue: {
       fontSize: fontPixel(24),

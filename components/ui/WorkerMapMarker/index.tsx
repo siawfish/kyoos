@@ -7,6 +7,7 @@ import { selectUser } from '@/redux/app/selector';
 import { Worker } from '@/redux/search/types';
 import { useAppSelector } from '@/store/hooks';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import numeral from 'numeral';
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -16,13 +17,14 @@ interface WorkerMapMarkerProps {
     pinColor?: string;
     estimatedDuration?: number;
     onPress?: (id: string) => void;
+    displayCost?: boolean;
 }
 
 const formatPrice = (price: number) => {
     return numeral(price).format('0,0');
 };
 
-export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, onPress }: WorkerMapMarkerProps) {
+export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, onPress, displayCost = true }: WorkerMapMarkerProps) {
     const user = useAppSelector(selectUser);
     const currency = user?.settings?.currency || 'GHS';
     const skills = worker.skills;
@@ -52,6 +54,11 @@ export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, o
         dark: colors.dark.grey,
     }, 'grey');
 
+    const bgColor = useThemeColor({
+        light: colors.light.white,
+        dark: colors.dark.white,
+    }, 'white');
+
     // Use provided pinColor or default to tint color
     const finalPinColor = pinColor || tintColor;
 
@@ -73,10 +80,27 @@ export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, o
             >
                 <View style={[styles.priceAccent, { backgroundColor: finalPinColor }]} />
                 <View style={styles.priceContent}>
-                    <ThemedText style={[styles.currency, { color: textColor }]}>{currency}</ThemedText>
-                    <ThemedText style={[styles.price, { color: textColor }]}>
-                        {formatPrice(workerCost)}
-                    </ThemedText>
+                    {
+                        displayCost ? (
+                            <>
+                                <ThemedText style={[styles.currency, { color: textColor }]}>{currency}</ThemedText>
+                                <ThemedText style={[styles.price, { color: textColor }]}>
+                                    {formatPrice(workerCost)}
+                                </ThemedText>
+                            </>
+                        ) : (
+                            <>
+                                {
+                                    worker.skills?.[0]?.icon && (
+                                        <View style={[styles.skillIconContainer, { backgroundColor: bgColor }]}>
+                                            <Image source={worker.skills?.[0]?.icon} style={styles.skillIcon} />
+                                        </View>
+                                    )
+                                }
+                                <ThemedText style={[styles.price, { color: textColor }]}>{worker.skills?.[0]?.name ?? "Worker"}</ThemedText>
+                            </>
+                        )
+                    }
                 </View>
             </BlurView>
         </TouchableOpacity>
@@ -113,7 +137,7 @@ const styles = StyleSheet.create({
     },
     priceContent: {
         flexDirection: 'row',
-        alignItems: 'baseline',
+        alignItems: 'center',
         gap: widthPixel(4),
         paddingHorizontal: widthPixel(10),
         paddingVertical: heightPixel(8),
@@ -127,5 +151,16 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(14),
         fontFamily: 'Bold',
         letterSpacing: -0.3,
+    },
+    skillIcon: {
+        width: widthPixel(16),
+        height: widthPixel(16),
+    },
+    skillIconContainer: {
+        width: widthPixel(20),
+        height: widthPixel(20),
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
     },
 }); 

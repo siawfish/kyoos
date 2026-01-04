@@ -19,31 +19,6 @@ export const selectError = createSelector(
   (portfolio) => portfolio.error
 );
 
-export const selectPortfolioForm = createSelector(
-  [selectDomain],
-  (portfolio) => portfolio.portfolioForm
-);
-
-export const selectPortfolioFormDescription = createSelector(
-  [selectDomain],
-  (portfolio) => portfolio.portfolioForm.description
-);
-
-export const selectPortfolioFormFiles = createSelector(
-  [selectDomain],
-  (portfolio) => portfolio.portfolioForm.files
-);
-
-export const selectPortfolioFormSkills = createSelector(
-  [selectDomain],
-  (portfolio) => portfolio.portfolioForm.skills
-);
-
-export const selectPortfolioFormIsLoading = createSelector(
-  [selectDomain],
-  (portfolio) => portfolio.portfolioForm.isLoading
-); 
-
 export const selectComments = createSelector(
   [selectDomain],
   (portfolio) => portfolio.comments
@@ -67,4 +42,9 @@ export const selectCommentsIsLoading = createSelector(
 export const selectIsLikingPortfolio = createSelector(
   [selectDomain],
   (portfolio) => portfolio.isLikingPortfolio
+);
+
+export const selectPagination = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.pagination
 );

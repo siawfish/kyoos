@@ -5,29 +5,27 @@ import like from "@/assets/images/like_grey.png";
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectIsLikingPortfolio } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
-import { useDispatch, useSelector } from 'react-redux';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Actions = ({
     likes,
     comments,
     hasLiked,
     hasCommented,
-    id,
-    skillIds
+    id
 }: {
     likes: number;
     comments: number;
     hasLiked: boolean;
     hasCommented: boolean;
     id: string;
-    skillIds: string[];
 }) => {
     const dispatch = useDispatch();
     const isLikingPortfolio = useSelector(selectIsLikingPortfolio);
@@ -106,12 +104,12 @@ const Actions = ({
                             style={[styles.actionCount, { color: hasLiked ? skillTextColor : labelColor }]} 
                             type='subtitle'
                         >
-                                    {likes}
-                                </ThemedText>
+                            {likes}
+                        </ThemedText>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={styles.actionBtn}
-                        onPress={() => router.push(`/(tabs)/(portfolio)/addComment?id=${id}`)}
+                        onPress={() => router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${id}`)}
                     >
                         <Image 
                             source={hasCommented ? commentActive : comment} 
@@ -121,8 +119,8 @@ const Actions = ({
                             style={[styles.actionCount, { color: hasCommented ? skillTextColor : labelColor }]} 
                             type='subtitle'
                         >
-                                    {comments}
-                                </ThemedText>
+                            {comments}
+                        </ThemedText>
                     </TouchableOpacity>
                 </View>
             </View>

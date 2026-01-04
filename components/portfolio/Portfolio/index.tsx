@@ -6,7 +6,6 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
-import { actions } from '@/redux/portfolio/slice';
 import { Portfolio } from '@/redux/portfolio/types';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
@@ -72,7 +71,6 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                         hasLiked={portfolio.hasLiked}
                         hasCommented={portfolio.hasCommented}
                         id={portfolio.id}
-                        skillIds={portfolio.skills}
                     />
                 </View>
             </>
@@ -83,7 +81,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
         <>
             {
                 clickable ? (
-                    <Link href={`/(tabs)/(portfolio)/${portfolio.id}`} asChild>
+                    <Link href={`/(tabs)/(search)/(artisan)/(portfolio)/${portfolio.id}`} asChild>
                         <Pressable style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
                             {portfolioContent()}
                         </Pressable>
@@ -99,7 +97,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                 isOpenChange={setIsDeleteConfirmationOpen}
                 title="Delete Portfolio"
                 description="Are you sure you want to delete this portfolio? This action cannot be undone."
-                onConfirm={() => dispatch(actions.deletePortfolio(portfolio.id))}
+                onConfirm={() => {}}
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.icon} />}
                 onCancel={() => setIsDeleteConfirmationOpen(false)}
                 confirmButtonStyle={{
