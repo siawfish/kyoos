@@ -1,9 +1,8 @@
 import BackButton from '@/components/ui/BackButton';
-import ThemedText from '@/components/ui/Themed/ThemedText';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
@@ -11,16 +10,12 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export function Options({
-    onEdit,
-    onDelete,
-    label = 'Portfolio Options',
+    onReport,
+    onShare,
 }: {
-    onEdit: () => void,
-    onDelete: () => void,
-    label?: string,
+    onReport: () => void,
+    onShare: () => void,
 }) {
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -55,15 +50,15 @@ export function Options({
         setIsOpen(false);
     }, []);
 
-    const handleEdit = useCallback(() => {
+    const handleReport = useCallback(() => {
         handleClose();
-        onEdit();
-    }, [handleClose, onEdit]);
+        onReport();
+    }, [handleClose, onReport]);
 
-    const handleDelete = useCallback(() => {
+    const handleShare = useCallback(() => {
         handleClose();
-        onDelete();
-    }, [handleClose, onDelete]);
+        onShare();
+    }, [handleClose, onShare]);
 
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
@@ -138,31 +133,32 @@ export function Options({
                                 </View>
 
                                 <View style={styles.optionsContainer}>
-                                    <TouchableOpacity 
-                                        style={[styles.optionButton, { borderColor }]}
-                                        onPress={handleEdit}
-                                    >
-                                        <SimpleLineIcons name="pencil" size={fontPixel(18)} color={textColor} />
-                                        <ThemedText 
-                                            style={[styles.optionText, { color: textColor }]} 
-                                            lightColor={colors.light.text} 
-                                            darkColor={colors.dark.text}
-                                        >
-                                            EDIT
-                                        </ThemedText>
-                                    </TouchableOpacity>
 
                                     <TouchableOpacity 
                                         style={[styles.optionButton, { borderColor }]}
-                                        onPress={handleDelete}
+                                        onPress={handleShare}
                                     >
-                                        <SimpleLineIcons name="trash" size={fontPixel(18)} color={colors.light.danger} />
+                                        <SimpleLineIcons name="share" size={fontPixel(18)} color={textColor} />
                                         <ThemedText 
-                                            style={[styles.optionText, { color: colors.light.danger }]} 
+                                            style={[styles.optionText]} 
+                                            lightColor={colors.light.text} 
+                                            darkColor={colors.dark.text}
+                                        >
+                                            SHARE
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                    
+                                    <TouchableOpacity 
+                                        style={[styles.optionButton, { borderColor }]}
+                                        onPress={handleReport}
+                                    >
+                                        <SimpleLineIcons name="flag" size={fontPixel(18)} color={colors.light.danger} />
+                                        <ThemedText 
+                                            style={[styles.optionText]} 
                                             lightColor={colors.light.danger} 
                                             darkColor={colors.light.danger}
                                         >
-                                            DELETE
+                                            REPORT
                                         </ThemedText>
                                     </TouchableOpacity>
                                 </View>

@@ -3,15 +3,15 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { actions } from '@/redux/portfolio/slice';
 import { Portfolio } from '@/redux/portfolio/types';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { Options } from '../Options';
 import User from '../User';
 import Actions from './Actions';
@@ -49,8 +49,8 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                             createdAt={portfolio.createdAt}
                         />
                         <Options 
-                            onEdit={() => router.push(`/(tabs)/(portfolio)/add?id=${portfolio.id}`)}
-                            onDelete={() => setIsDeleteConfirmationOpen(true)}
+                            onReport={() => {}}
+                            onShare={() => {}}
                         />
                     </View>
                     {
