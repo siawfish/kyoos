@@ -96,7 +96,12 @@ const portfolioSlice = createSlice({
     },
     setCommentFormValue: (state, action: PayloadAction<string>) => {
       state.commentForm.comment = action.payload;
-    }
+    },
+    resetState: (state) => {
+      return {
+        ...initialState,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {

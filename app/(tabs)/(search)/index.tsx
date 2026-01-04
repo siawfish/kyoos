@@ -15,10 +15,11 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUserLocation } from '@/redux/app/selector';
 import { BookingStatuses } from '@/redux/app/types';
 import { selectBookings } from '@/redux/bookings/selector';
-import { selectIsInitializing, selectNearestWorkers, selectTotalNearbyWorkers } from '@/redux/search/selector';
+import { selectIsInitializing, selectNearestWorkers, selectSearchModalVisible, selectSelectedArtisan, selectTotalNearbyWorkers } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
+import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -27,8 +28,8 @@ import type MapView from 'react-native-maps';
 import { Marker } from 'react-native-maps';
 
 export default function HomeScreen() {
-    const [searchModalVisible, setSearchModalVisible] = useState(false);
-    const [selectedArtisan, setSelectedArtisan] = useState<string | null>(null);
+    const searchModalVisible = useAppSelector(selectSearchModalVisible);
+    const selectedArtisan = useAppSelector(selectSelectedArtisan);
     const [showBookingCard, setShowBookingCard] = useState(false);
     const mapRef = useRef<MapView>(null);
     const bookings = useAppSelector(selectBookings);
@@ -43,11 +44,15 @@ export default function HomeScreen() {
     const toggleRotation = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        dispatch(actions.resetState());
+    }, [dispatch]);
+
+    useFocusEffect(() => {
         dispatch(actions.onInitialize({
             lat: location.lat || ACCRA_REGION.latitude,
             lng: location.lng || ACCRA_REGION.longitude,
         }));
-    }, [dispatch, location.lat, location.lng]);
+    });
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
@@ -159,7 +164,7 @@ export default function HomeScreen() {
     }, [selectedArtisan, fitAllMarkers]);
 
     const handleMarkerPress = (artisanId: string) => {
-        setSelectedArtisan(artisanId);
+        dispatch(actions.setSelectedArtisan(artisanId));
         
         // Find the artisan and animate to their location
         const artisan = nearestWorkers.find(a => a.id === artisanId);
@@ -288,7 +293,7 @@ export default function HomeScreen() {
                   }),
                 },
             ]}>
-                <SearchInputTrigger onPress={() => setSearchModalVisible(true)} />
+                <SearchInputTrigger onPress={() => dispatch(actions.setSearchModalVisible(true))} />
             </Animated.View>
 
             {/* Floating Stats/Info */}
@@ -306,13 +311,13 @@ export default function HomeScreen() {
             {/* AI Search Modal */}
             <AISearchModal 
               visible={searchModalVisible}
-              onClose={() => setSearchModalVisible(false)}
+              onClose={() => dispatch(actions.setSearchModalVisible(false))}
             />
 
             {/* Artisan Options Bottom Sheet */}
             <ArtisanOptions
                 isVisible={!!selectedArtisan}
-                onClose={() => setSelectedArtisan(null)}
+                onClose={() => dispatch(actions.setSelectedArtisan(null))}
                 artisan={selectedArtisanObject}
             >
                 {selectedArtisanObject && (
@@ -326,7 +331,7 @@ export default function HomeScreen() {
                                     artisanId: id,
                                 },
                             })
-                            setSelectedArtisan(null);
+                            dispatch(actions.setSelectedArtisan(null));
                         }}
                     />
                 )}

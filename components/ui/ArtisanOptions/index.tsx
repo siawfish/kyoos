@@ -1,16 +1,20 @@
-import React, { useCallback, useMemo, useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { useAppTheme } from "@/hooks/use-app-theme";
-import { colors } from "@/constants/theme/colors";
-import { Feather } from "@expo/vector-icons";
-import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
-import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import BackButton from "@/components/ui/BackButton";
-import { useRouter } from "expo-router";
+import BookingDescriptionModal from "@/components/ui/BookingDescriptionModal";
+import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectSearchReferenceId } from "@/redux/search/selector";
+import { actions } from "@/redux/search/slice";
+import { Worker } from "@/redux/search/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Feather } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
-import { Worker } from "@/redux/search/types";
+import { useRouter } from "expo-router";
+import React, { useCallback, useMemo, useRef } from "react";
+import { Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 
 interface ArtisanOptionsProps {
     isVisible: boolean;
@@ -46,6 +50,8 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     }, 'tint');
     
     const router = useRouter();
+    const searchReferenceId = useAppSelector(selectSearchReferenceId);
+    const dispatch = useAppDispatch();
     const snapPoints = useMemo(() => ['30%'], []);
     const withChildrenSnapPoints = useMemo(() => ['65%'], []);
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -57,13 +63,23 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     }, [onClose]);
 
     const handleBookNow = () => {
-        onClose();
-        router.push({
-            pathname: '/(tabs)/(search)/(booking)/booking',
-            params: {
-                artisanId: artisan?.id
-            }
-        });
+        // Check if searchReferenceId is empty - if so, show description modal
+        if (searchReferenceId === '') {
+            dispatch(actions.setDescriptionModalVisible(true));
+        } else {
+            // If searchReferenceId exists, navigate directly to booking screen
+            onClose();
+            router.push({
+                pathname: '/(tabs)/(search)/(booking)/booking',
+                params: {
+                    artisanId: artisan?.id
+                }
+            });
+        }
+    };
+
+    const handleDescriptionModalClose = () => {
+        dispatch(actions.setSelectedArtisan(null));
     };
 
     const handleSeeProfile = () => {
@@ -174,6 +190,11 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     </BottomSheetView>
                 </BottomSheet>
             </View>
+
+            {/* Booking Description Modal */}
+            <BookingDescriptionModal
+                artisan={artisan}
+            />
         </Modal>
     );
 };

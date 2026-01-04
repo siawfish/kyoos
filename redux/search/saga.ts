@@ -1,17 +1,20 @@
 import { Media } from '@/redux/app/types';
 import { Location } from '@/redux/auth/types';
+import { actions as bookingActions } from '@/redux/booking/slice';
+import { actions as portfolioActions } from '@/redux/portfolio/slice';
 import { selectMedia, selectSearch } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { InitializeResponse, SearchResponse } from '@/redux/search/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { router } from 'expo-router';
+import { RelativePathString, router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
 
-export function* search() {
+export function* search({payload}: PayloadAction<{navigateTo?: RelativePathString}>) {
+    const { navigateTo = '/(tabs)/(search)/results' } = payload;
     try {
         const search: string = yield select(selectSearch);
         const media: Media[] = yield select(selectMedia);
@@ -53,7 +56,9 @@ export function* search() {
         yield put(actions.setRecommendedWorkers(data.recommendedWorkers));
         yield put(actions.setClosestWorkers(data.closestWorkers));
         yield put(actions.setSearchReferenceId(data.searchReferenceId));
-        router.push('/(tabs)/(search)/results');
+        yield put(actions.setDescriptionModalVisible(false));
+        yield put(actions.setSelectedArtisan(null));
+        router.push(navigateTo);
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while searching';
         Toast.show({
@@ -96,7 +101,13 @@ export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>)
     }
 }
 
+export function* resetState() {
+    yield put(portfolioActions.resetState());
+    yield put(bookingActions.resetState());
+}
+
 export function* searchSaga() {
-    yield takeLatest(actions.onSearch, search);
+    yield takeLatest(actions.onSearch.type, search);
     yield takeLatest(actions.onInitialize, onInitialize);
+    yield takeLatest(actions.resetState, resetState);
 }

@@ -84,3 +84,23 @@ export const selectTotalNearbyWorkers = createSelector(
     [selectDomain],
     (search) => search?.totalNearbyWorkers || 0,
 );
+
+export const selectSearchReferenceId = createSelector(
+    [selectDomain],
+    (search) => search?.searchReferenceId || '',
+);
+
+export const selectSearchModalVisible = createSelector(
+    [selectDomain],
+    (search) => search?.searchModalVisible || false,
+);
+
+export const selectSelectedArtisan = createSelector(
+    [selectDomain],
+    (search) => search?.selectedArtisan || null,
+);
+
+export const selectDescriptionModalVisible = createSelector(
+    [selectDomain],
+    (search) => search?.descriptionModalVisible || false,
+);

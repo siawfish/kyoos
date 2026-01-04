@@ -1,6 +1,6 @@
+import { BookingState, ServiceLocationType } from '@/redux/booking/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { BookingState, ServiceLocationType } from '@/redux/booking/types';
 import { Worker } from '../search/types';
 
 // The initial state of the GithubRepoForm container

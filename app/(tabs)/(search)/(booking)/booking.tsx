@@ -1,5 +1,6 @@
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
+import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import DateTimeSelector from "@/components/ui/DateTimeSelector";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
@@ -12,10 +13,12 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
+import { actions as searchActions } from "@/redux/search/slice";
 import { Summary } from "@/redux/search/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function BookingScreen() {
@@ -23,6 +26,7 @@ export default function BookingScreen() {
     const { artisanId } = useLocalSearchParams<{ artisanId: string }>();
     const scrollViewRef = useRef<ScrollView>(null);
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const dispatch = useAppDispatch();
     const artisan = useAppSelector(selectArtisan);
     const summary = useAppSelector(selectSummary);
@@ -41,6 +45,7 @@ export default function BookingScreen() {
             }
         }
     }, [artisanId, dispatch, allWorkers]);
+
 
     // Convert Redux date and time to Date object for the selector
     const selectedDate = useMemo(() => {
@@ -72,9 +77,9 @@ export default function BookingScreen() {
         }
     };
 
-    useLayoutEffect(() => {
-        dispatch(actions.initializeBooking());
-    }, [dispatch]);
+    useFocusEffect(() => {
+        dispatch(actions.initializeBooking())
+    });
 
     const handleDateChange = (date: Date) => {
         dispatch(actions.setAppointmentDateTime(date.toISOString()));
@@ -118,12 +123,21 @@ export default function BookingScreen() {
         }
     };
 
+    const handleBackPress = () => {
+        setShowCancelConfirm(true);
+    };
+
+    const handleConfirmCancel = () => {
+        dispatch(searchActions.resetState());
+        router.back();
+    };
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.headerContainer}>
                 <BackButton
                     iconName="arrow-left"
-                    onPress={() => router.back()}
+                    onPress={handleBackPress}
                 />
             </View>
 
@@ -265,6 +279,15 @@ export default function BookingScreen() {
                     </ThemedText>
                 )}
             </View>
+            <ConfirmActionSheet
+                isOpen={showCancelConfirm}
+                isOpenChange={setShowCancelConfirm}
+                title="Cancel Booking?"
+                description="Are you sure you want to cancel this booking? All your progress will be lost."
+                onConfirm={handleConfirmCancel}
+                confirmText="Yes, Cancel"
+                cancelText="Continue Booking"
+            />
         </ThemedSafeAreaView>
     );
 }

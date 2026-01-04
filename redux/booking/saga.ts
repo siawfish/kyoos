@@ -2,12 +2,12 @@
  * Gets the repositories of the game from Game
  */
 
-import { delay, put, takeLatest, select } from 'redux-saga/effects';
-import { actions } from '@/redux/booking/slice';
-import Toast from 'react-native-toast-message';
-import { selectMedia, selectSearch, selectSummary } from '../search/selector';
 import { Media } from '@/redux/app/types';
-import { Worker, Summary } from '@/redux/search/types';
+import { actions } from '@/redux/booking/slice';
+import { Summary } from '@/redux/search/types';
+import Toast from 'react-native-toast-message';
+import { delay, put, select, takeLatest } from 'redux-saga/effects';
+import { selectMedia, selectSearch, selectSummary } from '../search/selector';
 
 export function* confirmBooking() {
     try {
@@ -32,7 +32,6 @@ export function* initializeBooking() {
         summary,
         description: search,
         requiredSkills: summary.requiredSkills.map((skill) => skill.name),
-        artisan: null,
     }));
 }
 

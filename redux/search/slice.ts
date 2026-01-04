@@ -22,6 +22,9 @@ export const initialState: SearchState = {
   totalNearbyWorkers: 0,
   searchReferenceId: '',
   isUpdatingLocation: false,
+  searchModalVisible: false,
+  selectedArtisan: null,
+  descriptionModalVisible: false,
 }
 
 interface RehydrateAction {
@@ -46,7 +49,7 @@ const searchSlice = createSlice({
       state.nearestWorkers = action.payload.workers;
       state.totalNearbyWorkers = action.payload.total;
     },
-    onSearch: (state) => {
+    onSearch: (state, action: PayloadAction<{navigateTo?: string}>) => {
       state.isLoading = true;
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
@@ -69,6 +72,15 @@ const searchSlice = createSlice({
     },
     setSearchReferenceId: (state, action: PayloadAction<string>) => {
       state.searchReferenceId = action.payload;
+    },
+    setSearchModalVisible: (state, action: PayloadAction<boolean>) => {
+      state.searchModalVisible = action.payload;
+    },
+    setSelectedArtisan: (state, action: PayloadAction<string | null>) => {
+      state.selectedArtisan = action.payload;
+    },
+    setDescriptionModalVisible: (state, action: PayloadAction<boolean>) => {
+      state.descriptionModalVisible = action.payload;
     },
     saveUserLocation: (state) => {
       state.isUpdatingLocation = true;

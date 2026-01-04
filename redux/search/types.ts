@@ -14,6 +14,9 @@ export interface SearchState {
     totalNearbyWorkers: number;
     isUpdatingLocation: boolean;
     searchReferenceId: string;
+    searchModalVisible: boolean;
+    selectedArtisan: string | null;
+    descriptionModalVisible: boolean;
 }
 
 export interface Summary {
