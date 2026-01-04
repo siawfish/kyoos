@@ -1,20 +1,22 @@
-import { StyleSheet, View, Image, ViewStyle, StyleProp } from 'react-native'
-import React from 'react'
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import { colors } from '@/constants/theme/colors'
 import user from "@/assets/images/individual.png";
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
-import { AntDesign, SimpleLineIcons } from '@expo/vector-icons'
-import Button from '@/components/ui/Button'
-import { useThemeColor } from '@/hooks/use-theme-color'
-import { useAppTheme } from '@/hooks/use-app-theme'
-import { Link } from 'expo-router'
+import Button from '@/components/ui/Button';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Worker } from '@/redux/search/types';
+import { AntDesign, SimpleLineIcons } from '@expo/vector-icons';
+import { Link } from 'expo-router';
+import React from 'react';
+import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface ProfileCardProps {
     containerStyle?: StyleProp<ViewStyle>;
+    worker: Worker;
 }
 
-export default function ProfileCard({ containerStyle }: ProfileCardProps) {
+export default function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
 
@@ -57,7 +59,7 @@ export default function ProfileCard({ containerStyle }: ProfileCardProps) {
                             type="subtitle" 
                             style={[styles.name, { color: textColor }]}
                         >
-                            John Doe
+                            {worker.name}
                         </ThemedText>
                         <View style={styles.ratingContainer}>
                             <ThemedText 
@@ -72,7 +74,7 @@ export default function ProfileCard({ containerStyle }: ProfileCardProps) {
                                 darkColor={colors.dark.text} 
                                 lightColor={colors.light.text}
                             >
-                                93/100 {' '}
+                                {worker.rating}{' '}
                                 <AntDesign 
                                     name='star' 
                                     size={14} 
@@ -83,7 +85,7 @@ export default function ProfileCard({ containerStyle }: ProfileCardProps) {
                     </View>
                 </View>
                
-                <Link href={`/(tabs)/(search)/(booking)`} asChild>
+                <Link href={`/(tabs)/(search)/(booking)/booking?artisanId=${worker.id}`} asChild>
                     <Button 
                         label="BOOK NOW" 
                         style={styles.bookNowButton}

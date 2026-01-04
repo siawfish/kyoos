@@ -2,10 +2,10 @@
  * Homepage selectors
  */
 
-import {RootState} from '@/store';
-import {createSelector} from '@reduxjs/toolkit';
+import { RootState } from '@/store';
+import { createSelector } from '@reduxjs/toolkit';
 
-import {initialState} from './slice';
+import { initialState } from './slice';
 
 // TODO: Add an explanation for this
 const selectDomain = (state: RootState) => state?.search || initialState;
@@ -63,4 +63,19 @@ export const selectEstimatedPrice = createSelector(
 export const selectReasoning = createSelector(
     [selectSummary],
     (summary) => summary?.reasoning || '',
+);
+
+export const selectIsInitializing = createSelector(
+    [selectDomain],
+    (search) => search?.isInitializing,
+);
+
+export const selectNearestWorkers = createSelector(
+    [selectDomain],
+    (search) => search?.nearestWorkers,
+);
+
+export const selectAllWorkers = createSelector(
+    [selectRecommendedWorkers, selectClosestWorkers, selectNearestWorkers],
+    (recommendedWorkers, closestWorkers, nearestWorkers) => [...(recommendedWorkers || []), ...(closestWorkers || []), ...(nearestWorkers || [])].filter(Boolean),
 );

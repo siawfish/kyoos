@@ -1,23 +1,22 @@
-import React, { useMemo } from "react";
-import { View, StyleSheet, TouchableOpacity, Image, StyleProp, ViewStyle } from "react-native";
-import { BlurView } from "expo-blur";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { useAppTheme } from "@/hooks/use-app-theme";
-import { colors } from "@/constants/theme/colors";
-import { Feather } from "@expo/vector-icons";
-import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { Skill, Worker } from "@/redux/search/types";
 import { calculateWorkerAverageRate, calculateWorkerCost, calculateWorkerHourlyRate } from "@/constants/helpers";
-import { useAppSelector } from "@/store/hooks";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectUser } from "@/redux/app/selector";
+import { Worker } from "@/redux/search/types";
+import { useAppSelector } from "@/store/hooks";
+import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import numeral from "numeral";
+import React, { useMemo } from "react";
+import { Image, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface ArtisanCardProps {
     artisan: Worker;
     containerStyle?: StyleProp<ViewStyle>;
     estimatedDuration?: number;
-    requiredSkills: Skill[];
     onPress?: (id: string) => void;
 }
 
@@ -25,7 +24,7 @@ const formatPrice = (price: number) => {
     return numeral(price).format('0,0');
 };
 
-const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkills, onPress }: ArtisanCardProps) => {
+const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, onPress }: ArtisanCardProps) => {
     const user = useAppSelector(selectUser);
     const currency = user?.settings?.currency || 'GHS';
     const theme = useAppTheme();
@@ -71,8 +70,8 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, requiredSkill
         onPress?.(artisan.id);
     };
 
-    const workerCost = useMemo(() => calculateWorkerCost(artisan, requiredSkills, estimatedDuration || 0), [artisan, requiredSkills, estimatedDuration]);
-    const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan, requiredSkills), [artisan, requiredSkills]);
+    const workerCost = useMemo(() => calculateWorkerCost(artisan, artisan.skills, estimatedDuration || 0), [artisan, artisan.skills, estimatedDuration]);
+    const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan, artisan.skills), [artisan, artisan.skills]);
     const averageRate = useMemo(() => calculateWorkerAverageRate(artisan), [artisan]);
     
     const displayPrice = workerCost > 0 ? workerCost : (hourlyRate || averageRate);

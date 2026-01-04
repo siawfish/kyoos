@@ -1,13 +1,16 @@
 import { AcceptedTerms, Media, Settings, UserTypes } from "@/redux/app/types";
 import { Location } from "@/redux/auth/types";
+import { Pagination } from "@/services/types";
 
 export interface SearchState {
+    isInitializing: boolean;
     search: string;
     isLoading: boolean;
     media: Media[];
     summary: Summary;
     recommendedWorkers: Worker[];
     closestWorkers: Worker[];
+    nearestWorkers: Worker[];
     isUpdatingLocation: boolean;
     searchReferenceId: string;
 }
@@ -79,5 +82,9 @@ export interface GhanaCard {
     isVerified: boolean;
 }
 
+export interface InitializeResponse {
+    workers: Worker[];
+    pagination: Pagination;
+}
 
 export type ContainerState = SearchState;

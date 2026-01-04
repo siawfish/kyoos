@@ -1,13 +1,13 @@
-import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { actions } from '@/redux/search/slice';
-import { router } from 'expo-router';
-import Toast from 'react-native-toast-message';
-import { SearchResponse } from '@/redux/search/types';
-import { selectMedia, selectSearch } from '@/redux/search/selector';
 import { Media } from '@/redux/app/types';
+import { Location } from '@/redux/auth/types';
+import { selectMedia, selectSearch } from '@/redux/search/selector';
+import { actions } from '@/redux/search/slice';
+import { InitializeResponse, SearchResponse } from '@/redux/search/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
-import { Location } from '@/redux/auth/types';
+import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
 
 export function* search() {
@@ -65,6 +65,35 @@ export function* search() {
     }
 }
 
+export function* onInitialize() {
+    try {
+        const location: Location = yield select(selectUserLocation);
+        const { data, error, message } : ApiResponse<InitializeResponse> = yield call(request, {
+            method: 'GET',
+            url: '/api/users/search',
+            params: {
+                lat: location.lat,
+                lng: location.lng,
+                skill: '35f3fc0c-d7bf-44e0-8c63-a8518b768073'
+            },
+        });
+        if (error || !data) {
+            throw new Error(error || message || 'An error occurred while initializing');
+        }
+        yield put(actions.setNearestWorkers(data.workers));
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while initializing';
+        Toast.show({
+            type: 'error',
+            text1: 'Initialization failed',
+            text2: errorMessage,
+        });
+    } finally {
+        yield put(actions.onInitializeCompleted());
+    }
+}
+
 export function* searchSaga() {
     yield takeLatest(actions.onSearch, search);
+    yield takeLatest(actions.onInitialize, onInitialize);
 }

@@ -1,51 +1,29 @@
+import ProfileCard from "@/components/account/ProfileCard";
+import Portfolio from "@/components/portfolio/Portfolio";
+import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
 import BackButton from "@/components/ui/BackButton";
+import IconButton from "@/components/ui/IconButton";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { fontPixel, widthPixel, heightPixel } from "@/constants/normalize";
-import { Link, useRouter } from "expo-router";
-import { View, StyleSheet, ScrollView, Text } from "react-native";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
-import { Ionicons } from "@expo/vector-icons";
-import Portfolio from "@/components/portfolio/Portfolio";
-import ProfileCard from "@/components/account/ProfileCard";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import IconButton from "@/components/ui/IconButton";
-import { Worker } from "@/redux/search/types";
-import { UserTypes } from "@/redux/app/types";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectAllWorkers } from "@/redux/search/selector";
+import { useAppSelector } from "@/store/hooks";
+import { Ionicons } from "@expo/vector-icons";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-// Dummy artisan data
-const dummyArtisan: Partial<Worker> = {
-    id: "123",
-    name: "John Smith",
-    rating: 4.8,
-    avatar: "https://via.placeholder.com/150",
-    createdAt: "2021-01-01",
-    updatedAt: "2021-01-01",
-    accountStatus: 1,
-    userType: UserTypes.WORKER,
-    ghanaCard: {
-        number: "1234567890",
-        front: "https://via.placeholder.com/150",
-        back: "https://via.placeholder.com/150",
-        isVerified: true,
-    },
-    skills: [
-        { name: "Carpenter", rate: 30, id: "1" },
-        { name: "Furniture Maker", rate: 35, id: "2" },
-        { name: "Wood Finishing", rate: 25, id: "3" },
-        { name: "Custom Design", rate: 40, id: "4" },
-    ],
-};
-
-export default function ArtisanScreen({
-    artisan=dummyArtisan
-}: {
-    artisan: Partial<Worker>
-}) {
+export default function ArtisanScreen() {
     const router = useRouter();
+    const { artisanId } = useLocalSearchParams<{ artisanId: string }>();
     const theme = useAppTheme();
     const isDark = theme === 'dark';
+    const allWorkers = useAppSelector(selectAllWorkers);
+
+    const artisan = useMemo(() => allWorkers.find((worker) => worker.id === artisanId), [allWorkers, artisanId]);
 
     const textColor = useThemeColor({
         light: colors.light.text,
@@ -84,6 +62,12 @@ export default function ArtisanScreen({
         createdBy: '1',
     };
 
+    if (!artisan) {
+        return (
+            <KyoosNotFoundScreen />
+        )
+    }
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.backButtonContainer}>
@@ -91,7 +75,7 @@ export default function ArtisanScreen({
                     iconName="arrow-left"
                     onPress={() => router.back()}
                 />
-                <Link asChild href={`/(tabs)/(messaging)/${artisan.id}`}>
+                <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
                     <IconButton 
                         style={styles.chatButton}
                         lightColor={colors.light.black}
@@ -114,11 +98,11 @@ export default function ArtisanScreen({
                 {/* Header Section */}
                 <View style={styles.header}>
                     <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>ARTISAN</Text>
+                    <Text style={[styles.label, { color: labelColor }]}>WORKER</Text>
                 </View>
 
                 {/* Basic Info Section */}
-                <ProfileCard />
+                <ProfileCard worker={artisan} />
 
                 {/* Skills & Rate Section */}
                 <View style={styles.section}>

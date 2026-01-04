@@ -1,22 +1,22 @@
-import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform, Image, NativeSyntheticEvent, NativeScrollEvent, Text } from "react-native";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
-import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
-import { colors } from "@/constants/theme/colors";
-import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useRef, useLayoutEffect, useMemo, useState, RefObject, useEffect } from "react";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import DateTimeSelector from "@/components/ui/DateTimeSelector";
-import ServiceLocation from "@/components/ui/ServiceLocation";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectArtisan, selectServiceLocationType, selectSummary, selectServiceTime, selectServiceDate, selectDescription, selectMedia } from "@/redux/booking/selector";
-import { actions } from "@/redux/booking/slice";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
+import ServiceLocation from "@/components/ui/ServiceLocation";
+import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ThemedText } from "@/components/ui/Themed/ThemedText";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
+import { actions } from "@/redux/booking/slice";
+import { selectAllWorkers } from "@/redux/search/selector";
 import { Summary } from "@/redux/search/types";
-import { selectClosestWorkers, selectRecommendedWorkers } from "@/redux/search/selector";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -31,9 +31,7 @@ export default function BookingScreen() {
     const serviceLocationType = useAppSelector(selectServiceLocationType);
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
-    const recommendedWorkers = useAppSelector(selectRecommendedWorkers);
-    const closestWorkers = useAppSelector(selectClosestWorkers);
-    const allWorkers = useMemo(() => [...(recommendedWorkers || []), ...(closestWorkers || [])], [recommendedWorkers, closestWorkers]);
+    const allWorkers = useAppSelector(selectAllWorkers);
 
     useEffect(() => {
         if (artisanId) {

@@ -1,19 +1,18 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { calculateWorkerCost } from '@/constants/helpers';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Skill, Worker } from '@/redux/search/types';
-import { calculateWorkerCost } from '@/constants/helpers';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useAppSelector } from '@/store/hooks';
 import { selectUser } from '@/redux/app/selector';
+import { Worker } from '@/redux/search/types';
+import { useAppSelector } from '@/store/hooks';
+import { BlurView } from 'expo-blur';
 import numeral from 'numeral';
+import React, { useMemo } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface WorkerMapMarkerProps {
     worker: Worker;
-    skills: Skill[];
     pinColor?: string;
     estimatedDuration?: number;
     onPress?: (id: string) => void;
@@ -23,9 +22,10 @@ const formatPrice = (price: number) => {
     return numeral(price).format('0,0');
 };
 
-export default function WorkerMapMarker({ worker, skills, pinColor, estimatedDuration, onPress }: WorkerMapMarkerProps) {
+export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, onPress }: WorkerMapMarkerProps) {
     const user = useAppSelector(selectUser);
     const currency = user?.settings?.currency || 'GHS';
+    const skills = worker.skills;
     
     const tintColor = useThemeColor({
         light: colors.light.tint,

@@ -1,10 +1,11 @@
+import { Media } from '@/redux/app/types';
+import { ContainerState, Summary, Worker } from '@/redux/search/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { ContainerState, Worker, Summary } from '@/redux/search/types';
-import { Media } from '@/redux/app/types';
 
 // The initial state of the GithubRepoForm container
 export const initialState: ContainerState = {
+  isInitializing: false,
   isLoading: false,
   search: '',
   media: [],
@@ -17,6 +18,7 @@ export const initialState: ContainerState = {
   },
   recommendedWorkers: [],
   closestWorkers: [],
+  nearestWorkers: [],
   searchReferenceId: '',
   isUpdatingLocation: false,
 }
@@ -33,6 +35,15 @@ const searchSlice = createSlice({
   name: 'search',
   initialState,
   reducers: {
+    onInitialize: (state) => {
+      state.isInitializing = true;
+    },
+    onInitializeCompleted: (state) => {
+      state.isInitializing = false;
+    },
+    setNearestWorkers: (state, action: PayloadAction<Worker[]>) => {
+      state.nearestWorkers = action.payload;
+    },
     onSearch: (state) => {
       state.isLoading = true;
     },

@@ -1,26 +1,30 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { StyleSheet, View, TouchableOpacity, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Feather } from '@expo/vector-icons';
-import { Marker } from 'react-native-maps';
-import type MapView from 'react-native-maps';
-import ThemedMapView from '@/components/ui/ThemedMapView';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { useAppSelector } from '@/store/hooks';
-import { selectBookings } from '@/redux/bookings/selector';
-import { BookingStatuses } from '@/redux/app/types';
-import { DUMMY_NEARBY_ARTISANS, DUMMY_SKILLS, ACCRA_REGION } from '@/constants/dummyData';
+import AISearchModal from '@/components/home/AISearchModal';
 import BookingPreviewCard from '@/components/home/BookingPreviewCard';
 import SearchInputTrigger from '@/components/home/SearchInputTrigger';
-import AISearchModal from '@/components/home/AISearchModal';
-import WorkerMapMarker from '@/components/ui/WorkerMapMarker';
-import ArtisanOptions from '@/components/ui/ArtisanOptions';
 import ArtisanCard from '@/components/search/ArtisanCard';
 import UserLocation from '@/components/search/UserLocation';
+import ArtisanOptions from '@/components/ui/ArtisanOptions';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import ThemedMapView from '@/components/ui/ThemedMapView';
+import WorkerMapMarker from '@/components/ui/WorkerMapMarker';
+import { ACCRA_REGION } from '@/constants/dummyData';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { selectUserLocation } from '@/redux/app/selector';
+import { BookingStatuses } from '@/redux/app/types';
+import { selectBookings } from '@/redux/bookings/selector';
+import { selectIsInitializing, selectNearestWorkers } from '@/redux/search/selector';
+import { actions } from '@/redux/search/slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { router } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import type MapView from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 
 export default function HomeScreen() {
     const [searchModalVisible, setSearchModalVisible] = useState(false);
@@ -28,11 +32,18 @@ export default function HomeScreen() {
     const [showBookingCard, setShowBookingCard] = useState(false);
     const mapRef = useRef<MapView>(null);
     const bookings = useAppSelector(selectBookings);
-    
+    const nearestWorkers = useAppSelector(selectNearestWorkers);
+    const location = useAppSelector(selectUserLocation);
+    const dispatch = useAppDispatch();
+    const isInitializing = useAppSelector(selectIsInitializing);
     // Animation values
     const bookingCardHeight = useRef(new Animated.Value(0)).current;
     const bookingCardOpacity = useRef(new Animated.Value(0)).current;
     const toggleRotation = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        dispatch(actions.onInitialize());
+    }, []);
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
@@ -78,7 +89,7 @@ export default function HomeScreen() {
 
     // Get selected artisan object
     const selectedArtisanObject = useMemo(() => {
-        return DUMMY_NEARBY_ARTISANS.find(worker => worker.id === selectedArtisan);
+        return nearestWorkers.find(worker => worker.id === selectedArtisan);
     }, [selectedArtisan]);
 
     // Toggle booking card visibility with animation
@@ -109,8 +120,8 @@ export default function HomeScreen() {
 
     // Fit all markers on map
     const fitAllMarkers = useCallback(() => {
-        if (mapRef.current && DUMMY_NEARBY_ARTISANS.length > 0) {
-            const coordinates = DUMMY_NEARBY_ARTISANS.map(worker => ({
+        if (mapRef.current && nearestWorkers.length > 0) {
+            const coordinates = nearestWorkers.map(worker => ({
                 latitude: worker.coordinates[1],
                 longitude: worker.coordinates[0],
             }));
@@ -120,14 +131,17 @@ export default function HomeScreen() {
                 animated: true,
             });
         }
-    }, []);
+    }, [nearestWorkers]);
 
+    // Fit markers when workers are loaded after initialization
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fitAllMarkers();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [fitAllMarkers]);
+        if (!isInitializing && nearestWorkers.length > 0 && mapRef.current) {
+            const timer = setTimeout(() => {
+                fitAllMarkers();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isInitializing, nearestWorkers, fitAllMarkers]);
 
     // Refit markers when ArtisanOptions closes
     useEffect(() => {
@@ -144,7 +158,7 @@ export default function HomeScreen() {
         setSelectedArtisan(artisanId);
         
         // Find the artisan and animate to their location
-        const artisan = DUMMY_NEARBY_ARTISANS.find(a => a.id === artisanId);
+        const artisan = nearestWorkers.find(a => a.id === artisanId);
         if (artisan && mapRef.current) {
             mapRef.current.animateToRegion({
                 latitude: artisan.coordinates[1],
@@ -161,14 +175,19 @@ export default function HomeScreen() {
             <ThemedMapView
                 ref={mapRef}
                 style={styles.map}
-                initialRegion={ACCRA_REGION}
+                initialRegion={{
+                    latitude: location.lat || ACCRA_REGION.latitude,
+                    longitude: location.lng || ACCRA_REGION.longitude,
+                    latitudeDelta: ACCRA_REGION.latitudeDelta,
+                    longitudeDelta: ACCRA_REGION.longitudeDelta,
+                }}
                 showsUserLocation
                 showsMyLocationButton={false}
                 showsCompass={false}
                 toolbarEnabled={false}
                 onMapReady={fitAllMarkers}
             >
-                {DUMMY_NEARBY_ARTISANS.map((artisan) => (
+                {nearestWorkers.map((artisan) => (
                     <Marker
                         key={artisan.id}
                         coordinate={{
@@ -179,7 +198,6 @@ export default function HomeScreen() {
                     >
                         <WorkerMapMarker
                             worker={artisan}
-                            skills={DUMMY_SKILLS}
                             pinColor={tintColor}
                             estimatedDuration={60}
                             onPress={handleMarkerPress}
@@ -264,7 +282,7 @@ export default function HomeScreen() {
             <View style={styles.statsContainer}>
                 <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor }]}>
                     <ThemedText style={[styles.statValue, { color: textColor }]}>
-                        {DUMMY_NEARBY_ARTISANS.length}
+                        {nearestWorkers.length}
                     </ThemedText>
                     <ThemedText style={[styles.statLabel, { color: secondaryColor }]}>
                         NEARBY
@@ -287,8 +305,16 @@ export default function HomeScreen() {
                 {selectedArtisanObject && (
                     <ArtisanCard
                         artisan={selectedArtisanObject}
-                        requiredSkills={DUMMY_SKILLS}
-                        estimatedDuration={60}
+                        estimatedDuration={0}
+                        onPress={(id) => {
+                            router.push({
+                                pathname: '/(tabs)/(search)/(artisan)/artisan',
+                                params: {
+                                    artisanId: id,
+                                },
+                            })
+                            setSelectedArtisan(null);
+                        }}
                     />
                 )}
             </ArtisanOptions>
