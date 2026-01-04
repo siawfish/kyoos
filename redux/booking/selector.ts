@@ -1,10 +1,5 @@
-/**
- * Homepage selectors
- */
-
 import {RootState} from '@/store';
 import {createSelector} from '@reduxjs/toolkit';
-
 import {initialState} from './slice';
 
 // TODO: Add an explanation for this

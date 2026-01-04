@@ -53,8 +53,8 @@ export function* search() {
         yield put(actions.setClosestWorkers(data.closestWorkers));
         yield put(actions.setSearchReferenceId(data.searchReferenceId));
         router.push('/(tabs)/(search)/results');
-    } catch (error:any) {
-        const errorMessage = error?.message || error?.error || 'An error occurred while searching';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while searching';
         Toast.show({
             type: 'error',
             text1: 'Search failed',
@@ -66,5 +66,5 @@ export function* search() {
 }
 
 export function* searchSaga() {
-  yield takeLatest(actions.onSearch, search);
+    yield takeLatest(actions.onSearch, search);
 }

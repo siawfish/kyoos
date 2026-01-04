@@ -1,31 +1,15 @@
 import { FormElement, Media } from "@/redux/app/types";
+import { Summary, Worker } from "../search/types";
+import { Location } from "../auth/types";
 
 export interface BookingState {
-    summary: {
-        estimatedDuration: string;
-        requiredSkills: string[];
-        requiredTools: string[];
-        estimatedPrice: string;
-    };
-    artisan: any;
+    summary: Summary;
+    artisan: Worker | null;
     description: string;
     requiredSkills: string[];
-    appointmentDateTime: {
-        date: {
-            value: string;
-            error: string;
-        };
-        time: {
-            value: string;
-            error: string;
-        };
-    };
+    appointmentDateTime: AppointmentDateTime;
     serviceLocationType: ServiceLocationType;
-    serviceLocation: {
-        address: string;
-        latitude: number;
-        longitude: number;
-    };
+    serviceLocation: Location;
     media: Media[];
     isLoading: boolean;
     isSuccess: boolean;

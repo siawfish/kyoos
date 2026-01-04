@@ -16,7 +16,7 @@ import JobSummary from "@/components/ui/JobSummary";
 import { Marker } from 'react-native-maps';
 import type MapView from 'react-native-maps';
 import ThemedMapView from '@/components/ui/ThemedMapView';
-import { BlurView } from 'expo-blur';
+import { BlurTint, BlurView } from 'expo-blur';
 import BackButton from "@/components/ui/BackButton";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { actions } from "../../../redux/search/slice";
@@ -24,7 +24,6 @@ import WorkerMapMarker from "@/components/ui/WorkerMapMarker";
 import ArtisanOptions from "@/components/ui/ArtisanOptions";
 import AISearchModal from "@/components/home/AISearchModal";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
-import { useAppTheme } from "@/hooks/use-app-theme";
 
 const INITIAL_REGION = {
   latitude: 5.5560,
@@ -154,9 +153,6 @@ export default function Results() {
     const iconRotation = useRef(new Animated.Value(0)).current;
     const buttonScale = useRef(new Animated.Value(1)).current;
 
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-
     const tintColor = useThemeColor({
         light: colors.light.tint,
         dark: colors.dark.tint,
@@ -273,25 +269,24 @@ export default function Results() {
     const fitAllMarkers = useCallback(() => {
         if (mapRef.current && unifiedWorkers.length > 0) {
             const validCoordinates = unifiedWorkers
-                .map(worker => {
-                    let lat = INITIAL_REGION.latitude;
-                    let lng = INITIAL_REGION.longitude;
-                    
-                    if (worker.coordinates && Array.isArray(worker.coordinates) && worker.coordinates.length >= 2) {
-                        lng = worker.coordinates[0];
-                        lat = worker.coordinates[1];
-                    } else if (worker.location && typeof worker.location === 'object') {
-                        lat = worker.location.lat || INITIAL_REGION.latitude;
-                        lng = worker.location.lng || INITIAL_REGION.longitude;
-                    }
-                    
-                    return { latitude: lat, longitude: lng };
-                })
-                .filter(coord => 
-                    coord.latitude !== INITIAL_REGION.latitude || 
-                    coord.longitude !== INITIAL_REGION.longitude
-                );
-
+            .map(worker => {
+                let lat = INITIAL_REGION.latitude;
+                let lng = INITIAL_REGION.longitude;
+                
+                if (worker.coordinates && Array.isArray(worker.coordinates) && worker.coordinates.length >= 2) {
+                    lng = worker.coordinates[0];
+                    lat = worker.coordinates[1];
+                } else if (worker.location && typeof worker.location === 'object') {
+                    lat = worker.location.lat || INITIAL_REGION.latitude;
+                    lng = worker.location.lng || INITIAL_REGION.longitude;
+                }
+                
+                return { latitude: lat, longitude: lng };
+            })
+            .filter(coord => 
+                coord.latitude !== INITIAL_REGION.latitude || 
+                coord.longitude !== INITIAL_REGION.longitude
+            );
             if (validCoordinates.length > 0) {
                 mapRef.current.fitToCoordinates(validCoordinates, {
                     edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
@@ -453,7 +448,7 @@ export default function Results() {
             {/* Empty State Overlay for Map View */}
             {(requiredSkills.length === 0 || unifiedWorkers.length === 0) && !showCards && (
                 <View style={styles.mapEmptyStateContainer}>
-                        <BlurView intensity={80} tint={blurTint as any} style={[styles.mapEmptyState, { backgroundColor }]}>
+                    <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.mapEmptyState, { backgroundColor }]}>
                         <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />
                         <ThemedText style={styles.emptyListText}>
                             We currently don&apos;t have service personels for this issue. Please try again later. Skilled professionals are being added every hour.

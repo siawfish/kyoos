@@ -1,14 +1,16 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { BookingState, ServiceLocationType } from '@/redux/booking/types';
+import { Worker } from '../search/types';
 
 // The initial state of the GithubRepoForm container
 export const initialState: BookingState = {
   summary: {
-    estimatedDuration: '',
+    estimatedDuration: 0,
     requiredSkills: [],
     requiredTools: [],
     estimatedPrice: '',
+    reasoning: '',
   },
   artisan: null,
   description: '',
@@ -26,8 +28,8 @@ export const initialState: BookingState = {
   serviceLocationType: ServiceLocationType.SHOP,
   serviceLocation: {
     address: '',
-    latitude: 0,
-    longitude: 0,
+    lat: 0,
+    lng: 0,
   },
   media: [],
   isLoading: false,
@@ -90,6 +92,9 @@ const bookingSlice = createSlice({
         ...state,
         ...action.payload
       };
+    },
+    setArtisan: (state, action: PayloadAction<Worker>) => {
+      state.artisan = action.payload;
     },
     resetState: (state) => {
       return initialState;

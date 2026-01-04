@@ -24,16 +24,16 @@ export function* confirmBooking() {
 }
 
 export function* initializeBooking() {
-    // const media: Media[] = yield select(selectMedia);
-    // const summary: Summary = yield select(selectSummary);
-    // const search: string = yield select(selectSearch);
-    // yield put(actions.updateBooking({
-    //     media,
-    //     summary,
-    //     description: search,
-    //     requiredSkills: summary.requiredSkills.map((skill: any) => skill.name),
-    //     artisan
-    // }));
+    const media: Media[] = yield select(selectMedia);
+    const summary: Summary = yield select(selectSummary);
+    const search: string = yield select(selectSearch);
+    yield put(actions.updateBooking({
+        media,
+        summary,
+        description: search,
+        requiredSkills: summary.requiredSkills.map((skill) => skill.name),
+        artisan: null,
+    }));
 }
 
 export function* bookingSaga() {

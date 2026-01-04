@@ -44,10 +44,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
         light: colors.light.tint,
         dark: colors.dark.tint,
     }, 'tint');
-    const miscColor = useThemeColor({
-        light: colors.light.misc,
-        dark: colors.dark.misc,
-    }, 'misc');
     
     const router = useRouter();
     const snapPoints = useMemo(() => ['30%'], []);
@@ -62,12 +58,22 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
 
     const handleBookNow = () => {
         onClose();
-        router.push(`/(tabs)/(search)/(booking)`);
+        router.push({
+            pathname: '/(tabs)/(search)/(booking)/booking',
+            params: {
+                artisanId: artisan?.id
+            }
+        });
     };
 
     const handleSeeProfile = () => {
         onClose();
-        router.push(`/(tabs)/(search)/(artisan)`);
+        router.push({
+            pathname: '/(tabs)/(search)/(artisan)/artisan',
+            params: {
+                artisanId: artisan?.id
+            }
+        });
     };
 
     return (

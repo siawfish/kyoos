@@ -40,12 +40,27 @@ export const selectClosestWorkers = createSelector(
     (search) => search?.closestWorkers,
 );
 
-export const selectLocationForm = createSelector(
-    [selectDomain],
-    (search) => search?.location,
-);
-
 export const selectRequiredSkills = createSelector(
     [selectSummary],
     (summary) => summary?.requiredSkills || [],
+);
+
+export const selectRequiredTools = createSelector(
+    [selectSummary],
+    (summary) => summary?.requiredTools || [],
+);
+
+export const selectEstimatedDuration = createSelector(
+    [selectSummary],
+    (summary) => summary?.estimatedDuration || 0,
+);
+
+export const selectEstimatedPrice = createSelector(
+    [selectSummary],
+    (summary) => summary?.estimatedPrice || '',
+);
+
+export const selectReasoning = createSelector(
+    [selectSummary],
+    (summary) => summary?.reasoning || '',
 );

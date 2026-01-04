@@ -5,10 +5,9 @@ import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { colors } from "@/constants/theme/colors";
 import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
-import { useRouter } from "expo-router";
-import { useRef, useLayoutEffect, useMemo, useState, RefObject } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRef, useLayoutEffect, useMemo, useState, RefObject, useEffect } from "react";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useAppTheme } from "@/hooks/use-app-theme";
 import DateTimeSelector from "@/components/ui/DateTimeSelector";
 import ServiceLocation from "@/components/ui/ServiceLocation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -17,9 +16,11 @@ import { actions } from "@/redux/booking/slice";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import { Summary } from "@/redux/search/types";
+import { selectClosestWorkers, selectRecommendedWorkers } from "@/redux/search/selector";
 
 export default function BookingScreen() {
     const router = useRouter();
+    const { artisanId } = useLocalSearchParams<{ artisanId: string }>();
     const scrollViewRef = useRef<ScrollView>(null);
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
     const dispatch = useAppDispatch();
@@ -30,9 +31,18 @@ export default function BookingScreen() {
     const serviceLocationType = useAppSelector(selectServiceLocationType);
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
+    const recommendedWorkers = useAppSelector(selectRecommendedWorkers);
+    const closestWorkers = useAppSelector(selectClosestWorkers);
+    const allWorkers = useMemo(() => [...(recommendedWorkers || []), ...(closestWorkers || [])], [recommendedWorkers, closestWorkers]);
 
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
+    useEffect(() => {
+        if (artisanId) {
+            const artisan = allWorkers.find((worker) => worker.id === artisanId);
+            if (artisan) {
+                dispatch(actions.setArtisan(artisan));
+            }
+        }
+    }, [artisanId, dispatch, allWorkers]);
 
     // Convert Redux date and time to Date object for the selector
     const selectedDate = useMemo(() => {
@@ -66,7 +76,7 @@ export default function BookingScreen() {
 
     useLayoutEffect(() => {
         dispatch(actions.initializeBooking());
-    }, []);
+    }, [dispatch]);
 
     const handleDateChange = (date: Date) => {
         dispatch(actions.setAppointmentDateTime(date.toISOString()));
