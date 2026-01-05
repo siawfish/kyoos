@@ -1,32 +1,32 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-    StyleSheet, 
-    View, 
-    Modal,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    ScrollView,
-    Keyboard,
+import LoadingPopover from '@/components/search/LoadingPopover';
+import AttachMedia from '@/components/ui/AttachMedia';
+import BackButton from '@/components/ui/BackButton';
+import Button from '@/components/ui/Button';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Media, MediaType } from '@/redux/app/types';
+import { selectIsLoading, selectMedia, selectSearch } from '@/redux/search/selector';
+import { actions } from '@/redux/search/slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { Feather } from '@expo/vector-icons';
+import BottomSheet, { BottomSheetFooter, BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
+import { BlurView } from 'expo-blur';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
     Animated,
     Image,
+    Keyboard,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Feather } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetView, BottomSheetFooter, BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import BackButton from '@/components/ui/BackButton';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { colors } from '@/constants/theme/colors';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectIsLoading, selectSearch, selectMedia } from '@/redux/search/selector';
-import { actions } from '@/redux/search/slice';
-import Button from '@/components/ui/Button';
-import AttachMedia from '@/components/ui/AttachMedia';
-import { Media, MediaType } from '@/redux/app/types';
-import LoadingPopover from '@/components/search/LoadingPopover';
 
 interface AISearchModalProps {
     visible: boolean;
@@ -142,7 +142,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
             }
             
             // Trigger the search - saga will read from Redux state
-            dispatch(actions.onSearch());
+            dispatch(actions.onSearch({}));
             
             // Close modal after a brief delay to allow LoadingPopover to show
             setTimeout(() => {

@@ -47,12 +47,12 @@ export default function HomeScreen() {
         dispatch(actions.resetState());
     }, [dispatch]);
 
-    useFocusEffect(() => {
+    useFocusEffect(useCallback(() => {
         dispatch(actions.onInitialize({
             lat: location.lat || ACCRA_REGION.latitude,
             lng: location.lng || ACCRA_REGION.longitude,
         }));
-    });
+    }, [dispatch, location.lat, location.lng]));
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
