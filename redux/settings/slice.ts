@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ContainerState } from './types';
+import { SettingsState } from './types';
 import { KeyValue } from '@/redux/app/types';
 import { RegisterFormFields } from '@/redux/auth/types';
 
 // The initial state of the GithubRepoForm container
-export const initialState: ContainerState = {
+export const initialState: SettingsState = {
   profileForm: {
     name: {
       value: '',

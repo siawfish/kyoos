@@ -19,9 +19,3 @@ export const selectProfileFormIsLoading = createSelector(
     [selectDomain],
     (settings) => settings.profileForm.isLoading,
 );
-
-export const selectProfileFormLocation = createSelector(
-    [selectDomain],
-    (settings) => settings.profileForm.location,
-);
-

@@ -49,10 +49,10 @@ export default function HomeScreen() {
 
     useFocusEffect(useCallback(() => {
         dispatch(actions.onInitialize({
-            lat: location.lat || ACCRA_REGION.latitude,
-            lng: location.lng || ACCRA_REGION.longitude,
+            lat: location?.lat || ACCRA_REGION.latitude,
+            lng: location?.lng || ACCRA_REGION.longitude,
         }));
-    }, [dispatch, location.lat, location.lng]));
+    }, [dispatch, location?.lat, location?.lng]));
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
@@ -99,7 +99,7 @@ export default function HomeScreen() {
     // Get selected artisan object
     const selectedArtisanObject = useMemo(() => {
         return nearestWorkers.find(worker => worker.id === selectedArtisan);
-    }, [selectedArtisan]);
+    }, [selectedArtisan, nearestWorkers]);
 
     // Toggle booking card visibility with animation
     const toggleBookingCard = () => {
@@ -192,8 +192,8 @@ export default function HomeScreen() {
                 ref={mapRef}
                 style={styles.map}
                 initialRegion={{
-                    latitude: location.lat || ACCRA_REGION.latitude,
-                    longitude: location.lng || ACCRA_REGION.longitude,
+                    latitude: location?.lat || ACCRA_REGION.latitude,
+                    longitude: location?.lng || ACCRA_REGION.longitude,
                     latitudeDelta: ACCRA_REGION.latitudeDelta,
                     longitudeDelta: ACCRA_REGION.longitudeDelta,
                 }}
