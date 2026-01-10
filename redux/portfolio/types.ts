@@ -49,6 +49,7 @@ export interface Comment {
 
 export interface PortfolioState {
   portfolios: Portfolio[];
+  selectedWorkerId: string;
   comments: Comment[];
   isLoadingComments: boolean;
   commentForm: CommentForm;

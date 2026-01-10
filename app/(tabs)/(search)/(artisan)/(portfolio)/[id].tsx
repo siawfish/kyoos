@@ -14,7 +14,7 @@ import { actions } from '@/redux/portfolio/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
@@ -65,7 +65,7 @@ export default function PortfolioDetails() {
     )
   }
 
-  const renderHeader = () => {
+  const renderHeader = useCallback(() => {
     return (
       <View>
         <Portfolio 
@@ -73,7 +73,7 @@ export default function PortfolioDetails() {
           clickable={false}
         />
         <View style={styles.commentsSection}>
-          <View style={styles.commentsHeader}>
+          <View>
             <View style={[styles.commentsAccentBar, { backgroundColor: accentColor }]} />
             <ThemedText type="title" style={[styles.commentsTitle, { color: textColor }]}>
               COMMENTS
@@ -88,7 +88,7 @@ export default function PortfolioDetails() {
         </View>
       </View>
     )
-  }
+  }, [portfolio, accentColor, textColor, isLoading, isSubmittingComment]);
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
       <View style={styles.headerSection}>
@@ -150,16 +150,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   scrollView: {
-    flex: 1,
     paddingHorizontal: widthPixel(20),
     paddingBottom: heightPixel(100),
   },
   commentsSection: {
     marginTop: heightPixel(24),
     paddingBottom: heightPixel(20),
-  },
-  commentsHeader: {
-    marginBottom: heightPixel(20),
   },
   commentsAccentBar: {
     width: widthPixel(40),

@@ -6,17 +6,16 @@ import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { actions } from "@/redux/portfolio/slice";
 import { Comment } from "@/redux/portfolio/types";
-import { useDispatch } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
-import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Options } from "../Options";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useAppDispatch } from "@/store/hooks";
 
 const CommentItem = ({ item }: { item: Comment }) => {
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);  
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const colorScheme = useAppTheme();
   const isDark = colorScheme === 'dark';
   

@@ -5,6 +5,7 @@ import { Comment, Portfolio, PortfolioState } from './types';
 
 export const initialState: PortfolioState = {
   portfolios: [],
+  selectedWorkerId: '',
   pagination: {
     page: 1,
     limit: 10,
@@ -38,13 +39,14 @@ const portfolioSlice = createSlice({
   reducers: {
     fetchPortfolios: (state, action: PayloadAction<string>) => {
       state.isLoading = true;
-      state.error = null;
-      state.pagination = initialState.pagination;  
+    },
+    silentlyFetchPortfolios: (state, action: PayloadAction<string>) => {},
+    setSelectedWorkerId: (state, action: PayloadAction<string>) => {
+      state.selectedWorkerId = action.payload;
     },
     setPortfolios: (state, action: PayloadAction<{ portfolios: Portfolio[], pagination: Pagination }>) => {
       state.portfolios = action.payload.portfolios;
       state.pagination = action.payload.pagination;
-      state.comments = []
       state.isLoading = false;
     },
     setError: (state, action: PayloadAction<string>) => {
@@ -53,12 +55,6 @@ const portfolioSlice = createSlice({
     },
     likePortfolio: (state, action: PayloadAction<string>) => {
       state.isLikingPortfolio = true;
-      state.portfolios = state.portfolios.map((portfolio) => {
-        if (portfolio.id === action.payload) {
-          return { ...portfolio, hasLiked: !portfolio.hasLiked };
-        }
-        return portfolio;
-      });
     },
     setIsLikingPortfolio: (state, action: PayloadAction<boolean>) => {
       state.isLikingPortfolio = action.payload;

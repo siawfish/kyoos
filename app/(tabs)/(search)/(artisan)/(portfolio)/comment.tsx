@@ -8,7 +8,6 @@ import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectUser } from '@/redux/app/selector';
 import { selectCommentForm, selectCommentFormIsLoading, selectComments, selectPortfolios } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -21,7 +20,6 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 const Comment = () => {
     const dispatch = useAppDispatch();
     const { id, commentId } = useLocalSearchParams();
-    const loggedInUser = useAppSelector(selectUser);
     const commentForm = useAppSelector(selectCommentForm);
     const isLoading = useAppSelector(selectCommentFormIsLoading);
     const portfolios = useAppSelector(selectPortfolios);
@@ -110,8 +108,8 @@ const Comment = () => {
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>
                     <User
-                        name={loggedInUser?.name as string}
-                        avatar={loggedInUser?.avatar as string}
+                        name={portfolio?.createdBy?.name as string}
+                        avatar={portfolio?.createdBy?.avatar as string}
                         createdAt={portfolio?.createdAt as string}
                         imageStyle={styles.userImage}
                     />
@@ -138,7 +136,7 @@ const Comment = () => {
 
                 <View style={styles.commentContainer}>
                     <ThemedText style={[styles.commentText, { color: textColor }]}>
-                        {comment ? 'Editing comment' : 'Commenting'} on <Text style={[styles.commentTextName, { color: tintColor }]}>{loggedInUser?.name?.split(' ')[0]}&apos;s</Text> portfolio
+                        {comment ? 'Editing comment' : 'Commenting'} on <Text style={[styles.commentTextName, { color: tintColor }]}>{portfolio?.createdBy?.name?.split(' ')[0]}&apos;s</Text> portfolio
                     </ThemedText>
                 </View>
 

@@ -70,7 +70,7 @@ const Actions = ({
 
     const handleCommentPress = () => {
         onComment?.();
-        router.push(`/(tabs)/(portfolio)/addComment?id=${portfolio.id}`)
+        router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`)
     }
 
     return (

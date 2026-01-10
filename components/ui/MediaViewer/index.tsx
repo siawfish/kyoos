@@ -45,7 +45,6 @@ const MediaViewer = ({
 }: MediaViewerProps) => {
     const colorScheme = useAppTheme();
     const isDark = colorScheme === "dark";
-    console.log('colorScheme', colorScheme);
     const backgroundColor = useThemeColor(
         { light: colors.light.background, dark: colors.dark.background },
         "background"

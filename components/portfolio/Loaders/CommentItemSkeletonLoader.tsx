@@ -1,12 +1,14 @@
-import { ThemedView } from "@/components/ui/Themed/ThemedView";
 import { heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 const CommentItemSkeletonLoader = () => {
   const animatedValue = useRef(new Animated.Value(0)).current;
+  const colorScheme = useAppTheme();
+  const isDark = colorScheme === 'dark';
 
   useEffect(() => {
     const startAnimation = () => {
@@ -27,10 +29,17 @@ const CommentItemSkeletonLoader = () => {
     startAnimation();
   }, []);
   
-  const colorScheme = useThemeColor({
-    light: colors.light.background,
-    dark: colors.dark.background
+  const skeletonColor = useThemeColor({
+    light: colors.light.grey,
+    dark: colors.dark.grey
   }, 'background') as string;
+
+  const cardBg = useThemeColor({
+    light: colors.light.white,
+    dark: colors.dark.black
+  }, 'background') as string;
+
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
 
   const opacity = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -38,63 +47,70 @@ const CommentItemSkeletonLoader = () => {
   });
 
   return (
-    <ThemedView
-      lightColor={colors.light.white}
-      darkColor={colors.dark.black}
-      style={styles.commentContainer}
-    >
-      <View style={styles.commentHeader}>
-        <Animated.View style={[styles.avatar, { backgroundColor: colorScheme, opacity }]} />
-        <View style={styles.textContainer}>
-          <Animated.View style={[styles.nameSkeleton, { backgroundColor: colorScheme, opacity }]} />
-          <Animated.View style={[styles.timestampSkeleton, { backgroundColor: colorScheme, opacity }]} />
+    <View style={[styles.commentContainer, { backgroundColor: cardBg, borderColor }]}>
+      <View style={[styles.topAccent, { backgroundColor: borderColor }]} />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.commentHeader}>
+            <Animated.View style={[styles.avatar, { backgroundColor: skeletonColor, opacity }]} />
+            <View style={styles.textContainer}>
+              <Animated.View style={[styles.nameSkeleton, { backgroundColor: skeletonColor, opacity }]} />
+              <Animated.View style={[styles.timestampSkeleton, { backgroundColor: skeletonColor, opacity }]} />
+            </View>
+          </View>
+        </View>
+        <View style={styles.commentBody}>
+          <Animated.View style={[styles.commentLineSkeleton, { backgroundColor: skeletonColor, opacity }]} />
+          <Animated.View style={[styles.commentLineSkeleton, { backgroundColor: skeletonColor, width: '70%', opacity }]} />
         </View>
       </View>
-      <View style={styles.commentBody}>
-        <Animated.View style={[styles.commentLineSkeleton, { backgroundColor: colorScheme, opacity }]} />
-        <Animated.View style={[styles.commentLineSkeleton, { backgroundColor: colorScheme, width: '70%', opacity }]} />
-      </View>
-    </ThemedView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   commentContainer: {
-    marginBottom: heightPixel(16),
-    padding: widthPixel(12),
-    borderRadius: widthPixel(8),
-    elevation: 1,
-    shadowColor: colors.light.text,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
+    marginVertical: heightPixel(12),
+    borderWidth: 0.5,
+    borderTopWidth: 0,
+    overflow: 'hidden',
+  },
+  topAccent: {
+    height: heightPixel(3),
+    width: '100%',
+  },
+  content: {
+    padding: widthPixel(16),
+    gap: heightPixel(12),
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   commentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: heightPixel(8),
-    gap: widthPixel(8),
+    gap: widthPixel(12),
+    flex: 1,
   },
   avatar: {
-    width: widthPixel(32),
-    height: widthPixel(32),
-    borderRadius: widthPixel(16),
+    width: widthPixel(36),
+    height: widthPixel(36),
+    borderRadius: 0,
   },
   textContainer: {
-    gap: heightPixel(4),
+    gap: heightPixel(2),
   },
   nameSkeleton: {
     width: widthPixel(120),
     height: heightPixel(16),
-    borderRadius: widthPixel(4),
+    borderRadius: 0,
   },
   timestampSkeleton: {
     width: widthPixel(80),
     height: heightPixel(12),
-    borderRadius: widthPixel(4),
+    borderRadius: 0,
   },
   commentBody: {
     gap: heightPixel(4),
@@ -102,9 +118,8 @@ const styles = StyleSheet.create({
   commentLineSkeleton: {
     width: '100%',
     height: heightPixel(14),
-    borderRadius: widthPixel(4),
+    borderRadius: 0,
   },
 });
 
 export default CommentItemSkeletonLoader; 
-

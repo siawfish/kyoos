@@ -3,7 +3,7 @@ import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
 import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
-import { selectCommentForm } from './selector';
+import { selectCommentForm, selectSelectedWorkerId } from './selector';
 import { actions } from './slice';
 import { Comment, CommentForm, Portfolio, PortfoliosResponse } from './types';
 
@@ -57,6 +57,7 @@ export function* fetchComments(action: PayloadAction<string>) {
 export function* submitComment(action: PayloadAction<string>) {
   try {
     const commentForm: CommentForm = yield select(selectCommentForm);
+    const selectedWorkerId: string = yield select(selectSelectedWorkerId);
     const response: ApiResponse<Comment> = yield call(request, {
       method: 'POST',
       url: `/api/users/portfolio/${action.payload}/comment`,
@@ -69,13 +70,14 @@ export function* submitComment(action: PayloadAction<string>) {
     }
     yield put(actions.resetCommentForm());
     yield put(actions.fetchComments(action.payload));
+    yield put(actions.silentlyFetchPortfolios(selectedWorkerId));
     Toast.show({
       type: 'success',
       text1: 'Success',
       text2: 'Comment submitted successfully',
     });
-  } catch (error: any) {
-    const errorMessage = error?.error || error?.message || 'Failed to submit comment';
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to submit comment';
     yield put(actions.setError(errorMessage));
     Toast.show({
       type: 'error',
@@ -96,8 +98,10 @@ export function* likePortfolio(action: PayloadAction<string>) {
     if (response.error) {
       throw new Error(response.message || response.error || 'An error occurred while liking portfolio');
     }
-  } catch (error: any) {
-    const errorMessage = error?.error || error?.message || 'Failed to like portfolio';
+    const selectedWorkerId: string = yield select(selectSelectedWorkerId);
+    yield put(actions.silentlyFetchPortfolios(selectedWorkerId));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to like portfolio';
     yield put(actions.setError(errorMessage));
     Toast.show({
       type: 'error',
@@ -109,42 +113,13 @@ export function* likePortfolio(action: PayloadAction<string>) {
   }
 }
 
-export function* updateComment(action: PayloadAction<{
-  portfolioId: string;
-  commentId: string;
-}>) {
-  try {
-    yield delay(500);
-    const commentForm: CommentForm = yield select(selectCommentForm);
-    const response: ApiResponse<Comment> = yield call(request, {
-      method: 'PUT',
-      url: `/api/users/portfolio/comment/${action.payload.commentId}`,
-      data: {
-        comment: commentForm.comment,
-      },
-    })
-    if (response.error || !response.data) {
-      throw new Error(response.message || response.error || 'An error occurred while updating comment');
-    }
-    yield put(actions.resetCommentForm());
-    yield put(actions.fetchComments(action.payload.portfolioId));
-  } catch (error: any) {
-    const errorMessage = error?.error || error?.message || 'Failed to update comment';
-    yield put(actions.setError(errorMessage));
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: errorMessage,
-    });
-  }
-}
 
 export function* deleteComment(action: PayloadAction<{
   portfolioId: string;
   commentId: string;
 }>) {
   try {
-    yield delay(500);
+    const selectedWorkerId: string = yield select(selectSelectedWorkerId);
     const response: ApiResponse<Comment> = yield call(request, {
       method: 'DELETE',
       url: `/api/users/portfolio/comment/${action.payload.commentId}`,
@@ -153,13 +128,14 @@ export function* deleteComment(action: PayloadAction<{
       throw new Error(response.message || response.error || 'An error occurred while deleting comment');
     }
     yield put(actions.fetchComments(action.payload.portfolioId));
+    yield put(actions.silentlyFetchPortfolios(selectedWorkerId));
     Toast.show({
       type: 'success',
       text1: 'Success',
       text2: 'Comment deleted successfully',
     });
-  } catch (error: any) {
-    const errorMessage = error?.error || error?.message || 'Failed to delete comment';
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete comment';
     yield put(actions.setError(errorMessage));
     Toast.show({
       type: 'error',
@@ -170,9 +146,9 @@ export function* deleteComment(action: PayloadAction<{
 }
 export function* portfolioSaga() {
   yield takeLatest(actions.fetchPortfolios.type, fetchPortfolios);
+  yield takeLatest(actions.silentlyFetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.fetchComments, fetchComments);
   yield takeLatest(actions.submitComment, submitComment);
   yield takeLatest(actions.likePortfolio, likePortfolio);
-  yield takeLatest(actions.updateComment, updateComment);
   yield takeLatest(actions.deleteComment, deleteComment);
 } 

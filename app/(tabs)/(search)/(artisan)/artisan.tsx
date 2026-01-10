@@ -10,7 +10,7 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectPortfolios } from "@/redux/portfolio/selector";
+import { selectIsLoading, selectPortfolios } from "@/redux/portfolio/selector";
 import { actions } from "@/redux/portfolio/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -19,6 +19,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import PortfolioSkeleton from "@/components/portfolio/Loaders/PortfolioSkeleton";
 
 export default function ArtisanScreen() {
     const router = useRouter();
@@ -27,15 +28,28 @@ export default function ArtisanScreen() {
     const isDark = theme === 'dark';
     const allWorkers = useAppSelector(selectAllWorkers);
     const portfolios = useAppSelector(selectPortfolios);
+    const isLoading = useAppSelector(selectIsLoading);
     const dispatch = useAppDispatch();
 
     useEffect(() => {
         if (artisanId) {
+            dispatch(actions.setSelectedWorkerId(artisanId));
             dispatch(actions.fetchPortfolios(artisanId));
         }
     }, [artisanId, dispatch]);
 
     const artisan = useMemo(() => allWorkers.find((worker) => worker.id === artisanId), [allWorkers, artisanId]);
+
+    // Create skeleton data array when loading
+    const skeletonData = useMemo(() => {
+        if (isLoading) {
+            return Array(3).fill(null).map((_, index) => ({ id: `skeleton-${index}`, isSkeleton: true }));
+        }
+        return [];
+    }, [isLoading]);
+
+    // Determine which data to show
+    const listData = isLoading ? skeletonData : portfolios;
 
     const textColor = useThemeColor({
         light: colors.light.text,
@@ -124,6 +138,13 @@ export default function ArtisanScreen() {
         )
     }
 
+    const renderItem = ({ item }: { item: any }) => {
+        if (item?.isSkeleton) {
+            return <PortfolioSkeleton />;
+        }
+        return <Portfolio portfolio={item} />;
+    };
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.backButtonContainer}>
@@ -145,15 +166,14 @@ export default function ArtisanScreen() {
                     </IconButton>
                 </Link>
             </View>
-            
             <FlashList 
                 style={styles.content} 
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={renderHeader}
-                data={portfolios}
-                renderItem={({ item }) => <Portfolio portfolio={item} />}
-                ListEmptyComponent={<EmptyList message="No recent works found" />}
+                data={listData}
+                renderItem={renderItem}
+                ListEmptyComponent={!isLoading ? <EmptyList message="No recent works found" /> : null}
                 keyExtractor={(item) => item.id}
             />
         </ThemedSafeAreaView>

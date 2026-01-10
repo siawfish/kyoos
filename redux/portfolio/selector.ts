@@ -48,3 +48,8 @@ export const selectPagination = createSelector(
   [selectDomain],
   (portfolio) => portfolio.pagination
 );
+
+export const selectSelectedWorkerId = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.selectedWorkerId
+);
