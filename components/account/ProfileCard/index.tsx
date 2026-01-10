@@ -1,13 +1,16 @@
-import user from "@/assets/images/individual.png";
 import Button from '@/components/ui/Button';
+import BookingDescriptionModal from '@/components/ui/BookingDescriptionModal';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { selectSearchReferenceId } from '@/redux/search/selector';
+import { actions } from '@/redux/search/slice';
 import { Worker } from '@/redux/search/types';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { AntDesign, SimpleLineIcons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
@@ -19,6 +22,9 @@ interface ProfileCardProps {
 export default function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
+    const router = useRouter();
+    const searchReferenceId = useAppSelector(selectSearchReferenceId);
+    const dispatch = useAppDispatch();
 
     const cardBg = useThemeColor({
         light: colors.light.background,
@@ -35,6 +41,11 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
         dark: colors.dark.text
     }, 'text');
 
+    const miscColor = useThemeColor({
+        light: colors.light.misc,
+        dark: colors.dark.grey
+    }, 'background');
+
     const labelColor = useThemeColor({
         light: colors.light.secondary,
         dark: colors.dark.secondary
@@ -45,14 +56,30 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
         dark: colors.dark.white
     }, 'background');
 
+    const handleBookNow = () => {
+        // Check if searchReferenceId is empty - if so, show description modal
+        if (searchReferenceId === '') {
+            dispatch(actions.setSelectedArtisan(worker.id));
+            dispatch(actions.setDescriptionModalVisible(true));
+        } else {
+            // If searchReferenceId exists, navigate directly to booking screen
+            router.push({
+                pathname: '/(tabs)/(search)/(booking)/booking',
+                params: {
+                    artisanId: worker.id
+                }
+            });
+        }
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: cardBg, borderColor }, containerStyle]}>
             <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
             <View style={styles.content}>
                 <View style={styles.detailsContainer}>
                     <Image
-                        source={user}
-                        style={styles.img}
+                        source={{ uri: worker.avatar }}
+                        style={[styles.img, { backgroundColor: miscColor }]}
                     />
                     <View style={styles.details}>
                         <ThemedText 
@@ -85,23 +112,23 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
                     </View>
                 </View>
                
-                <Link href={`/(tabs)/(search)/(booking)/booking?artisanId=${worker.id}`} asChild>
-                    <Button 
-                        label="BOOK NOW" 
-                        style={styles.bookNowButton}
-                        labelStyle={styles.bookNowLabel}
-                        lightBackgroundColor={colors.light.black}
-                        darkBackgroundColor={colors.dark.white}
-                        icon={
-                            <SimpleLineIcons 
-                                name="calendar" 
-                                size={14} 
-                                color={isDark ? colors.dark.black : colors.light.white} 
-                            />
-                        }
-                    />
-                </Link>
+                <Button 
+                    label="BOOK NOW" 
+                    onPress={handleBookNow}
+                    style={styles.bookNowButton}
+                    labelStyle={styles.bookNowLabel}
+                    lightBackgroundColor={colors.light.black}
+                    darkBackgroundColor={colors.dark.white}
+                    icon={
+                        <SimpleLineIcons 
+                            name="calendar" 
+                            size={14} 
+                            color={isDark ? colors.dark.black : colors.light.white} 
+                        />
+                    }
+                />
             </View>
+            <BookingDescriptionModal artisan={worker} />
         </View>
     )
 }
@@ -154,7 +181,7 @@ const styles = StyleSheet.create({
     img: { 
         width: widthPixel(60), 
         height: widthPixel(60),
-        borderRadius: 0,
+        borderRadius: 0
     },
     bookNowButton: {
         paddingHorizontal: widthPixel(20),

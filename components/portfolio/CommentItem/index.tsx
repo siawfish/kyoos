@@ -11,10 +11,14 @@ import React, { useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Options } from "../Options";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { OptionIcons } from "@/redux/app/types";
+import { selectUser } from "@/redux/app/selector";
+import { router } from "expo-router";
 
 const CommentItem = ({ item }: { item: Comment }) => {
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);  
+  const loggedInUser = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
   const colorScheme = useAppTheme();
   const isDark = colorScheme === 'dark';
@@ -32,6 +36,28 @@ const CommentItem = ({ item }: { item: Comment }) => {
     light: colors.light.secondary,
     dark: colors.dark.secondary
   }, 'text');
+
+  const handleEdit = () => {
+    router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${item.portfolioId}&commentId=${item.id}`);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteConfirmationOpen(true);
+  };
+
+  const options = [
+    {
+      label: 'Edit',
+      icon: OptionIcons.EDIT,
+      onPress: handleEdit,
+    },
+    {
+      label: 'Delete',
+      icon: OptionIcons.DELETE,
+      onPress: handleDelete,
+      isDanger: true,
+    },
+  ];
 
   return (
     <>
@@ -55,13 +81,14 @@ const CommentItem = ({ item }: { item: Comment }) => {
               </ThemedText>
             </View>
           </View>
-  
-          <Options 
-            onReport={() => {}}
-            onShare={() => {}}
-            // onEdit={() => router.push(`/(tabs)/(portfolio)/addComment?id=${item.portfolioId}&commentId=${item.id}`)}
-            // onDelete={() => setIsDeleteConfirmationOpen(true)}
-          />
+          {
+            loggedInUser?.id === item.authorId && (
+              <Options
+                options={options}
+                snapPoints={['35%']}
+              />
+            )
+          }
         </View>
         <ThemedText 
             style={[styles.commentText, { color: textColor }]}

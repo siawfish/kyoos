@@ -5,15 +5,15 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectUser } from '@/redux/app/selector';
 import { Portfolio } from '@/redux/portfolio/types';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { Options } from '../Options';
 import User from '../User';
 import Actions from './Actions';
+import { useSharing } from '@/hooks/use-sharing';
+import { OptionIcons } from '@/redux/app/types';
 
 interface PortfolioProps {
   portfolio: Portfolio;
@@ -21,7 +21,7 @@ interface PortfolioProps {
 }
 
 const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
-    const loggedInUser = useSelector(selectUser);
+    const { share } = useSharing();
     const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
     const theme = useAppTheme();
     const isDark = theme === 'dark';
@@ -36,19 +36,49 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
         dark: colors.dark.text
     }, 'text');
 
+    const handleReport = () => {
+        console.log('report');
+    };
+
+    const handleShare = () => {
+        share(`${process.env.EXPO_PUBLIC_API_URL}/portfolio/${portfolio.id}`);
+    };
+
+    const handleAddComment = () => {
+        router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`);
+    };
+
+    const options = [
+        {
+            label: 'Add comment',
+            icon: OptionIcons.COMMENT,
+            onPress: handleAddComment,
+        },
+        {
+            label: 'Share',
+            icon: OptionIcons.SHARE,
+            onPress: handleShare,
+        },
+        {
+            label: 'Report',
+            icon: OptionIcons.FLAG,
+            onPress: handleReport,
+            isDanger: true,
+        },
+    ];
+
     const portfolioContent = () => {
         return (
             <>
                 <View style={[styles.content, { borderColor }]}>
                     <View style={styles.topContent}>
                         <User
-                            name={loggedInUser?.name as string}
-                            avatar={loggedInUser?.avatar as string}
+                            name={portfolio.createdBy?.name}
+                            avatar={portfolio.createdBy?.avatar}
                             createdAt={portfolio.createdAt}
                         />
                         <Options 
-                            onReport={() => {}}
-                            onShare={() => {}}
+                            options={options}
                         />
                     </View>
                     {

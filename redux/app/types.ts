@@ -28,6 +28,21 @@ export enum MediaType {
     VIDEO = 'VIDEO',
 }
 
+export interface Options {
+    label: string;
+    icon: OptionIcons;
+    onPress: () => void;
+    isDisabled?: boolean;
+    isDanger?: boolean;
+}
+
+export enum OptionIcons {
+    COMMENT = 'speech',
+    SHARE = 'share',
+    FLAG = 'flag',
+    EDIT = 'pencil',
+    DELETE = 'trash',
+}
 
 
 export enum MimeType {

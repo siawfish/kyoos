@@ -144,11 +144,49 @@ export function* deleteComment(action: PayloadAction<{
     });
   }
 }
+
+export function* updateComment(action: PayloadAction<{
+  portfolioId: string;
+  commentId: string;
+}>) {
+  try {
+    const selectedWorkerId: string = yield select(selectSelectedWorkerId);
+    const commentForm: CommentForm = yield select(selectCommentForm);
+    const response: ApiResponse<Comment> = yield call(request, {
+      method: 'PATCH',
+      url: `/api/users/portfolio/comment/${action.payload.commentId}`,
+      data: {
+        comment: commentForm.comment,
+      },
+    })
+    if (response.error) {
+      throw new Error(response.message || response.error || 'An error occurred while updating comment');
+    }
+    yield put(actions.resetCommentForm());
+    yield put(actions.fetchComments(action.payload.portfolioId));
+    yield put(actions.silentlyFetchPortfolios(selectedWorkerId));
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Comment updated successfully',
+    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update comment';
+    yield put(actions.setError(errorMessage));
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  }
+}
+
 export function* portfolioSaga() {
   yield takeLatest(actions.fetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.silentlyFetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.fetchComments, fetchComments);
   yield takeLatest(actions.submitComment, submitComment);
+  yield takeLatest(actions.updateComment, updateComment);
   yield takeLatest(actions.likePortfolio, likePortfolio);
   yield takeLatest(actions.deleteComment, deleteComment);
 } 

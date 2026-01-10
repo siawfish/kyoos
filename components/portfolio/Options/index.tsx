@@ -8,13 +8,14 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Options as OptionsType } from '@/redux/app/types';
 
 export function Options({
-    onReport,
-    onShare,
+    options,
+    snapPoints = ['40%'],
 }: {
-    onReport: () => void,
-    onShare: () => void,
+    options: OptionsType[],
+    snapPoints?: string[],
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -40,7 +41,7 @@ export function Options({
         dark: colors.dark.secondary
     }, 'text');
 
-    const snapPoints = useMemo(() => ['40%'], []);
+    const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
     const handleOpen = useCallback(() => {
         setIsOpen(true);
@@ -49,16 +50,6 @@ export function Options({
     const handleClose = useCallback(() => {
         setIsOpen(false);
     }, []);
-
-    const handleReport = useCallback(() => {
-        handleClose();
-        onReport();
-    }, [handleClose, onReport]);
-
-    const handleShare = useCallback(() => {
-        handleClose();
-        onShare();
-    }, [handleClose, onShare]);
 
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
@@ -103,7 +94,7 @@ export function Options({
                         <BottomSheet
                             ref={bottomSheetRef}
                             index={0}
-                            snapPoints={snapPoints}
+                            snapPoints={memoizedSnapPoints}
                             onChange={handleSheetChanges}
                             onClose={handleClose}
                             enablePanDownToClose={true}
@@ -133,34 +124,31 @@ export function Options({
                                 </View>
 
                                 <View style={styles.optionsContainer}>
-
-                                    <TouchableOpacity 
-                                        style={[styles.optionButton, { borderColor }]}
-                                        onPress={handleShare}
-                                    >
-                                        <SimpleLineIcons name="share" size={fontPixel(18)} color={textColor} />
-                                        <ThemedText 
-                                            style={[styles.optionText]} 
-                                            lightColor={colors.light.text} 
-                                            darkColor={colors.dark.text}
-                                        >
-                                            SHARE
-                                        </ThemedText>
-                                    </TouchableOpacity>
-                                    
-                                    <TouchableOpacity 
-                                        style={[styles.optionButton, { borderColor }]}
-                                        onPress={handleReport}
-                                    >
-                                        <SimpleLineIcons name="flag" size={fontPixel(18)} color={colors.light.danger} />
-                                        <ThemedText 
-                                            style={[styles.optionText]} 
-                                            lightColor={colors.light.danger} 
-                                            darkColor={colors.light.danger}
-                                        >
-                                            REPORT
-                                        </ThemedText>
-                                    </TouchableOpacity>
+                                    {
+                                        options.map((option) => (
+                                            <TouchableOpacity 
+                                                key={option.label}
+                                                style={[styles.optionButton, { borderColor }]}
+                                                onPress={()=>{
+                                                    handleClose();
+                                                    // Delay the callback to ensure modal is fully closed before triggering share
+                                                    setTimeout(() => {
+                                                        option?.onPress?.();
+                                                    }, 300);
+                                                }}
+                                                disabled={option.isDisabled}
+                                            >
+                                                <SimpleLineIcons name={option?.icon} size={fontPixel(18)} color={option?.isDanger ? colors.light.danger : textColor} />
+                                                <ThemedText 
+                                                    style={[styles.optionText]} 
+                                                    lightColor={option?.isDanger ? colors.light.danger : textColor} 
+                                                    darkColor={option?.isDanger ? colors.dark.danger : textColor}
+                                                >
+                                                    {option.label}
+                                                </ThemedText>
+                                            </TouchableOpacity>
+                                        ))
+                                    }
                                 </View>
                             </BottomSheetView>
                         </BottomSheet>
