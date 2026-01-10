@@ -4,20 +4,18 @@ import { PermissionStatus, useCameraPermissions, useMediaLibraryPermissions } fr
 import { getForegroundPermissionsAsync } from "expo-location";
 import { Alert } from "react-native";
 import { actions } from "@/redux/app/slice";
-import { useDispatch } from "react-redux";
 import { getPermissionRequestMessage } from "@/constants/helpers";
 import { usePathname } from "expo-router";
+import * as Notifications from 'expo-notifications';
+import { useAppDispatch } from "@/store/hooks";
 
-interface UsePermissionsRequestQueueProps {
-  onLocationPermissionGranted?: () => void;
-}
-
-export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UsePermissionsRequestQueueProps) => {
+export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: { onLocationPermissionGranted?: () => void }) => {
   const [cameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission] = useMediaLibraryPermissions();
   const [permissionsQueue, setPermissionsQueue] = useState<PermissionType[]>([]);
   const [locationPermission, setLocationPermission] = useState<PermissionStatus | undefined>(PermissionStatus.UNDETERMINED);
-  const dispatch = useDispatch();
+  const [pushNotificationPermission, setPushNotificationPermission] = useState<PermissionStatus | undefined>(PermissionStatus.UNDETERMINED);
+  const dispatch = useAppDispatch();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -26,6 +24,14 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UseP
       setLocationPermission(status);
     };
     requestLocationPermission();
+  }, []);
+
+  useEffect(() => {
+    const requestPushNotificationPermission = async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      setPushNotificationPermission(status);
+    };
+    requestPushNotificationPermission();
   }, []);
 
   useEffect(() => {
@@ -45,11 +51,16 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UseP
     } else {
       permissionsArray = permissionsArray.filter((permission) => permission !== PermissionType.LOCATION);
     }
+    if(pushNotificationPermission !== 'granted') {
+      permissionsArray.push(PermissionType.PUSH_NOTIFICATION);
+    } else {
+      permissionsArray = permissionsArray.filter((permission) => permission !== PermissionType.PUSH_NOTIFICATION);
+    }
     setPermissionsQueue(permissionsArray);
-  }, [cameraPermission?.status, mediaLibraryPermission?.status, locationPermission]);
+  }, [cameraPermission?.status, mediaLibraryPermission?.status, locationPermission, pushNotificationPermission]);
 
   const currentPermission = useMemo(() => {
-      return permissionsQueue[0];
+    return permissionsQueue[0];
   }, [permissionsQueue]);
   
   const handleOnPermissionDenied = () => {
@@ -70,7 +81,7 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UseP
     ); 
   }
 
-  const handleOnPermissionGranted = () => {
+  const handleOnPermissionGranted = async () => {
     const newPermissionsQueue = permissionsQueue.filter((permission) => permission !== currentPermission);
     setPermissionsQueue(newPermissionsQueue);
     if(!newPermissionsQueue.find((permission) => permission === PermissionType.LOCATION)) {
@@ -86,5 +97,6 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: UseP
     locationPermission,
     cameraPermission: cameraPermission?.status,
     mediaLibraryPermission: mediaLibraryPermission?.status,
+    pushNotificationPermission: pushNotificationPermission,
   };
 };

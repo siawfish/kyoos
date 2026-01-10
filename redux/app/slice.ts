@@ -68,6 +68,11 @@ const appSlice = createSlice({
         state.user.settings.notifications.pushNotification = action.payload.pushNotification;
       }
     },
+    registerPushToken: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.settings.notifications.pushToken = action.payload;
+      }
+    },
     updateNotificationsCompleted: (state) => {
       state.isUpdatingNotifications = false;
     },

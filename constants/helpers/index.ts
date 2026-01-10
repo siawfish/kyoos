@@ -62,6 +62,10 @@ export const getPermissionRequestMessage = (permission: PermissionType) => {
       title: 'Media Library Permission Required',
       message: 'Please enable media library permission to continue',
     },
+    [PermissionType.PUSH_NOTIFICATION]: {
+      title: 'Push Notification Permission Required',
+      message: 'Please enable push notification permission to continue',
+    },
   };
   return permissionText[permission];
 }
@@ -174,3 +178,43 @@ export const isDocument = (mimeType: MimeType) => {
     mimeType === MimeType.OCTET_STREAM
   );
 }
+
+export const MenuItems = [
+  {
+    name: '(search)',
+    title: 'Home',
+    icon: 'home',
+    iconOutline: 'home-outline'
+  },
+  {
+    name: '(bookings)',
+    title: 'Bookings',
+    icon: 'calendar-check',
+    iconOutline: 'calendar-outline'
+  },
+  {
+    name: '(messaging)',
+    title: 'Messages',
+    icon: 'chat',
+    iconOutline: 'chat-outline'
+  },
+  {
+    name: 'notifications',
+    title: 'Notifications',
+    icon: 'bell',
+    iconOutline: 'bell-outline'
+  },
+  {
+    name: '(settings)',
+    title: 'Settings',
+    icon: 'cog',
+    iconOutline: 'cog-outline'
+  }
+];
+
+export const ACCRA_REGION = {
+  latitude: 5.6037,
+  longitude: -0.1870,
+  latitudeDelta: 0.01,
+  longitudeDelta: 0.01,
+};

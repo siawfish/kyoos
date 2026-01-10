@@ -23,8 +23,8 @@ export function* logout() {
             text1: 'Logout successful',
             text2: 'You have been logged out successfully',
         });
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'An error occurred while logging out';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while logging out';
         Toast.show({
             type: 'error',
             text1: 'Logout failed',
@@ -43,8 +43,8 @@ export function* getUser() {
             throw new Error(response.error || response.message || 'An error occurred while getting user');
         }
         yield put(actions.setUser(response.data));
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'Please login again';    
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Please login again';    
         Toast.show({
             type: 'error',
             text1: 'Session expired',
@@ -89,8 +89,8 @@ export function* setIsUploadingAsset(action: PayloadAction<{
                 text2: 'Your assets have been uploaded successfully',
             });
         }
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'An error occurred while uploading assets';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while uploading assets';
         Toast.show({
             type: 'error',
             text1: 'Upload assets failed',
@@ -115,8 +115,8 @@ export function* updateTheme(action: PayloadAction<{
             throw new Error(response.error || response.message || 'An error occurred while updating theme');
         }
         yield put(actions.setUser(response.data));
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'An error occurred while updating theme';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while updating theme';
         yield put(actions.reverseTheme());
         Toast.show({
             type: 'error',
@@ -143,8 +143,8 @@ export function* updateNotifications(action: PayloadAction<{
             throw new Error(response.error || response.message || 'An error occurred while updating notifications');
         }
         yield put(actions.setUser(response.data));
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'An error occurred while updating notifications';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while updating notifications';
         yield put(actions.reverseNotifications());
         Toast.show({
             type: 'error',
@@ -187,8 +187,8 @@ export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, s
             }));
             yield put(actions.closeMapPicker());
         }
-    } catch (error:any) {
-        const errorMessage = error?.error || error?.message || 'An error occurred while reverse geocoding location';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while reverse geocoding location';
         Toast.show({
             type: 'error',
             text1: 'Reverse geocode location failed',
@@ -196,8 +196,6 @@ export function* reverseGeocodeLocation(action: PayloadAction<{latlng: string, s
         });
     }
 }
-
-
 
 export function* updateUserLocation() {
     try {
@@ -216,11 +214,39 @@ export function* updateUserLocation() {
         if (response.error || !response.data) {
             throw new Error(response.error || response.message || 'An error occurred while getting user');
         }
-    } catch (error: any) {
-        const errorMessage = error?.error || error?.message || 'Failed to update user';
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update user';
         Toast.show({
             type: 'error',
             text1: 'Error',
+            text2: errorMessage,
+        });
+    }
+}
+
+export function* registerPushToken(action: PayloadAction<string>) {
+    try {
+        const response: ApiResponse<User> = yield call(request, {
+            method: 'POST',
+            url: '/api/users/profile/push-token',
+            data: {
+                pushToken: action.payload,
+            },
+        });
+        if (response.error || !response.data) {
+            throw new Error(response.error || response.message || 'An error occurred while registering push token');
+        }
+        yield put(actions.setUser(response.data));
+        Toast.show({
+            type: 'success',
+            text1: 'Push token registered successfully',
+            text2: 'Your push token has been registered successfully',
+        });
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while registering push token';
+        Toast.show({
+            type: 'error',
+            text1: 'Register push token failed',
             text2: errorMessage,
         });
     }
@@ -234,4 +260,5 @@ export function* appSaga() {
   yield takeLatest(actions.updateNotifications.type, updateNotifications);
   yield takeLatest(actions.reverseGeocodeLocation.type, reverseGeocodeLocation);
   yield takeLatest(actions.setLocation.type, updateUserLocation);
+  yield takeLatest(actions.registerPushToken.type, registerPushToken);
 }

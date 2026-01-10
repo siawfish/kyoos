@@ -73,6 +73,8 @@ module.exports = {
       "expo-video",
       "@react-native-community/datetimepicker",
       "react-native-vision-camera",
+      "expo-notifications",
+      "expo-location"
     ],
     experiments: {
       typedRoutes: true,

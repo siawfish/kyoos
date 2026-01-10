@@ -8,7 +8,7 @@ import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import ThemedMapView from '@/components/ui/ThemedMapView';
 import WorkerMapMarker from '@/components/ui/WorkerMapMarker';
-import { ACCRA_REGION } from '@/constants/dummyData';
+import { ACCRA_REGION } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';

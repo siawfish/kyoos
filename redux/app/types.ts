@@ -74,6 +74,7 @@ export enum PermissionType {
     CAMERA = 'CAMERA',
     MEDIA_LIBRARY = 'MEDIA_LIBRARY',
     LOCATION = 'LOCATION',
+    PUSH_NOTIFICATION = 'PUSH_NOTIFICATION',
 }
 export interface Media {
     id?: string;

@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Button from '../Button';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import * as Notifications from 'expo-notifications';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.45;
@@ -52,6 +53,12 @@ const getDefaultMessages = (permissionType: PermissionType) => {
         title: "Media Library Access Required",
         description: "We need access to your media library to upload photos and videos.",
         icon: require('@/assets/images/media-library-permission.png'),
+      };
+    case PermissionType.PUSH_NOTIFICATION:
+      return {
+        title: "Push Notification Access Required",
+        description: "We need access to your push notifications to receive notifications from us.",
+        icon: require('@/assets/images/notification-bell.png'),
       };
     // Add more cases for other permission types
     default:
@@ -141,6 +148,7 @@ export const PermissionRequestSheet: React.FC<PermissionRequestSheetProps> = ({
     if(permissionType === PermissionType.CAMERA) return requestPermission;
     if(permissionType === PermissionType.MEDIA_LIBRARY) return requestMediaLibraryPermission;
     if(permissionType === PermissionType.LOCATION) return async () => requestForegroundPermissionsAsync();
+    if(permissionType === PermissionType.PUSH_NOTIFICATION) return async () => await Notifications.requestPermissionsAsync();
     return () => Promise.resolve({ status: 'denied' });
   }
 

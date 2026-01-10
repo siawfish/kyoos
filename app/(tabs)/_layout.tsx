@@ -1,47 +1,27 @@
 import { Tabs, usePathname, useSegments } from 'expo-router';
 import { actions } from '@/redux/app/slice';
 import { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import BottomTab from '@/components/ui/BottomTab';
 import { useAppDispatch } from '@/store/hooks';
 import { PermissionRequestSheet } from '@/components/ui/PermissionRequestSheet';
 import { usePermissionsRequestQueue } from '@/hooks/use-permissions-request-queue';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { getCurrentLocation } from '@/constants/helpers';
+import { getCurrentLocation, MenuItems } from '@/constants/helpers';
 import { PermissionStatus } from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 
-const MenuItems = [
-  {
-    name: '(search)',
-    title: 'Home',
-    icon: 'home',
-    iconOutline: 'home-outline'
-  },
-  {
-    name: '(bookings)',
-    title: 'Bookings',
-    icon: 'calendar-check',
-    iconOutline: 'calendar-outline'
-  },
-  {
-    name: '(messaging)',
-    title: 'Messages',
-    icon: 'chat',
-    iconOutline: 'chat-outline'
-  },
-  {
-    name: 'notifications',
-    title: 'Notifications',
-    icon: 'bell',
-    iconOutline: 'bell-outline'
-  },
-  {
-    name: '(settings)',
-    title: 'Settings',
-    icon: 'cog',
-    iconOutline: 'cog-outline'
-  }
-];
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 interface CustomTabBarProps extends BottomTabBarProps {
   showTabBar: boolean;
@@ -54,15 +34,55 @@ const CustomTabBar = ({ showTabBar, ...props }: CustomTabBarProps) => {
   return <BottomTab {...props} />;
 };
 
+const handleRegistrationError = (errorMessage: string) => {
+  Toast.show({
+    type: 'error',
+    text1: 'Error getting push token',
+    text2: errorMessage,
+  });
+};
+
 export default function Layout() {
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const segments = useSegments();
-  const { currentPermission, permissionsQueue, handleOnPermissionDenied, handleOnPermissionGranted, locationPermission } = usePermissionsRequestQueue({
-    onLocationPermissionGranted: () => {
-      setCurrentLocation();
-    }
+  const { currentPermission, permissionsQueue, handleOnPermissionDenied, handleOnPermissionGranted, locationPermission, pushNotificationPermission } = usePermissionsRequestQueue({
+    onLocationPermissionGranted: () => setCurrentLocation()
   });
+
+  const registerForPushNotificationsAsync = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+  
+    if (Device.isDevice) {
+      const projectId =
+        Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+      if (!projectId) {
+        handleRegistrationError('Project ID not found');
+        return;
+      }
+      try {
+        const pushTokenString = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId,
+          })
+        ).data;
+        console.log(pushTokenString);
+        return pushTokenString;
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : 'An error occurred while getting push token';
+        handleRegistrationError(errorMessage);
+      }
+    } else {
+      handleRegistrationError('Must use physical device for push notifications');
+    }
+  }, []);
 
   const setCurrentLocation = useCallback(async () => {
     try {
@@ -90,6 +110,19 @@ export default function Layout() {
       setCurrentLocation();
     }
   }, [locationPermission, setCurrentLocation]);
+
+  useEffect(() => {
+    if(pushNotificationPermission === PermissionStatus.GRANTED) {
+      registerForPushNotificationsAsync().then((pushToken) => {
+        if(pushToken) {
+          dispatch(actions.registerPushToken(pushToken));
+        }
+      }).catch((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while registering push token';
+        handleRegistrationError(errorMessage);
+      });
+    }
+  }, [pushNotificationPermission, registerForPushNotificationsAsync, dispatch]);
 
   const [showTabBar, setShowTabBar] = useState(false);
 
