@@ -1,8 +1,8 @@
-import { StyleSheet, Image, ActivityIndicator, DimensionValue, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
 import { colors } from '@/constants/theme/colors';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState, memo } from 'react';
+import { ActivityIndicator, DimensionValue, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface CustomImageProps {
     readonly source?: string;
@@ -19,8 +19,8 @@ const CustomImage = ({
 }:CustomImageProps) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
-    const color = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
-    const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
+    const color = useThemeColor({ light: colors.light.white, dark: colors.dark.white }, 'text');
+    const backgroundColor = useThemeColor({ light: colors.light.grey, dark: colors.dark.grey }, 'background');
     return (
         <TouchableOpacity
             style={{
@@ -59,7 +59,20 @@ const CustomImage = ({
     )
 }
 
-export default CustomImage
+const arePropsEqual = (prevProps: CustomImageProps, nextProps: CustomImageProps) => {
+    // If source hasn't changed, don't rerender
+    if (prevProps.source !== nextProps.source) {
+        return false;
+    }
+    // Also check other props for completeness
+    return (
+        prevProps.width === nextProps.width &&
+        prevProps.height === nextProps.height &&
+        prevProps.onPress === nextProps.onPress
+    );
+};
+
+export default memo(CustomImage, arePropsEqual)
 
 const styles = StyleSheet.create({
     container: {

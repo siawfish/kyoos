@@ -134,7 +134,7 @@ export const lightMapStyle: MapStyle = [
 export const darkMapStyle: MapStyle = [
   {
     elementType: 'geometry',
-    stylers: [{ color: '#000000' }],
+    stylers: [{ color: '#1a1a1a' }],
   },
   {
     elementType: 'labels.icon',
@@ -146,7 +146,7 @@ export const darkMapStyle: MapStyle = [
   },
   {
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#000000' }, { weight: 1 }],
+    stylers: [{ color: '#1a1a1a' }, { weight: 1 }],
   },
   {
     featureType: 'administrative',
@@ -170,7 +170,7 @@ export const darkMapStyle: MapStyle = [
   {
     featureType: 'poi',
     elementType: 'geometry',
-    stylers: [{ color: '#1a1a1a' }],
+    stylers: [{ color: '#000000' }],
   },
   {
     featureType: 'poi',
@@ -190,12 +190,12 @@ export const darkMapStyle: MapStyle = [
   {
     featureType: 'road',
     elementType: 'geometry',
-    stylers: [{ color: '#1a1a1a' }],
+    stylers: [{ color: '#000000' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#000000' }, { weight: 0.5 }],
+    stylers: [{ color: '#1a1a1a' }, { weight: 0.5 }],
   },
   {
     featureType: 'road.arterial',
@@ -235,7 +235,7 @@ export const darkMapStyle: MapStyle = [
   {
     featureType: 'transit',
     elementType: 'geometry',
-    stylers: [{ color: '#1a1a1a' }],
+    stylers: [{ color: '#000000' }],
   },
   {
     featureType: 'transit.line',
@@ -255,7 +255,7 @@ export const darkMapStyle: MapStyle = [
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [{ color: '#000000' }],
+    stylers: [{ color: '#0f0f0f' }],
   },
   {
     featureType: 'water',

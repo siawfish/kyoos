@@ -129,7 +129,7 @@ export default function BookingScreen() {
 
     const handleConfirmCancel = () => {
         dispatch(searchActions.resetState());
-        router.back();
+        router.push('/(tabs)/(search)');
     };
 
     return (

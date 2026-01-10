@@ -5,14 +5,15 @@ import { useThemeColor } from '@/hooks/use-theme-color'
 import { selectUser } from '@/redux/app/selector'
 import { AntDesign, SimpleLineIcons } from '@expo/vector-icons'
 import React from 'react'
-import { Image, StyleSheet, useColorScheme, View } from 'react-native'
+import { Image, StyleSheet, View } from 'react-native'
 import { useSelector } from 'react-redux'
 import IconButton from '../IconButton'
 import { ThemedText } from '../Themed/ThemedText'
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function ProfileCard() {
     const loggedInUser = useSelector(selectUser);
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
     
     const cardBg = useThemeColor({

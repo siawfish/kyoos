@@ -1,17 +1,17 @@
-import { Asset, FormElement, Media } from "@/redux/app/types";
+import { Asset, FormElement, Media, Skill, User } from "@/redux/app/types";
 import { Pagination } from "@/services/types";
 export interface Portfolio {
   id: string;
   description: string;
   assets: Media[];
-  skills: string[];
+  skills: Skill[];
   likes: number;
   comments: number;
   hasLiked: boolean;
   hasCommented: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
+  createdBy: User;
 }
 
 export interface PortfolioPayload {

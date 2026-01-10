@@ -1,5 +1,7 @@
 import ProfileCard from "@/components/account/ProfileCard";
+import Portfolio from "@/components/portfolio/Portfolio";
 import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
+import EmptyList from "@/components/ui/EmptyList";
 import BackButton from "@/components/ui/BackButton";
 import IconButton from "@/components/ui/IconButton";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
@@ -13,9 +15,10 @@ import { actions } from "@/redux/portfolio/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function ArtisanScreen() {
     const router = useRouter();
@@ -62,33 +65,9 @@ export default function ArtisanScreen() {
         )
     }
 
-    return (
-        <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.backButtonContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={() => router.back()}
-                />
-                <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
-                    <IconButton 
-                        style={styles.chatButton}
-                        lightColor={colors.light.black}
-                        darkColor={colors.dark.white}
-                    >
-                        <Ionicons 
-                            name="chatbox-ellipses-outline" 
-                            size={24} 
-                            color={isDark ? colors.dark.black : colors.light.white} 
-                        />
-                    </IconButton>
-                </Link>
-            </View>
-            
-            <ScrollView 
-                style={styles.content} 
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
+    const renderHeader = () => {
+        return (
+            <>
                 {/* Header Section */}
                 <View style={styles.header}>
                     <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
@@ -96,7 +75,7 @@ export default function ArtisanScreen() {
                 </View>
 
                 {/* Basic Info Section */}
-                <ProfileCard worker={artisan} />
+                <ProfileCard worker={artisan!} />
 
                 {/* Skills & Rate Section */}
                 <View style={styles.section}>
@@ -106,13 +85,13 @@ export default function ArtisanScreen() {
                     <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
                         <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
                         <View style={styles.skillsContent}>
-                            {artisan.skills?.map((skill, index) => (
+                            {artisan?.skills?.map((skill, index) => (
                                 <View 
                                     key={index} 
                                     style={[
                                         styles.skillItem, 
                                         { borderColor },
-                                        index !== (artisan.skills?.length ?? 0) - 1 && styles.skillItemBorder
+                                        index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
                                     ]}
                                 >
                                     <View style={styles.skillInfo}>
@@ -136,15 +115,47 @@ export default function ArtisanScreen() {
                         </View>
                     </View>
                 </View>
-
-                {/* Portfolio Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionLabelContainer}>
                         <Text style={[styles.sectionLabel, { color: labelColor }]}>RECENT WORKS</Text>
                     </View>
-                    {/* <Portfolio portfolio={portfolio} /> */}
                 </View>
-            </ScrollView>
+            </>
+        )
+    }
+
+    return (
+        <ThemedSafeAreaView style={styles.container}>
+            <View style={styles.backButtonContainer}>
+                <BackButton
+                    iconName="arrow-left"
+                    onPress={() => router.back()}
+                />
+                <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
+                    <IconButton 
+                        style={styles.chatButton}
+                        lightColor={colors.light.black}
+                        darkColor={colors.dark.white}
+                    >
+                        <Ionicons 
+                            name="chatbox-ellipses-outline" 
+                            size={24} 
+                            color={isDark ? colors.dark.black : colors.light.white} 
+                        />
+                    </IconButton>
+                </Link>
+            </View>
+            
+            <FlashList 
+                style={styles.content} 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={renderHeader}
+                data={portfolios}
+                renderItem={({ item }) => <Portfolio portfolio={item} />}
+                ListEmptyComponent={<EmptyList message="No recent works found" />}
+                keyExtractor={(item) => item.id}
+            />
         </ThemedSafeAreaView>
     )
 }

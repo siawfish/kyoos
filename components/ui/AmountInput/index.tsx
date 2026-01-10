@@ -3,7 +3,7 @@ import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { AntDesign } from '@expo/vector-icons';
 import React, { useRef, useState } from 'react';
-import { Animated, Easing, TextInput as RNTextInput, StyleSheet, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { Animated, Easing, TextInput as RNTextInput, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Button from '../Button';
 import { ThemedText } from '../Themed/ThemedText';
 
@@ -30,7 +30,6 @@ export default function AmountInput({
 }: AmountInputProps) {
     const [value, setValue] = useState(initialValue.toString());
     const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
-    const colorScheme = useColorScheme();
     
     const backgroundColor = useThemeColor({
         light: colors.light.misc,

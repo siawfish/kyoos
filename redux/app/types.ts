@@ -7,6 +7,17 @@ export enum UserTypes {
   SUPER_ADMIN = "SUPER_ADMIN",
 }
 
+export interface Skill {
+    id: string;
+    name: string;
+    icon?: string; // Optional in some contexts (e.g., inside Worker.skills)
+    workerId?: string;
+    skillId?: string;
+    rate?: number;
+    yearsOfExperience?: number;
+    updatedAt?: string;
+}
+
 export enum Gender {
     MALE = 'male',
     FEMALE = 'female',
@@ -17,13 +28,31 @@ export enum MediaType {
     VIDEO = 'VIDEO',
 }
 
+
+
 export enum MimeType {
     JPEG = 'image/jpeg',
+    HEIC = 'image/heic',
+    HEIF = 'image/heif',
     JPG = 'image/jpg',
     PNG = 'image/png',
+    WEBP = 'image/webp',
+    GIF = 'image/gif',
     MP4 = 'video/mp4',
     MOV = 'video/mov',
+    QUICKTIME = 'video/quicktime',
+    M4V = 'video/x-m4v',
+    MPEG = 'video/mpeg',
+    AVI = 'video/avi',
+    X_MSVIDEO = 'video/x-msvideo',
+    WMV = 'video/wmv',
+    X_MS_WMV = 'video/x-ms-wmv',
+    WEBM = 'video/webm',
+    THREE_GPP = 'video/3gpp',
+    THREE_GPP2 = 'video/3gpp2',
+    X_MATROSKA = 'video/x-matroska',
     PDF = 'application/pdf',
+    OCTET_STREAM = 'application/octet-stream',
 }
 
 export enum PermissionType {
@@ -33,10 +62,10 @@ export enum PermissionType {
 }
 export interface Media {
     id?: string;
-    uri: string;
+    url: string;
     width?: number;
     height?: number;
-    type?: MediaType | MimeType;
+    type?: MimeType;
 }
 
 export enum BookingStatuses {

@@ -10,7 +10,7 @@ import { Portfolio } from '@/redux/portfolio/types';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Options } from '../Options';
 import User from '../User';
 import Actions from './Actions';
@@ -21,7 +21,6 @@ interface PortfolioProps {
 }
 
 const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
-    const dispatch = useDispatch();
     const loggedInUser = useSelector(selectUser);
     const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
     const theme = useAppTheme();
@@ -55,7 +54,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                     {
                         portfolio?.assets?.length > 0 &&
                         <Thumbnails 
-                            data={portfolio?.assets}
+                            portfolio={portfolio}
                         />
                     }
                     <ThemedText 
@@ -66,11 +65,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                         {portfolio.description}
                     </ThemedText>
                     <Actions 
-                        likes={portfolio.likes}
-                        comments={portfolio.comments}
-                        hasLiked={portfolio.hasLiked}
-                        hasCommented={portfolio.hasCommented}
-                        id={portfolio.id}
+                        portfolio={portfolio}
                     />
                 </View>
             </>
@@ -118,8 +113,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginHorizontal: 0,
         marginBottom: heightPixel(16),
-        borderWidth: 0.5,
-        borderLeftWidth: 0,
         overflow: 'hidden',
     },
     leftAccent: {

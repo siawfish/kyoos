@@ -1,9 +1,8 @@
 import { Skill, Worker } from '@/redux/search/types';
-import { BookingStatuses, PermissionType, StatusColors } from '@/redux/app/types';
+import { BookingStatuses, PermissionType, StatusColors, MimeType } from '@/redux/app/types';
 import { formatRelative } from 'date-fns'
 import * as Location from 'expo-location';
 import { Location as LocationType } from '@/redux/auth/types';
-import { getForegroundPermissionsAsync, PermissionStatus } from 'expo-location';
 
 export const timeToString = (time: number) => {
     const date = new Date(time);
@@ -138,3 +137,40 @@ export const getCurrentLocation = async (): Promise<LocationType | null> => {
     return null;    
   }
 };
+
+export const isVideo = (mimeType: MimeType) => {
+  return (
+    mimeType === MimeType.MP4 ||
+    mimeType === MimeType.MOV ||
+    mimeType === MimeType.QUICKTIME ||
+    mimeType === MimeType.M4V ||
+    mimeType === MimeType.MPEG ||
+    mimeType === MimeType.AVI ||
+    mimeType === MimeType.X_MSVIDEO ||
+    mimeType === MimeType.WMV ||
+    mimeType === MimeType.X_MS_WMV ||
+    mimeType === MimeType.WEBM ||
+    mimeType === MimeType.THREE_GPP ||
+    mimeType === MimeType.THREE_GPP2 ||
+    mimeType === MimeType.X_MATROSKA
+  );
+}
+
+export const isImage = (mimeType: MimeType) => {
+  return (
+    mimeType === MimeType.JPEG ||
+    mimeType === MimeType.JPG ||
+    mimeType === MimeType.PNG ||
+    mimeType === MimeType.HEIC ||
+    mimeType === MimeType.HEIF ||
+    mimeType === MimeType.WEBP ||
+    mimeType === MimeType.GIF
+  );
+}
+
+export const isDocument = (mimeType: MimeType) => {
+  return (
+    mimeType === MimeType.PDF ||
+    mimeType === MimeType.OCTET_STREAM
+  );
+}

@@ -7,8 +7,9 @@ import { selectLoginFormIsLoading, selectLoginFormOtp, selectLoginFormPhoneNumbe
 import { actions } from '@/redux/auth/slice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Link, Redirect } from 'expo-router'
-import React, { useEffect } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import React from 'react'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useAppTheme } from '@/hooks/use-app-theme'
 
 const Otp = () => {
     const dispatch = useAppDispatch();
@@ -16,7 +17,7 @@ const Otp = () => {
     const isLoading = useAppSelector(selectLoginFormIsLoading);
     const referenceId = useAppSelector(selectReferenceId);
     const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
 
     const textColor = isDark ? colors.dark.text : colors.light.text;

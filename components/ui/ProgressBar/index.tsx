@@ -1,7 +1,8 @@
 import { heightPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, useColorScheme, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface ProgressBarProps {
     readonly progress: number;
@@ -10,7 +11,7 @@ interface ProgressBarProps {
 export default function ProgressBar({
     progress = 0
 }: ProgressBarProps) {
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
     
     const trackColor = isDark ? colors.dark.grey : colors.light.grey;

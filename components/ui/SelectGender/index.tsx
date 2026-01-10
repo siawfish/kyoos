@@ -2,12 +2,12 @@ import { fontPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { selectRegisterFormGender } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
-import { FormElement } from '@/redux/app/types'
+import { FormElement, Gender } from '@/redux/app/types'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { Gender } from '@/redux/app/types'
 import React from 'react'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import GenderOption from './components/GenderOption'
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 interface SelectGenderProps {
     gender?: FormElement;
@@ -17,7 +17,7 @@ interface SelectGenderProps {
 export default function SelectGender({ gender: propGender, onGenderChange }: SelectGenderProps = {}) {
     const reduxGender = useAppSelector(selectRegisterFormGender);
     const dispatch = useAppDispatch();
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
 

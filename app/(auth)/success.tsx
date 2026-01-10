@@ -5,11 +5,12 @@ import { colors } from "@/constants/theme/colors";
 import { actions } from "@/redux/auth/slice";
 import { useAppDispatch } from "@/store/hooks";
 import React from "react";
-import { Dimensions, Image, Modal, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Dimensions, Image, Modal, StyleSheet, Text, View } from "react-native";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 const Success = () => {
     const dispatch = useAppDispatch();
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
 
     const backgroundColor = isDark ? colors.dark.background : colors.light.background;

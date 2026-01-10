@@ -136,7 +136,7 @@ export default function HomeScreen() {
             }));
 
             mapRef.current.fitToCoordinates(coordinates, {
-                edgePadding: { top: 100, right: 50, bottom: 200, left: 50 },
+                edgePadding: { top: 200, right: 50, bottom: 200, left: 50 },
                 animated: true,
             });
         }
@@ -202,7 +202,6 @@ export default function HomeScreen() {
                 showsCompass={false}
                 toolbarEnabled={false}
                 onMapReady={fitAllMarkers}
-                // onRegionChangeComplete={handleRegionChange}
             >
                 {nearestWorkers.map((artisan) => (
                     <Marker

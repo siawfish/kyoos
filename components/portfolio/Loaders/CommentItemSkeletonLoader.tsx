@@ -1,4 +1,4 @@
-import ThemedView from "@/components/ui/Themed/ThemedView";
+import { ThemedView } from "@/components/ui/Themed/ThemedView";
 import { heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from '@/hooks/use-theme-color';

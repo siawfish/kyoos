@@ -11,7 +11,7 @@ export function* fetchPortfolios(action: PayloadAction<string>) {
   try {
     const response: ApiResponse<PortfoliosResponse> = yield call(request, {
       method: 'GET',
-      url: `/api/users/portfolio/worker/${action.payload}`,
+      url: `/api/users/portfolio/${action.payload}`,
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while fetching portfolios');
@@ -35,7 +35,7 @@ export function* fetchComments(action: PayloadAction<string>) {
   try {
     const response: ApiResponse<Comment[]> = yield call(request, {
       method: 'GET',
-      url: `/api/workers/portfolio/${action.payload}/comments`,
+      url: `/api/users/portfolio/${action.payload}/comments`,
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while fetching comments');
@@ -59,7 +59,7 @@ export function* submitComment(action: PayloadAction<string>) {
     const commentForm: CommentForm = yield select(selectCommentForm);
     const response: ApiResponse<Comment> = yield call(request, {
       method: 'POST',
-      url: `/api/workers/portfolio/${action.payload}/comment`,
+      url: `/api/users/portfolio/${action.payload}/comment`,
       data: {
         comment: commentForm.comment,
       },
@@ -91,7 +91,7 @@ export function* likePortfolio(action: PayloadAction<string>) {
   try {
     const response: ApiResponse<Portfolio> = yield call(request, {
       method: 'POST',
-      url: `/api/workers/portfolio/${action.payload}/like`,
+      url: `/api/users/portfolio/${action.payload}/like`,
     })
     if (response.error) {
       throw new Error(response.message || response.error || 'An error occurred while liking portfolio');
@@ -118,7 +118,7 @@ export function* updateComment(action: PayloadAction<{
     const commentForm: CommentForm = yield select(selectCommentForm);
     const response: ApiResponse<Comment> = yield call(request, {
       method: 'PUT',
-      url: `/api/workers/portfolio/comment/${action.payload.commentId}`,
+      url: `/api/users/portfolio/comment/${action.payload.commentId}`,
       data: {
         comment: commentForm.comment,
       },
@@ -147,7 +147,7 @@ export function* deleteComment(action: PayloadAction<{
     yield delay(500);
     const response: ApiResponse<Comment> = yield call(request, {
       method: 'DELETE',
-      url: `/api/workers/portfolio/comment/${action.payload.commentId}`,
+      url: `/api/users/portfolio/comment/${action.payload.commentId}`,
     })
     if (response.error) {
       throw new Error(response.message || response.error || 'An error occurred while deleting comment');

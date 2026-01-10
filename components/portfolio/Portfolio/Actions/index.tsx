@@ -5,37 +5,26 @@ import like from "@/assets/images/like_grey.png";
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectIsLikingPortfolio } from '@/redux/portfolio/selector';
+import { selectCommentFormIsLoading, selectIsLikingPortfolio } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { router } from 'expo-router';
-import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import { Portfolio } from "@/redux/portfolio/types";
 
 const Actions = ({
-    likes,
-    comments,
-    hasLiked,
-    hasCommented,
-    id
+    portfolio,
+    onComment,
 }: {
-    likes: number;
-    comments: number;
-    hasLiked: boolean;
-    hasCommented: boolean;
-    id: string;
+    portfolio: Portfolio;
+    onComment?: () => void;
 }) => {
-    const dispatch = useDispatch();
-    const isLikingPortfolio = useSelector(selectIsLikingPortfolio);
-    // const skills = useSelector(selectSkills);
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-
-    // const skillsObj = useMemo(() => {
-    //     return skills.filter((skill) => skillIds.includes(skill.id));
-    // }, [skills, skillIds]);
+    const dispatch = useAppDispatch();
+    const isLikingPortfolio = useAppSelector(selectIsLikingPortfolio);
+    const isCommentingPortfolio = useAppSelector(selectCommentFormIsLoading);
 
     const borderTopColor = useThemeColor(
         {
@@ -58,68 +47,95 @@ const Actions = ({
         dark: colors.dark.secondary
     }, 'text');
 
+    const scale = useSharedValue(1);
+
+    useEffect(() => {
+        if (isLikingPortfolio) {
+            scale.value = withRepeat(
+                withTiming(1.2, { 
+                    duration: 600, 
+                    easing: Easing.inOut(Easing.ease) 
+                }),
+                -1,
+                true
+            );
+        } else {
+            scale.value = withTiming(1, { duration: 200 });
+        }
+    }, [isLikingPortfolio, scale]);
+
+    const iconAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    const handleCommentPress = () => {
+        onComment?.();
+        router.push(`/(tabs)/(portfolio)/addComment?id=${portfolio.id}`)
+    }
+
     return (
         <>
             <View style={[styles.container, {borderTopColor}]}>
-                {/* {skillsObj.length > 0 && (
+                {portfolio.skills.length > 0 && (
                     <View style={styles.skillsRow}>
                     {
-                        skillsObj.slice(0, 3).map((skill) => (
+                        portfolio.skills.slice(0, 3).map((skill) => (
                                 <View 
-                                key={skill.id} 
+                                    key={skill?.id} 
                                     style={[styles.skill, { backgroundColor: skillBgColor, borderColor: skillBorderColor }]}
-                            >
-                                <ThemedText 
-                                    type='subtitle'
-                                        style={[styles.skillText, { color: skillTextColor }]}
                                 >
-                                        {skill.name.toUpperCase()}
-                                </ThemedText>
+                                    <ThemedText 
+                                        type='subtitle'
+                                            style={[styles.skillText, { color: skillTextColor }]}
+                                    >
+                                        {skill?.name?.toUpperCase()}
+                                    </ThemedText>
                                 </View>
                         ))
                     }
-                    {skillsObj.length > 3 && (
+                    {portfolio.skills.length > 3 && (
                             <View style={[styles.skill, { backgroundColor: skillBgColor, borderColor: skillBorderColor }]}>
                             <ThemedText 
                                 type='subtitle'
                                     style={[styles.skillText, { color: skillTextColor }]}
                             >
-                                +{skillsObj.length - 3}
+                                +{portfolio.skills.length - 3}
                             </ThemedText>
                             </View>
                     )}
                 </View>
-                )} */}
+                )}
                 <View style={styles.actionsRow}>
                     <TouchableOpacity 
                         style={styles.actionBtn}
                         disabled={isLikingPortfolio}
-                        onPress={() => dispatch(actions.likePortfolio(id))}
+                        onPress={() => dispatch(actions.likePortfolio(portfolio.id))}
                     >
-                        <Image 
-                            source={hasLiked ? likeActive : like} 
-                            style={styles.actionIcon} 
+                        <Animated.Image 
+                            source={portfolio.hasLiked ? likeActive : like} 
+                            style={[styles.actionIcon, iconAnimatedStyle]} 
                         />
                         <ThemedText 
-                            style={[styles.actionCount, { color: hasLiked ? skillTextColor : labelColor }]} 
+                            style={[styles.actionCount, { color: portfolio.hasLiked ? skillTextColor : labelColor }]} 
                             type='subtitle'
                         >
-                            {likes}
+                            {portfolio.likes}
                         </ThemedText>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={styles.actionBtn}
-                        onPress={() => router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${id}`)}
+                        disabled={isCommentingPortfolio}
+                        onPress={handleCommentPress}
                     >
-                        <Image 
-                            source={hasCommented ? commentActive : comment} 
+                        <Animated.Image 
+                            source={portfolio.hasCommented ? commentActive : comment} 
                             style={styles.actionIcon} 
                         />
                         <ThemedText 
-                            style={[styles.actionCount, { color: hasCommented ? skillTextColor : labelColor }]} 
+                            style={[styles.actionCount, { color: portfolio.hasCommented ? skillTextColor : labelColor }]} 
                             type='subtitle'
                         >
-                            {comments}
+                            {portfolio.comments}
                         </ThemedText>
                     </TouchableOpacity>
                 </View>

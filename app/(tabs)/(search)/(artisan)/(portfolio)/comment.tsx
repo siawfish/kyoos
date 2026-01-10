@@ -15,7 +15,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FontAwesome } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 const Comment = () => {
     const dispatch = useAppDispatch();
@@ -27,7 +28,7 @@ const Comment = () => {
     const comments = useAppSelector(selectComments);
     const portfolio = useMemo(() => portfolios.find((portfolio) => portfolio.id === id), [id, portfolios]);
     const comment = useMemo(() => comments.find((comment) => comment.id === commentId), [commentId, comments]);
-    const colorScheme = useColorScheme();
+    const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
 
     const inputBackgroundColor = useThemeColor(
@@ -127,7 +128,7 @@ const Comment = () => {
                             {
                                 portfolio && portfolio?.assets?.length > 0 &&
                                 <Thumbnails 
-                                    data={portfolio?.assets}
+                                    portfolio={portfolio}
                                     containerStyle={styles.portfolioThumbnailsImgs}
                                 />
                             }
@@ -137,7 +138,7 @@ const Comment = () => {
 
                 <View style={styles.commentContainer}>
                     <ThemedText style={[styles.commentText, { color: textColor }]}>
-                        {comment ? 'Editing comment' : 'Commenting'} on <Text style={[styles.commentTextName, { color: tintColor }]}>{loggedInUser?.name?.split(' ')[0]}'s</Text> portfolio
+                        {comment ? 'Editing comment' : 'Commenting'} on <Text style={[styles.commentTextName, { color: tintColor }]}>{loggedInUser?.name?.split(' ')[0]}&apos;s</Text> portfolio
                     </ThemedText>
                 </View>
 

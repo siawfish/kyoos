@@ -11,12 +11,12 @@ import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectCommentFormIsLoading, selectComments, selectCommentsIsLoading, selectPortfolios } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
-import { Portfolio as PortfolioType } from '@/redux/portfolio/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function PortfolioDetails() {
   const { id } = useLocalSearchParams();
@@ -26,7 +26,7 @@ export default function PortfolioDetails() {
   const isSubmittingComment = useAppSelector(selectCommentFormIsLoading);
   const dispatch = useAppDispatch();
   const portfolio = portfolios.find((portfolio) => portfolio.id === id);
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppTheme();
   const isDark = colorScheme === 'dark';
 
   const backgroundColor = useThemeColor({
@@ -44,9 +44,9 @@ export default function PortfolioDetails() {
   }, 'text');
 
   useEffect(()=>{
-    if(!id || isLoading) return;
+    if(!id) return;
     dispatch(actions.fetchComments(id as string));
-  },[id, isLoading])
+  },[id, dispatch])
 
   const renderEmptyList = () => {
     if (isLoading || isSubmittingComment) return;
@@ -69,7 +69,7 @@ export default function PortfolioDetails() {
     return (
       <View>
         <Portfolio 
-          portfolio={portfolio as PortfolioType}
+          portfolio={portfolio!}
           clickable={false}
         />
         <View style={styles.commentsSection}>

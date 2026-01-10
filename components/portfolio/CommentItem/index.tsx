@@ -1,6 +1,6 @@
 import user from "@/assets/images/individual.png";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
-import ThemedText from "@/components/ui/Themed/ThemedText";
+import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
@@ -10,13 +10,14 @@ import { useDispatch } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, StyleSheet, useColorScheme, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { Options } from "../Options";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 const CommentItem = ({ item }: { item: Comment }) => {
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);  
   const dispatch = useDispatch();
-  const colorScheme = useColorScheme();
+  const colorScheme = useAppTheme();
   const isDark = colorScheme === 'dark';
   
   const cardBg = useThemeColor({
@@ -57,9 +58,10 @@ const CommentItem = ({ item }: { item: Comment }) => {
           </View>
   
           <Options 
-            label="Comment Options"
-            onEdit={() => router.push(`/(tabs)/(portfolio)/addComment?id=${item.portfolioId}&commentId=${item.id}`)}
-            onDelete={() => setIsDeleteConfirmationOpen(true)}
+            onReport={() => {}}
+            onShare={() => {}}
+            // onEdit={() => router.push(`/(tabs)/(portfolio)/addComment?id=${item.portfolioId}&commentId=${item.id}`)}
+            // onDelete={() => setIsDeleteConfirmationOpen(true)}
           />
         </View>
         <ThemedText 
