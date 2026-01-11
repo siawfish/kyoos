@@ -47,7 +47,8 @@ export default function Layout() {
   const pathname = usePathname();
   const segments = useSegments();
   const { currentPermission, permissionsQueue, handleOnPermissionDenied, handleOnPermissionGranted, locationPermission, pushNotificationPermission } = usePermissionsRequestQueue({
-    onLocationPermissionGranted: () => setCurrentLocation()
+    onLocationPermissionGranted: () => setCurrentLocation(),
+    onPushNotificationPermissionGranted: () => registerForPushNotificationsAsync()
   });
 
   const registerForPushNotificationsAsync = useCallback(async () => {
@@ -73,7 +74,6 @@ export default function Layout() {
             projectId,
           })
         ).data;
-        console.log(pushTokenString);
         return pushTokenString;
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'An error occurred while getting push token';

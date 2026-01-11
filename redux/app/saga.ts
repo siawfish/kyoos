@@ -227,7 +227,7 @@ export function* updateUserLocation() {
 export function* registerPushToken(action: PayloadAction<string>) {
     try {
         const response: ApiResponse<User> = yield call(request, {
-            method: 'POST',
+            method: 'PATCH',
             url: '/api/users/profile/push-token',
             data: {
                 pushToken: action.payload,
@@ -237,11 +237,6 @@ export function* registerPushToken(action: PayloadAction<string>) {
             throw new Error(response.error || response.message || 'An error occurred while registering push token');
         }
         yield put(actions.setUser(response.data));
-        Toast.show({
-            type: 'success',
-            text1: 'Push token registered successfully',
-            text2: 'Your push token has been registered successfully',
-        });
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while registering push token';
         Toast.show({

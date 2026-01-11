@@ -164,7 +164,7 @@ export interface Settings {
     notifications: {
         sms: boolean;
         email: boolean;
-        pushToken: string;
+        pushToken: string[];
         pushNotification: boolean;
     };
     theme: Theme;

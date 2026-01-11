@@ -9,7 +9,7 @@ import { usePathname } from "expo-router";
 import * as Notifications from 'expo-notifications';
 import { useAppDispatch } from "@/store/hooks";
 
-export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: { onLocationPermissionGranted?: () => void }) => {
+export const usePermissionsRequestQueue = ({ onLocationPermissionGranted, onPushNotificationPermissionGranted }: { onLocationPermissionGranted?: () => void, onPushNotificationPermissionGranted?: () => void }) => {
   const [cameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission] = useMediaLibraryPermissions();
   const [permissionsQueue, setPermissionsQueue] = useState<PermissionType[]>([]);
@@ -86,6 +86,9 @@ export const usePermissionsRequestQueue = ({ onLocationPermissionGranted }: { on
     setPermissionsQueue(newPermissionsQueue);
     if(!newPermissionsQueue.find((permission) => permission === PermissionType.LOCATION)) {
       onLocationPermissionGranted?.();
+    }
+    if(!newPermissionsQueue.find((permission) => permission === PermissionType.PUSH_NOTIFICATION)) {
+      onPushNotificationPermissionGranted?.();
     }
   }
 
