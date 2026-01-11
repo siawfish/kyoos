@@ -46,7 +46,8 @@
         "googleMaps": {
           "apiKey": "EXPO_PUBLIC_GOOGLE_API_KEY"
         }
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -66,6 +67,21 @@
             "backgroundColor": "#000000",
             "imageWidth": 200,
             "resizeMode": "contain"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon-light.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "sounds": [
+            "./assets/wavs/notification.wav"
+          ],
+          "dark": {
+            "icon": "./assets/images/icon-dark.png",
+            "color": "#000000"
           }
         }
       ],
