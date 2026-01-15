@@ -1,4 +1,4 @@
-import { BookingState, ServiceLocationType } from '@/redux/booking/types';
+import { AvailableSlot, BookingState, ServiceLocationType } from '@/redux/booking/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { Worker } from '../search/types';
@@ -32,6 +32,8 @@ export const initialState: BookingState = {
     lng: 0,
   },
   media: [],
+  availableSlots: [],
+  isGettingAvailableSlots: false,
   isLoading: false,
   isSuccess: false,
 }
@@ -79,6 +81,29 @@ const bookingSlice = createSlice({
           error: '',
         },
       };
+    },
+    setAppointmentDate: (state, action: PayloadAction<string>) => {
+      state.appointmentDateTime.date.value = action.payload;
+      state.appointmentDateTime.date.error = '';
+      // Clear time when date changes
+      state.appointmentDateTime.time.value = '';
+      state.appointmentDateTime.time.error = '';
+    },
+    setAppointmentTime: (state, action: PayloadAction<string>) => {
+      state.appointmentDateTime.time.value = action.payload;
+      state.appointmentDateTime.time.error = '';
+    },
+    getAvailableTimes: (state, action: PayloadAction<string>) => {
+      state.isGettingAvailableSlots = true;
+    },
+    getAvailableTimesSuccess: (state, action: PayloadAction<AvailableSlot[]>) => {
+      state.availableSlots = action.payload;
+      state.isGettingAvailableSlots = false;
+    },
+    getAvailableTimesError: (state, action: PayloadAction<string>) => {
+      state.isGettingAvailableSlots = false;
+      state.availableSlots = [];
+      state.appointmentDateTime.time.error = action.payload;
     },
     clearAppointmentDateTime: (state) => {
       state.appointmentDateTime = initialState.appointmentDateTime;

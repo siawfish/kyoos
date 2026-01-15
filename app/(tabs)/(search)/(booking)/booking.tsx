@@ -1,7 +1,7 @@
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
-import DateTimeSelector from "@/components/ui/DateTimeSelector";
+import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import ServiceLocation from "@/components/ui/ServiceLocation";
@@ -14,7 +14,6 @@ import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selec
 import { actions } from "@/redux/booking/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { actions as searchActions } from "@/redux/search/slice";
-import { Summary } from "@/redux/search/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -36,6 +35,9 @@ export default function BookingScreen() {
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
     const allWorkers = useAppSelector(selectAllWorkers);
+    const isWorkerQualified = useMemo(()=>{
+        return artisan?.skills?.map(skill => skill.id).some(skill => summary.requiredSkills.some(requiredSkill => requiredSkill.id === skill));
+    },[artisan?.skills, summary?.requiredSkills]);
 
     useEffect(() => {
         if (artisanId) {
@@ -47,24 +49,9 @@ export default function BookingScreen() {
     }, [artisanId, dispatch, allWorkers]);
 
 
-    // Convert Redux date and time to Date object for the selector
-    const selectedDate = useMemo(() => {
-        if (appointmentDate?.value && appointmentTime?.value) {
-            const [year, month, day] = appointmentDate.value.split('-').map(Number);
-            const [hours, minutes] = appointmentTime.value.match(/\d+/g)?.map(Number) || [];
-            const isPM = appointmentTime.value.toLowerCase().includes('pm');
-            
-            const date = new Date(year, month - 1, day);
-            date.setHours(isPM && hours !== 12 ? hours + 12 : hours);
-            date.setMinutes(minutes || 0);
-            return date;
-        }
-        return undefined;
-    }, [appointmentDate?.value, appointmentTime?.value]);
-
     const isRequestEnabled = useMemo(() => {
-        return hasScrolledToBottom && selectedDate !== undefined;
-    }, [hasScrolledToBottom, selectedDate]);
+        return hasScrolledToBottom && appointmentDate?.value && appointmentTime?.value && isWorkerQualified;
+    }, [hasScrolledToBottom, appointmentDate?.value, appointmentTime?.value, isWorkerQualified]);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
@@ -80,15 +67,6 @@ export default function BookingScreen() {
     useFocusEffect(() => {
         dispatch(actions.initializeBooking())
     });
-
-    const handleDateChange = (date: Date) => {
-        dispatch(actions.setAppointmentDateTime(date.toISOString()));
-    };
-
-    const textColor = useThemeColor({
-        light: colors.light.text,
-        dark: colors.dark.text,
-    }, 'text');
 
     const labelColor = useThemeColor({
         light: colors.light.secondary,
@@ -167,8 +145,9 @@ export default function BookingScreen() {
                                 with
                             </ThemedText>
                             <Image 
-                                source={require('@/assets/images/individual.png')} 
-                                style={styles.avatar}
+                                source={{ uri: artisan?.avatar }} 
+                                style={[styles.avatar, { backgroundColor: cardBg }]}
+                                resizeMode="cover"
                             />
                             <ThemedText 
                                 type="defaultSemiBold"
@@ -223,30 +202,17 @@ export default function BookingScreen() {
                     )}
 
                     {/* Job Summary */}
-                    <JobSummary summary={summary as unknown as Summary} />
+                    <JobSummary artisan={artisan!} summary={summary} />
 
                     {/* Date and Time Selection */}
                     <View style={styles.section}>
                         <View style={styles.sectionLabelContainer}>
                             <Text style={[styles.sectionLabel, { color: labelColor }]}>DATE & TIME</Text>
                         </View>
-                        <DateTimeSelector 
-                            date={selectedDate}
-                            onDateChange={handleDateChange}
-                            // label="Date & Time"
-                            labelStyle={{ ...styles.label, color: textColor }}
+                        <AppointmentDateTimeSelector 
                             containerStyle={styles.dateTimeContainer}
                             style={{ backgroundColor }}
                         />
-                        {(appointmentDate?.error || appointmentTime?.error) && (
-                            <ThemedText 
-                                style={styles.errorText}
-                                lightColor={colors.light.error}
-                                darkColor={colors.dark.error}
-                            >
-                                {appointmentDate?.error || appointmentTime?.error}
-                            </ThemedText>
-                        )}
                     </View>
 
                     {/* Service Location */}
@@ -269,13 +235,22 @@ export default function BookingScreen() {
                     disabled={!isRequestEnabled}
                     onPress={handleRequestBooking}
                 />
-                {!isRequestEnabled && (
+                {/* {!isRequestEnabled && (
                     <ThemedText 
                         style={styles.warningText}
                         lightColor={colors.light.error}
                         darkColor={colors.dark.error}
                     >
                         {!selectedDate ? "Please select a date and time" : "Please review all details"}
+                    </ThemedText>
+                )} */}
+                {!isWorkerQualified && (
+                    <ThemedText 
+                        style={styles.warningText}
+                        lightColor={colors.light.error}
+                        darkColor={colors.dark.error}
+                    >
+                        This worker does not have the required skills to perform this service.
                     </ThemedText>
                 )}
             </View>

@@ -6,22 +6,31 @@ import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
 import { Feather } from '@expo/vector-icons';
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { Summary } from "@/redux/search/types";
+import { Summary, Worker } from "@/redux/search/types";
 import { convertFromMillisecondsToHours } from "@/constants/helpers";
 import { useAppSelector } from "@/store/hooks";
 import { selectUser } from "@/redux/app/selector";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import numeral from "numeral";
 
 interface JobSummaryProps {
+    artisan: Worker;
     summary: Summary;
     containerStyle?: ViewStyle;
 }
 
-export default function JobSummary({ summary, containerStyle }: JobSummaryProps) {
+export default function JobSummary({ artisan, summary, containerStyle }: JobSummaryProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const animatedHeight = useRef(new Animated.Value(0)).current;
     const chevronRotation = useRef(new Animated.Value(0)).current;
     const user = useAppSelector(selectUser);
+    const workerSkills = artisan?.skills;
+    const rate = useMemo(()=>{
+        return workerSkills?.find(skill => skill.id === summary?.requiredSkills[0]?.id)?.rate;
+    },[workerSkills, summary?.requiredSkills])
+    const estimatedPrice = useMemo(()=>{
+        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;
+    },[rate, summary?.estimatedDuration])
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const accentColor = isDark ? colors.dark.white : colors.light.black;
@@ -157,7 +166,7 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
                         </View>
                         <View style={styles.skillsList}>
                             {summary?.requiredSkills?.length > 0 ? (
-                                summary.requiredSkills.map((skill, index) => (
+                                summary?.requiredSkills?.map((skill, index) => (
                                     <View key={index} style={[styles.skillTag, { borderColor, backgroundColor: miscColor }]}>
                                         <ThemedText style={[styles.skillText, { color: textColor }]}>{skill.name}</ThemedText>
                                     </View>
@@ -185,7 +194,7 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
                         <ThemedText 
                             style={[styles.summaryValue, styles.toolsValue, { color: textColor }, !summary?.estimatedDuration && styles.emptyValue]} 
                         >
-                            {summary.requiredTools.join(', ')}
+                            {summary?.requiredTools?.join(', ')}
                         </ThemedText>
                     </View>
                 </View>
@@ -204,7 +213,7 @@ export default function JobSummary({ summary, containerStyle }: JobSummaryProps)
                 <ThemedText 
                     style={[styles.priceValue, { color: summary?.estimatedPrice ? tintColor : secondaryColor }, !summary?.estimatedPrice && styles.emptyValue]}
                 >
-                    {summary?.estimatedPrice ? `${user?.settings?.currency} ${summary?.estimatedPrice}` : 'To be discussed'}
+                    {artisan?.id ? `${user?.settings?.currency} ${numeral(estimatedPrice).format('0,0.00')}` : summary?.estimatedPrice ? `${user?.settings?.currency} ${summary?.estimatedPrice}` : 'To be discussed'}
                 </ThemedText>
             </View>
             </View>

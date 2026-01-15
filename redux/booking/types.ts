@@ -11,8 +11,16 @@ export interface BookingState {
     serviceLocationType: ServiceLocationType;
     serviceLocation: Location;
     media: Media[];
+    availableSlots: AvailableSlot[];
+    isGettingAvailableSlots: boolean;
     isLoading: boolean;
     isSuccess: boolean;
+}
+
+export interface AvailableSlot {
+    date: string;
+    time: string;
+    dateTime: string;
 }
 
 export interface AppointmentDateTime {
@@ -23,6 +31,15 @@ export interface AppointmentDateTime {
 export enum ServiceLocationType {
     SHOP = 'shop',
     PERSON = 'person'
+}
+
+export interface GetAvailableTimesResponse {
+    workerId: string;
+    dateRange: {
+        startDate: string;
+        endDate: string;
+    };
+    availableSlots: AvailableSlot[];
 }
 
 

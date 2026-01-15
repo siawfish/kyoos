@@ -59,3 +59,13 @@ export const selectIsSuccess = createSelector(
     [selectDomain],
     (booking) => booking?.isSuccess,
 );
+
+export const selectAvailableSlots = createSelector(
+    [selectDomain],
+    (booking) => booking?.availableSlots,
+);
+
+export const selectIsGettingAvailableSlots = createSelector(
+    [selectDomain],
+    (booking) => booking?.isGettingAvailableSlots,
+);
