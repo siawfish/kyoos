@@ -2,6 +2,7 @@ import { AvailableSlot, BookingState, ServiceLocationType } from '@/redux/bookin
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { Worker } from '../search/types';
+import { Location } from '../auth/types';
 
 // The initial state of the GithubRepoForm container
 export const initialState: BookingState = {
@@ -36,6 +37,7 @@ export const initialState: BookingState = {
   isGettingAvailableSlots: false,
   isLoading: false,
   isSuccess: false,
+  isMapPickerOpen: false,
 }
 
 interface RehydrateAction {
@@ -120,6 +122,18 @@ const bookingSlice = createSlice({
     },
     setArtisan: (state, action: PayloadAction<Worker>) => {
       state.artisan = action.payload;
+    },
+    setServiceLocation: (state, action: PayloadAction<Location>) => {
+      state.serviceLocation = action.payload;
+    },
+    openMapPicker: (state) => {
+      state.isMapPickerOpen = true;
+    },
+    closeMapPicker: (state) => {
+      state.isMapPickerOpen = false;
+    },
+    reverseGeocodeServiceLocation: (state, action: PayloadAction<string>) => {
+      // This action is handled by the saga
     },
     resetState: (state) => {
       return initialState;

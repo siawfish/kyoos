@@ -15,6 +15,7 @@ export interface BookingState {
     isGettingAvailableSlots: boolean;
     isLoading: boolean;
     isSuccess: boolean;
+    isMapPickerOpen: boolean;
 }
 
 export interface AvailableSlot {

@@ -7,8 +7,6 @@ import {
     Animated, 
     Easing, 
     TextStyle, 
-    Modal, 
-    TouchableWithoutFeedback, 
     Platform, 
     Text,
     ActivityIndicator,
@@ -22,7 +20,7 @@ import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, isToday, isTomorrow, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
-import { BlurView } from 'expo-blur';
+import IOSDatePickerModal from '@/components/ui/IOSDatePickerModal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { actions } from '@/redux/booking/slice';
 import { 
@@ -70,16 +68,6 @@ const AppointmentDateTimeSelector = ({
         light: colors.light.tint,
         dark: colors.dark.tint,
     }, 'tint');
-
-    const accentColor = useThemeColor({
-        light: colors.light.black,
-        dark: colors.dark.white
-    }, 'background');
-
-    const cardBg = useThemeColor({
-        light: colors.light.background,
-        dark: colors.dark.background
-    }, 'background');
 
     const borderColor = useThemeColor({
         light: colors.light.tint,
@@ -197,51 +185,12 @@ const AppointmentDateTimeSelector = ({
 
             {/* Date Picker Modal */}
             {Platform.OS === 'ios' ? (
-                <Modal
+                <IOSDatePickerModal
                     visible={showDatePicker}
-                    transparent={true}
-                    animationType="fade"
-                >
-                    <TouchableWithoutFeedback onPress={onBlur}>
-                        <View style={styles.modalOverlay}>
-                            <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-                            <TouchableWithoutFeedback>
-                                <View style={[styles.modalContent, { backgroundColor: cardBg }]}>
-                                    <View style={styles.modalHeader}>
-                                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                                        <View style={styles.headerContent}>
-                                            <View style={styles.headerLabelRow}>
-                                                <Feather 
-                                                    name="calendar" 
-                                                    size={16} 
-                                                    color={isDark ? colors.dark.secondary : colors.light.secondary} 
-                                                />
-                                                <Text 
-                                                    style={[
-                                                        styles.headerLabel, 
-                                                        { 
-                                                            color: isDark ? colors.dark.secondary : colors.light.secondary 
-                                                        }
-                                                    ]}
-                                                >
-                                                    SELECT DATE
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                    <DateTimePicker
-                                        value={selectedDate}
-                                        mode="date"
-                                        display="spinner"
-                                        onChange={handleDateChange}
-                                        minimumDate={new Date()}
-                                        textColor={color}
-                                    />
-                                </View>
-                            </TouchableWithoutFeedback>
-                        </View>
-                    </TouchableWithoutFeedback>
-                </Modal>
+                    selectedDate={selectedDate}
+                    onDateChange={handleDateChange}
+                    onClose={onBlur}
+                />
             ) : showDatePicker && (
                 <DateTimePicker
                     value={selectedDate}
@@ -359,39 +308,6 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: fontPixel(16),
         fontFamily: 'Regular'
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
-        paddingBottom: heightPixel(40),
-    },
-    modalHeader: {
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
-        paddingBottom: heightPixel(16),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerContent: {
-        // flex: 1,
-    },
-    headerLabelRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-    },
-    headerLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
     },
     timeSlotsContainer: {
         marginTop: heightPixel(12),

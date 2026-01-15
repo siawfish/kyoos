@@ -8,12 +8,13 @@ import { Summary, Worker } from '@/redux/search/types';
 import Toast from 'react-native-toast-message';
 import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
 import { selectMedia, selectSearch, selectSummary } from '../search/selector';
-import { selectArtisan, selectAvailableSlots } from './selector';
+import { selectArtisan } from './selector';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { GetAvailableTimesResponse } from './types';
-import { addHours, addMinutes } from 'date-fns';
+import { Location } from '../auth/types';
+import { selectUserLocation } from '../app/selector';
 
 export function* confirmBooking() {
     try {
@@ -33,11 +34,13 @@ export function* initializeBooking() {
     const media: Media[] = yield select(selectMedia);
     const summary: Summary = yield select(selectSummary);
     const search: string = yield select(selectSearch);
+    const userLocation: Location = yield select(selectUserLocation);
     yield put(actions.updateBooking({
         media,
         summary,
         description: search,
         requiredSkills: summary.requiredSkills.map((skill) => skill.name),
+        serviceLocation: userLocation,
     }));
 }
 
@@ -59,8 +62,34 @@ export function* getAvailableTimes(action: PayloadAction<string>) {
     }
 }
 
+export function* reverseGeocodeServiceLocation(action: PayloadAction<string>) {
+    try {
+        const response: ApiResponse<Location> = yield call(request, {
+            method: 'GET',
+            url: `/api/google/reverseGeoCode/${action.payload}`,
+        });
+        if (response.error || !response.data) {
+            throw new Error(response.message || response.error || 'An error occurred while reverse geocoding location');
+        }
+        yield put(actions.setServiceLocation({
+            lat: response.data.lat,
+            lng: response.data.lng,
+            address: response.data.address,
+        }));
+        yield put(actions.closeMapPicker());
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while reverse geocoding location';
+        Toast.show({
+            type: 'error',
+            text1: 'Reverse geocode location failed',
+            text2: errorMessage,
+        });
+    }
+}
+
 export function* bookingSaga() {
   yield takeLatest(actions.onConfirmBooking, confirmBooking);
   yield takeLatest(actions.initializeBooking, initializeBooking);
   yield takeLatest(actions.getAvailableTimes, getAvailableTimes);
+  yield takeLatest(actions.reverseGeocodeServiceLocation, reverseGeocodeServiceLocation);
 }

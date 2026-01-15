@@ -18,13 +18,12 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function BookingScreen() {
     const router = useRouter();
     const { artisanId } = useLocalSearchParams<{ artisanId: string }>();
     const scrollViewRef = useRef<ScrollView>(null);
-    const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const dispatch = useAppDispatch();
     const artisan = useAppSelector(selectArtisan);
@@ -50,19 +49,8 @@ export default function BookingScreen() {
 
 
     const isRequestEnabled = useMemo(() => {
-        return hasScrolledToBottom && appointmentDate?.value && appointmentTime?.value && isWorkerQualified;
-    }, [hasScrolledToBottom, appointmentDate?.value, appointmentTime?.value, isWorkerQualified]);
-
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-        const paddingToBottom = 20;
-        const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= 
-            contentSize.height - paddingToBottom;
-
-        if (isCloseToBottom && !hasScrolledToBottom) {
-            setHasScrolledToBottom(true);
-        }
-    };
+        return appointmentDate?.value && appointmentTime?.value && isWorkerQualified;
+    }, [appointmentDate?.value, appointmentTime?.value, isWorkerQualified]);
 
     useFocusEffect(() => {
         dispatch(actions.initializeBooking())
@@ -128,8 +116,8 @@ export default function BookingScreen() {
                     style={styles.scrollView}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
-                    onScroll={handleScroll}
                     scrollEventThrottle={16}
+                    keyboardDismissMode="on-drag"
                 >
                     {/* Header */}
                     <View style={styles.header}>
@@ -235,15 +223,6 @@ export default function BookingScreen() {
                     disabled={!isRequestEnabled}
                     onPress={handleRequestBooking}
                 />
-                {/* {!isRequestEnabled && (
-                    <ThemedText 
-                        style={styles.warningText}
-                        lightColor={colors.light.error}
-                        darkColor={colors.dark.error}
-                    >
-                        {!selectedDate ? "Please select a date and time" : "Please review all details"}
-                    </ThemedText>
-                )} */}
                 {!isWorkerQualified && (
                     <ThemedText 
                         style={styles.warningText}

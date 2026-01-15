@@ -69,3 +69,13 @@ export const selectIsGettingAvailableSlots = createSelector(
     [selectDomain],
     (booking) => booking?.isGettingAvailableSlots,
 );
+
+export const selectServiceLocation = createSelector(
+    [selectDomain],
+    (booking) => booking?.serviceLocation,
+);
+
+export const selectIsMapPickerOpen = createSelector(
+    [selectDomain],
+    (booking) => booking?.isMapPickerOpen,
+);

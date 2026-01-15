@@ -117,7 +117,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                         disabled={!localDescription.trim() || isLoading}
                         isLoading={isLoading}
                         style={styles.submitButton}
-                        icon={<Feather name="arrow-right" size={18} color={colors.light.white} />}
+                        icon={<Feather name="arrow-right" size={18} color={textColor} />}
                     />
                     <ThemedText style={[styles.footerHint, { color: secondaryColor }]}>
                         Provide details about the service you need
@@ -125,7 +125,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                 </View>
             </BottomSheetFooter>
         ),
-        [localDescription, borderColor, backgroundColor, secondaryColor, handleSubmit, isLoading]
+        [localDescription, borderColor, backgroundColor, secondaryColor, handleSubmit, isLoading, textColor]
     );
 
     if (!descriptionModalVisible) return null;
