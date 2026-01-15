@@ -10,7 +10,7 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
+import { selectArtisan, selectDescription, selectError, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { actions as searchActions } from "@/redux/search/slice";
@@ -31,6 +31,7 @@ export default function BookingScreen() {
     const summary = useAppSelector(selectSummary);
     const appointmentTime = useAppSelector(selectServiceTime);
     const appointmentDate = useAppSelector(selectServiceDate);
+    const error = useAppSelector(selectError);
     const serviceLocationType = useAppSelector(selectServiceLocationType);
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
@@ -244,6 +245,17 @@ export default function BookingScreen() {
                         This worker does not have the required skills to perform this service.
                     </ThemedText>
                 )}
+                {
+                    error && (
+                        <ThemedText 
+                            style={styles.warningText}
+                            lightColor={colors.light.error}
+                            darkColor={colors.dark.error}
+                        >
+                            {error}
+                        </ThemedText>
+                    )
+                }
             </View>
             <ConfirmActionSheet
                 isOpen={showCancelConfirm}

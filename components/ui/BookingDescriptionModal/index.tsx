@@ -71,6 +71,11 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
         dark: colors.dark.misc,
     }, 'misc');
 
+    const iconColor = useThemeColor({
+        light: colors.light.white,
+        dark: colors.dark.black,
+    }, 'text');
+
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
             dispatch(actions.setDescriptionModalVisible(false));
@@ -117,7 +122,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                         disabled={!localDescription.trim() || isLoading}
                         isLoading={isLoading}
                         style={styles.submitButton}
-                        icon={<Feather name="arrow-right" size={18} color={textColor} />}
+                        icon={<Feather name="arrow-right" size={18} color={iconColor} />}
                     />
                     <ThemedText style={[styles.footerHint, { color: secondaryColor }]}>
                         Provide details about the service you need
@@ -125,7 +130,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                 </View>
             </BottomSheetFooter>
         ),
-        [localDescription, borderColor, backgroundColor, secondaryColor, handleSubmit, isLoading, textColor]
+        [localDescription, borderColor, backgroundColor, secondaryColor, handleSubmit, isLoading, iconColor]
     );
 
     if (!descriptionModalVisible) return null;

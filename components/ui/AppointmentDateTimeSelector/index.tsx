@@ -19,7 +19,7 @@ import { colors } from '@/constants/theme/colors';
 import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { format, isToday, isTomorrow, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
+import { isToday, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
 import IOSDatePickerModal from '@/components/ui/IOSDatePickerModal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { actions } from '@/redux/booking/slice';

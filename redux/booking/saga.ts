@@ -2,31 +2,55 @@
  * Gets the repositories of the game from Game
  */
 
-import { Media } from '@/redux/app/types';
+import { FormElement, Media } from '@/redux/app/types';
 import { actions } from '@/redux/booking/slice';
 import { Summary, Worker } from '@/redux/search/types';
 import Toast from 'react-native-toast-message';
-import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
-import { selectMedia, selectSearch, selectSummary } from '../search/selector';
-import { selectArtisan } from './selector';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
+import { selectArtisan, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
-import { GetAvailableTimesResponse } from './types';
+import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
 import { Location } from '../auth/types';
 import { selectUserLocation } from '../app/selector';
+import { router } from 'expo-router';
 
 export function* confirmBooking() {
     try {
-        yield delay(500);
-    } catch (error:any) {
-        Toast.show({
-            type: 'error',
-            text1: 'Booking failed',
-            text2: error?.message || 'An error occurred while booking',
+        const serviceType: ServiceLocationType = yield select(selectServiceLocationType);
+        const serviceLocation: Location = yield select(selectServiceLocation);
+        const worker: Worker = yield select(selectArtisan);
+        const time: FormElement = yield select(selectServiceTime);
+        const date: FormElement = yield select(selectServiceDate);
+        const searchId: string = yield select(selectSearchReferenceId);
+        const response: ApiResponse<Booking> = yield call(request, {
+            method: 'POST',
+            url: `/api/users/booking`,
+            data: {
+                serviceType,
+                serviceLocation: serviceType === ServiceLocationType.PERSON ? serviceLocation : null,
+                workerId: worker?.id,
+                date: date?.value,
+                startTime: time?.value,
+                searchId,
+            }
+        })
+        if (response.error || !response.data) {
+            throw new Error(response.message || response.error || 'An error occurred while booking');
+        }
+        yield put(actions.onConfirmBookingSuccess());
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while booking';
+        yield put(actions.onConfirmBookingError(errorMessage));
+        const worker: Worker = yield select(selectArtisan);
+        router.replace({
+            pathname: '/(tabs)/(search)/(booking)/booking',
+            params: {
+                artisanId: worker?.id,
+            },
         });
-    } finally {
-        yield put(actions.setIsLoading(false));
     }
 }
 

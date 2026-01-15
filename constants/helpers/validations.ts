@@ -1,5 +1,6 @@
 import { KeyValue } from "@/redux/app/types";
 import { RegisterForm, RegisterFormFields, Location } from "@/redux/auth/types";
+import { Booking } from "@/redux/booking/types";
 
 
 

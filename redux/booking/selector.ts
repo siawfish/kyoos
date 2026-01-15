@@ -79,3 +79,8 @@ export const selectIsMapPickerOpen = createSelector(
     [selectDomain],
     (booking) => booking?.isMapPickerOpen,
 );
+
+export const selectError = createSelector(
+    [selectDomain],
+    (booking) => booking?.error,
+);

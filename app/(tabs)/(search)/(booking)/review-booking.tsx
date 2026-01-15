@@ -31,10 +31,12 @@ import { Feather } from "@expo/vector-icons";
 import { convertFromMillisecondsToHours, formatDate } from "@/constants/helpers";
 import { useMemo } from "react";
 import numeral from "numeral";
+import { selectUser } from "@/redux/app/selector";
 
 export default function ReviewBooking() {
     const router = useRouter();
     const dispatch = useAppDispatch();
+    const user = useAppSelector(selectUser);
     const summary = useAppSelector(selectSummary);
     const appointmentTime = useAppSelector(selectServiceTime);
     const appointmentDate = useAppSelector(selectServiceDate);
@@ -74,8 +76,8 @@ export default function ReviewBooking() {
     }, 'background');
 
     const borderColor = useThemeColor({
-        light: colors.light.grey,
-        dark: colors.dark.grey
+        light: colors.light.tint,
+        dark: colors.dark.tint
     }, 'background');
 
     const tintColor = useThemeColor({
@@ -95,9 +97,6 @@ export default function ReviewBooking() {
 
     const handleConfirmBooking = () => {
         dispatch(actions.onConfirmBooking());
-        setTimeout(() => {
-            dispatch(actions.onConfirmBookingSuccess());
-        }, 2000);
     };
 
     const handleSuccessClose = () => {
@@ -291,7 +290,7 @@ export default function ReviewBooking() {
                             <View style={styles.detailContent}>
                                 <Text style={[styles.detailLabel, { color: labelColor }]}>ESTIMATED PRICE</Text>
                                 <Text style={[styles.detailValue, { color: textColor }]}>
-                                    {estimatedPrice ? numeral(estimatedPrice).format('0,0.00') : 'To be discussed'}
+                                    {estimatedPrice ? `${user?.settings?.currency} ${numeral(estimatedPrice).format('0,0.00')}` : 'To be discussed'}
                                 </Text>
                             </View>
                         </View>
@@ -440,7 +439,7 @@ const styles = StyleSheet.create({
     
     // Worker Card Styles
     workerCard: {
-        borderWidth: 1,
+        borderWidth: 0.5,
         padding: widthPixel(16),
     },
     workerHeader: {
@@ -474,7 +473,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     divider: {
-        height: 1,
+        height: 0.5,
         marginVertical: heightPixel(16),
     },
     workerDetails: {
@@ -525,7 +524,7 @@ const styles = StyleSheet.create({
 
     // Details Card Styles
     detailsCard: {
-        borderWidth: 1,
+        borderWidth: 0.5,
     },
     detailItem: {
         flexDirection: 'row',
@@ -551,13 +550,13 @@ const styles = StyleSheet.create({
         lineHeight: fontPixel(20),
     },
     itemDivider: {
-        height: 1,
+        height: 0.5,
         marginHorizontal: widthPixel(16),
     },
 
     // Content Card Styles
     contentCard: {
-        borderWidth: 1,
+        borderWidth: 0.5,
         padding: widthPixel(16),
     },
     descriptionText: {

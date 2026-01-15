@@ -38,6 +38,7 @@ export const initialState: BookingState = {
   isLoading: false,
   isSuccess: false,
   isMapPickerOpen: false,
+  error: '',
 }
 
 interface RehydrateAction {
@@ -61,15 +62,17 @@ const bookingSlice = createSlice({
       state.isLoading = false;
       state.isSuccess = true;
     },
-    onConfirmBookingError: (state) => {
+    onConfirmBookingError: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
       state.isSuccess = false;
+      state.error = action.payload;
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
     setServiceLocationType: (state, action: PayloadAction<ServiceLocationType>) => {
       state.serviceLocationType = action.payload;
+      state.error = '';
     },
     setAppointmentDateTime: (state, action: PayloadAction<string>) => {
       const date = new Date(action.payload);
@@ -83,6 +86,7 @@ const bookingSlice = createSlice({
           error: '',
         },
       };
+      state.error = '';
     },
     setAppointmentDate: (state, action: PayloadAction<string>) => {
       state.appointmentDateTime.date.value = action.payload;
@@ -90,13 +94,16 @@ const bookingSlice = createSlice({
       // Clear time when date changes
       state.appointmentDateTime.time.value = '';
       state.appointmentDateTime.time.error = '';
+      state.error = '';
     },
     setAppointmentTime: (state, action: PayloadAction<string>) => {
       state.appointmentDateTime.time.value = action.payload;
       state.appointmentDateTime.time.error = '';
+      state.error = '';
     },
     getAvailableTimes: (state, action: PayloadAction<string>) => {
       state.isGettingAvailableSlots = true;
+      state.error = '';
     },
     getAvailableTimesSuccess: (state, action: PayloadAction<AvailableSlot[]>) => {
       state.availableSlots = action.payload;
