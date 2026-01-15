@@ -1,4 +1,4 @@
-import { StyleSheet, View, ScrollView, Text } from "react-native";
+import { StyleSheet, View, ScrollView, Text, Image } from "react-native";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import BackButton from "@/components/ui/BackButton";
@@ -9,14 +9,28 @@ import { useRouter } from "expo-router";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { selectServiceLocationType, selectSummary, selectServiceTime, selectServiceDate, selectDescription, selectMedia, selectIsLoading, selectIsSuccess } from "../../../../redux/booking/selector";
+import { 
+    selectServiceLocationType, 
+    selectSummary, 
+    selectServiceTime, 
+    selectServiceDate, 
+    selectDescription, 
+    selectMedia, 
+    selectIsLoading, 
+    selectIsSuccess,
+    selectArtisan,
+    selectServiceLocation
+} from "../../../../redux/booking/selector";
 import { actions } from "../../../../redux/booking/slice";
 import { actions as searchActions } from "../../../../redux/search/slice";
-import { format } from 'date-fns';
 import { ServiceLocationType } from "@/redux/booking/types";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import SuccessOverlay from "@/components/ui/SuccessOverlay";
 import { BlurView } from "expo-blur";
+import { Feather } from "@expo/vector-icons";
+import { convertFromMillisecondsToHours, formatDate } from "@/constants/helpers";
+import { useMemo } from "react";
+import numeral from "numeral";
 
 export default function ReviewBooking() {
     const router = useRouter();
@@ -29,6 +43,17 @@ export default function ReviewBooking() {
     const media = useAppSelector(selectMedia);
     const isLoading = useAppSelector(selectIsLoading);
     const isSuccess = useAppSelector(selectIsSuccess);
+    const artisan = useAppSelector(selectArtisan);
+    const serviceLocation = useAppSelector(selectServiceLocation);
+    const workerSkills = artisan?.skills;
+    const requiredSkills = summary?.requiredSkills;
+    const service = useMemo(()=>{
+        return workerSkills?.find(skill => skill.id === requiredSkills[0]?.id);
+    },[workerSkills, requiredSkills]);
+    const rate = service?.rate;
+    const estimatedPrice = useMemo(()=>{
+        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;
+    },[rate, summary?.estimatedDuration]);
 
     const theme = useAppTheme();
     const isDark = theme === 'dark';
@@ -48,11 +73,9 @@ export default function ReviewBooking() {
         dark: colors.dark.white
     }, 'background');
 
-    const borderColor = accentColor;
-
-    const cardBg = useThemeColor({
-        light: colors.light.background,
-        dark: colors.dark.background
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey
     }, 'background');
 
     const tintColor = useThemeColor({
@@ -62,12 +85,16 @@ export default function ReviewBooking() {
 
     const backgroundColor = useThemeColor({
         light: colors.light.white,
-        dark: colors.dark.black
+        dark: colors.dark.white
     }, 'white');
+
+    const miscBg = useThemeColor({
+        light: colors.light.misc,
+        dark: colors.dark.misc
+    }, 'background');
 
     const handleConfirmBooking = () => {
         dispatch(actions.onConfirmBooking());
-        // Simulate API call
         setTimeout(() => {
             dispatch(actions.onConfirmBookingSuccess());
         }, 2000);
@@ -83,12 +110,35 @@ export default function ReviewBooking() {
         if (appointmentDate?.value && appointmentTime?.value) {
             const date = new Date(appointmentDate.value);
             return {
-                date: format(date, 'EEEE, MMMM d, yyyy'),
+                date: formatDate(date),
                 time: appointmentTime.value
             };
         }
         return null;
     })();
+
+    const renderStars = (rating: number) => {
+        const stars = [];
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars.push(
+                    <Feather key={i} name="star" size={fontPixel(12)} color={textColor} style={{ marginRight: 2 }} />
+                );
+            } else if (i === fullStars && hasHalfStar) {
+                stars.push(
+                    <Feather key={i} name="star" size={fontPixel(12)} color={labelColor} style={{ marginRight: 2 }} />
+                );
+            } else {
+                stars.push(
+                    <Feather key={i} name="star" size={fontPixel(12)} color={borderColor} style={{ marginRight: 2 }} />
+                );
+            }
+        }
+        return stars;
+    };
 
     return (
         <ThemedSafeAreaView style={styles.container}>
@@ -107,26 +157,159 @@ export default function ReviewBooking() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>REVIEW BOOKING</Text>
+                    <Text style={[styles.pageTitle, { color: labelColor }]}>REVIEW BOOKING</Text>
+                </View>
+
+                {/* Worker Details Section */}
+                {artisan && (
+                    <View style={styles.section}>
+                        <View style={[styles.workerCard, { borderColor }]}>
+                            <View style={styles.workerContent}>
+                                <View style={styles.workerHeader}>
+                                    <Image 
+                                        source={{ uri: artisan.avatar }} 
+                                        style={[styles.workerAvatar, { backgroundColor: miscBg }]}
+                                    />
+                                    <View style={styles.workerInfo}>
+                                        <ThemedText 
+                                            style={styles.workerName}
+                                            darkColor={colors.dark.text}
+                                            lightColor={colors.light.text}
+                                        >
+                                            {artisan.name}
+                                        </ThemedText>
+                                        <View style={styles.ratingContainer}>
+                                            {renderStars(artisan.rating || 0)}
+                                            <Text style={[styles.ratingText, { color: labelColor }]}>
+                                                {artisan.rating?.toFixed(1) || '0.0'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                {service && (
+                                    <View style={[styles.skillTag, { backgroundColor: miscBg }]}>
+                                        {service.icon && (
+                                            <View style={[styles.skillIconContainer, { backgroundColor: backgroundColor }]}>
+                                                <Image 
+                                                    source={{ uri: service.icon }} 
+                                                    style={styles.skillIcon}
+                                                    resizeMode="contain"
+                                                />
+                                            </View>
+                                        )}
+                                        <Text style={[styles.skillText, { color: textColor }]}>
+                                            {service.name}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                            
+                            <View style={[styles.divider, { backgroundColor: borderColor }]} />
+                            
+                            <View style={styles.workerDetails}>
+                                {artisan.location?.address && (
+                                    <View style={styles.detailRow}>
+                                        <Feather name="map-pin" size={fontPixel(14)} color={labelColor} />
+                                        <Text style={[styles.detailText, { color: textColor }]} numberOfLines={1}>
+                                            {artisan.location.address}
+                                        </Text>
+                                    </View>
+                                )}
+                                {/* {artisan.phoneNumber && (
+                                    <View style={styles.detailRow}>
+                                        <Feather name="phone" size={fontPixel(14)} color={labelColor} />
+                                        <Text style={[styles.detailText, { color: textColor }]}>
+                                            {artisan.phoneNumber}
+                                        </Text>
+                                    </View>
+                                )} */}
+                            </View>
+                        </View>
+                    </View>
+                )}
+
+                {/* Booking Details */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionLabel, { color: labelColor }]}>BOOKING DETAILS</Text>
+                    
+                    <View style={[styles.detailsCard, { borderColor }]}>
+                        {/* Date & Time */}
+                        {formattedDateTime && (
+                            <View style={styles.detailItem}>
+                                <View style={styles.detailIcon}>
+                                    <Feather name="calendar" size={fontPixel(16)} color={accentColor} />
+                                </View>
+                                <View style={styles.detailContent}>
+                                    <Text style={[styles.detailLabel, { color: labelColor }]}>DATE & TIME</Text>
+                                    <Text style={[styles.detailValue, { color: textColor }]}>
+                                        {formattedDateTime.date} • {formattedDateTime.time}
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
+
+                        <View style={[styles.itemDivider, { backgroundColor: borderColor }]} />
+
+                        {/* Service Location */}
+                        <View style={styles.detailItem}>
+                            <View style={styles.detailIcon}>
+                                <Feather name="map-pin" size={fontPixel(16)} color={accentColor} />
+                            </View>
+                            <View style={styles.detailContent}>
+                                <Text style={[styles.detailLabel, { color: labelColor }]}>SERVICE LOCATION</Text>
+                                <Text style={[styles.detailValue, { color: textColor }]}>
+                                    {serviceLocationType === ServiceLocationType.SHOP 
+                                        ? "At Worker's Shop" 
+                                        : serviceLocation?.address || "At Your Location"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={[styles.itemDivider, { backgroundColor: borderColor }]} />
+
+                        {/* Duration */}
+                        <View style={styles.detailItem}>
+                            <View style={styles.detailIcon}>
+                                <Feather name="clock" size={fontPixel(16)} color={accentColor} />
+                            </View>
+                            <View style={styles.detailContent}>
+                                <Text style={[styles.detailLabel, { color: labelColor }]}>ESTIMATED DURATION</Text>
+                                <Text style={[styles.detailValue, { color: textColor }]}>
+                                    {summary?.estimatedDuration ? convertFromMillisecondsToHours(summary?.estimatedDuration) + ' hours' : 'Not specified'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={[styles.itemDivider, { backgroundColor: borderColor }]} />
+
+                        {/* Price */}
+                        <View style={styles.detailItem}>
+                            <View style={styles.detailIcon}>
+                                <Feather name="credit-card" size={fontPixel(16)} color={accentColor} />
+                            </View>
+                            <View style={styles.detailContent}>
+                                <Text style={[styles.detailLabel, { color: labelColor }]}>ESTIMATED PRICE</Text>
+                                <Text style={[styles.detailValue, { color: textColor }]}>
+                                    {estimatedPrice ? numeral(estimatedPrice).format('0,0.00') : 'To be discussed'}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Description Section */}
                 {description && (
                     <View style={styles.section}>
-                        <View style={styles.sectionLabelContainer}>
-                            <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
-                        </View>
-                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                            <View style={styles.cardContent}>
-                                <ThemedText 
-                                    style={[styles.sectionContent, { color: textColor }]}
-                                    darkColor={colors.dark.text}
-                                    lightColor={colors.light.text}
-                                >
-                                    {description}
-                                </ThemedText>
-                            </View>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
+                        <View style={[styles.contentCard, { borderColor }]}>
+                            <ThemedText 
+                                style={styles.descriptionText}
+                                darkColor={colors.dark.text}
+                                lightColor={colors.light.text}
+                            >
+                                {description}
+                            </ThemedText>
                         </View>
                     </View>
                 )}
@@ -134,143 +317,52 @@ export default function ReviewBooking() {
                 {/* Media Section */}
                 {media && media.length > 0 && (
                     <View style={styles.section}>
-                        <View style={styles.sectionLabelContainer}>
-                            <Text style={[styles.sectionLabel, { color: labelColor }]}>MEDIA</Text>
-                        </View>
-                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                            <View style={styles.cardContent}>
-                                <MediaPreviews 
-                                    media={media}
-                                    backgroundColor={backgroundColor}
-                                    tintColor={tintColor}
-                                    containerStyle={styles.mediaContainer}
-                                />
-                            </View>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>ATTACHMENTS</Text>
+                        <View style={[styles.contentCard, { borderColor }]}>
+                            <MediaPreviews 
+                                media={media}
+                                backgroundColor={backgroundColor}
+                                tintColor={tintColor}
+                                containerStyle={styles.mediaContainer}
+                            />
                         </View>
                     </View>
                 )}
-
-                {/* Time Estimation */}
-                <View style={styles.section}>
-                    <View style={styles.sectionLabelContainer}>
-                        <Text style={[styles.sectionLabel, { color: labelColor }]}>TIME ESTIMATION</Text>
-                    </View>
-                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                        <View style={styles.cardContent}>
-                            <ThemedText 
-                                style={[styles.sectionContent, { color: textColor }]}
-                                darkColor={colors.dark.text}
-                                lightColor={colors.light.text}
-                            >
-                                Estimated Duration: {summary?.estimatedDuration || 'Not specified'}
-                            </ThemedText>
-                            <ThemedText 
-                                style={[styles.estimationNote, { color: labelColor }]}
-                                darkColor={colors.dark.secondary}
-                                lightColor={colors.light.secondary}
-                            >
-                                Note: Duration may vary based on complexity and unforeseen issues
-                            </ThemedText>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Date & Time */}
-                {formattedDateTime && (
-                    <View style={styles.section}>
-                        <View style={styles.sectionLabelContainer}>
-                            <Text style={[styles.sectionLabel, { color: labelColor }]}>DATE & TIME</Text>
-                        </View>
-                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                            <View style={styles.cardContent}>
-                                <ThemedText 
-                                    style={[styles.sectionContent, { color: textColor }]}
-                                    darkColor={colors.dark.text}
-                                    lightColor={colors.light.text}
-                                >
-                                    {formattedDateTime.date}
-                                </ThemedText>
-                                <ThemedText 
-                                    style={[styles.sectionContent, { color: textColor }]}
-                                    darkColor={colors.dark.text}
-                                    lightColor={colors.light.text}
-                                >
-                                    {formattedDateTime.time}
-                                </ThemedText>
-                            </View>
-                        </View>
-                    </View>
-                )}
-
-                {/* Service Location */}
-                <View style={styles.section}>
-                    <View style={styles.sectionLabelContainer}>
-                        <Text style={[styles.sectionLabel, { color: labelColor }]}>SERVICE LOCATION</Text>
-                    </View>
-                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                        <View style={styles.cardContent}>
-                            <ThemedText 
-                                style={[styles.sectionContent, { color: textColor }]}
-                                darkColor={colors.dark.text}
-                                lightColor={colors.light.text}
-                            >
-                                {serviceLocationType === ServiceLocationType.SHOP ? 'At Artisan\'s Shop' : 'At Your Location'}
-                            </ThemedText>
-                        </View>
-                    </View>
-                </View>
 
                 {/* Required Skills */}
                 {summary?.requiredSkills && summary.requiredSkills.length > 0 && (
                     <View style={styles.section}>
-                        <View style={styles.sectionLabelContainer}>
-                            <Text style={[styles.sectionLabel, { color: labelColor }]}>REQUIRED SKILLS</Text>
-                        </View>
-                        <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                            <View style={styles.cardContent}>
+                        <Text style={[styles.sectionLabel, { color: labelColor }]}>REQUIRED SKILLS</Text>
+                        <View style={[styles.contentCard, { borderColor }]}>
+                            <View style={styles.skillsList}>
                                 {summary.requiredSkills.map((skill, index) => (
-                                    <ThemedText 
-                                        key={index} 
-                                        style={[styles.sectionContent, { color: textColor }]}
-                                        darkColor={colors.dark.text}
-                                        lightColor={colors.light.text}
-                                    >
-                                        • {skill}
-                                    </ThemedText>
+                                    <View key={index} style={[styles.skillTag, { backgroundColor: miscBg }]}>
+                                        {skill.icon && (
+                                            <View style={[styles.skillIconContainer, { backgroundColor: backgroundColor }]}>
+                                                <Image 
+                                                    source={{ uri: skill.icon }} 
+                                                    style={styles.skillIcon}
+                                                    resizeMode="contain"
+                                                />
+                                            </View>
+                                        )}
+                                        <Text style={[styles.skillText, { color: textColor }]}>
+                                            {skill.name}
+                                        </Text>
+                                    </View>
                                 ))}
                             </View>
                         </View>
                     </View>
                 )}
 
-                {/* Price Estimation */}
+                {/* Note */}
                 <View style={styles.section}>
-                    <View style={styles.sectionLabelContainer}>
-                        <Text style={[styles.sectionLabel, { color: labelColor }]}>PRICE ESTIMATION</Text>
-                    </View>
-                    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                        <View style={styles.cardContent}>
-                            <ThemedText 
-                                style={[styles.sectionContent, { color: textColor }]}
-                                darkColor={colors.dark.text}
-                                lightColor={colors.light.text}
-                            >
-                                Estimated Cost: {summary?.estimatedPrice || 'To be discussed'}
-                            </ThemedText>
-                            <ThemedText 
-                                style={[styles.estimationNote, { color: labelColor }]}
-                                darkColor={colors.dark.secondary}
-                                lightColor={colors.light.secondary}
-                            >
-                                Note: Final price may vary based on actual work required
-                            </ThemedText>
-                        </View>
+                    <View style={[styles.noteCard, { backgroundColor: miscBg }]}>
+                        <Feather name="info" size={fontPixel(14)} color={labelColor} />
+                        <Text style={[styles.noteText, { color: labelColor }]}>
+                            Final price and duration may vary based on actual work required
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -308,21 +400,20 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(16),
+        paddingBottom: heightPixel(8),
     },
     header: {
-        // paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
     },
     accentBar: {
         width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
+        height: heightPixel(3),
+        marginBottom: heightPixel(16),
     },
-    label: {
+    Title: {
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
+        letterSpacing: 2,
     },
     scrollView: {
         flex: 1,
@@ -334,42 +425,166 @@ const styles = StyleSheet.create({
     section: {
         marginBottom: heightPixel(24),
     },
-    sectionLabelContainer: {
+    pageTitle: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
         marginBottom: heightPixel(12),
     },
     sectionLabel: {
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
+        marginBottom: heightPixel(12),
     },
-    card: {
-        borderWidth: 0.5,
-        borderTopWidth: 0,
+    
+    // Worker Card Styles
+    workerCard: {
+        borderWidth: 1,
+        padding: widthPixel(16),
+    },
+    workerHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    workerAvatar: {
+        width: widthPixel(56),
+        height: widthPixel(56),
+    },
+    workerInfo: {
+        marginLeft: widthPixel(16),
+    },
+    workerName: {
+        fontSize: fontPixel(18),
+        fontFamily: 'SemiBold',
+        marginBottom: heightPixel(4),
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    ratingText: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Medium',
+        marginLeft: widthPixel(6),
+    },
+    workerContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    divider: {
+        height: 1,
+        marginVertical: heightPixel(16),
+    },
+    workerDetails: {
+        gap: heightPixel(10),
+    },
+    detailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(10),
+    },
+    detailText: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
+        flex: 1,
+    },
+    skillsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: widthPixel(8),
+    },
+    skillTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(6),
+        paddingHorizontal: widthPixel(12),
+        paddingVertical: heightPixel(6),
+    },
+    skillIconContainer: {
+        width: widthPixel(16),
+        height: widthPixel(16),
+        alignItems: 'center',
+        justifyContent: 'center',
         overflow: 'hidden',
     },
-    topAccent: {
-        height: heightPixel(3),
-        width: '100%',
+    skillIcon: {
+        width: widthPixel(16),
+        height: widthPixel(16),
     },
-    cardContent: {
+    skillText: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Medium',
+    },
+    skillsList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: widthPixel(8),
+    },
+
+    // Details Card Styles
+    detailsCard: {
+        borderWidth: 1,
+    },
+    detailItem: {
+        flexDirection: 'row',
         padding: widthPixel(16),
-        gap: heightPixel(8),
     },
-    sectionContent: {
-        fontSize: fontPixel(15),
+    detailIcon: {
+        width: widthPixel(32),
+        alignItems: 'center',
+        paddingTop: heightPixel(2),
+    },
+    detailContent: {
+        flex: 1,
+    },
+    detailLabel: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1,
+        marginBottom: heightPixel(4),
+    },
+    detailValue: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Regular',
+        lineHeight: fontPixel(20),
+    },
+    itemDivider: {
+        height: 1,
+        marginHorizontal: widthPixel(16),
+    },
+
+    // Content Card Styles
+    contentCard: {
+        borderWidth: 1,
+        padding: widthPixel(16),
+    },
+    descriptionText: {
+        fontSize: fontPixel(14),
         fontFamily: 'Regular',
         lineHeight: fontPixel(22),
     },
-    estimationNote: {
-        fontSize: fontPixel(13),
-        fontFamily: 'Regular',
-        fontStyle: 'italic',
-        marginTop: heightPixel(4),
-    },
-    footer: {
-        paddingVertical: heightPixel(16),
-    },
     mediaContainer: {
         paddingHorizontal: 0,
+    },
+
+    // Note Card Styles
+    noteCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: widthPixel(14),
+        gap: widthPixel(10),
+    },
+    noteText: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Regular',
+        flex: 1,
+        lineHeight: fontPixel(18),
+    },
+
+    // Footer Styles
+    footer: {
+        paddingVertical: heightPixel(16),
     },
 });

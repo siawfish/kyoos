@@ -1,6 +1,6 @@
 import { Skill, Worker } from '@/redux/search/types';
 import { BookingStatuses, PermissionType, StatusColors, MimeType } from '@/redux/app/types';
-import { formatRelative } from 'date-fns'
+import { format, formatRelative, isToday, isTomorrow } from 'date-fns'
 import * as Location from 'expo-location';
 import { Location as LocationType } from '@/redux/auth/types';
 
@@ -12,6 +12,16 @@ export const timeToString = (time: number) => {
 export const formatRelativeDate = (date: string) => {
   return formatRelative(new Date(date), new Date())?.split(' at')[0];
 }
+
+export const formatDate = (date: Date) => {
+  if (isToday(date)) {
+    return 'Today';
+  } else if (isTomorrow(date)) {
+    return 'Tomorrow';
+  } else {
+    return format(date, 'EEE, MMM d');
+  }
+};
 
 export function getStatusColors(status: BookingStatuses): StatusColors {
   const statusColors: Record<BookingStatuses, StatusColors> = {

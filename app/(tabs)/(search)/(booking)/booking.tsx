@@ -10,15 +10,16 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
+import { selectArtisan, selectDescription, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { actions as searchActions } from "@/redux/search/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ServiceLocationType } from "@/redux/booking/types";
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -34,6 +35,7 @@ export default function BookingScreen() {
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
     const allWorkers = useAppSelector(selectAllWorkers);
+    const serviceLocation = useAppSelector(selectServiceLocation);
     const isWorkerQualified = useMemo(()=>{
         return artisan?.skills?.map(skill => skill.id).some(skill => summary.requiredSkills.some(requiredSkill => requiredSkill.id === skill));
     },[artisan?.skills, summary?.requiredSkills]);
@@ -47,14 +49,24 @@ export default function BookingScreen() {
         }
     }, [artisanId, dispatch, allWorkers]);
 
+    const isServiceLocationValid = useMemo(() => {
+        if(serviceLocationType === ServiceLocationType.SHOP) {
+            return true;
+        }
+        if(serviceLocationType === ServiceLocationType.PERSON && serviceLocation.address.trim() !== '') {
+            return true;
+        }
+        return false;
+    }, [serviceLocationType, serviceLocation.address]);
+
 
     const isRequestEnabled = useMemo(() => {
-        return appointmentDate?.value && appointmentTime?.value && isWorkerQualified;
-    }, [appointmentDate?.value, appointmentTime?.value, isWorkerQualified]);
+        return appointmentDate?.value && appointmentTime?.value && isWorkerQualified && isServiceLocationValid;
+    }, [appointmentDate?.value, appointmentTime?.value, isWorkerQualified, isServiceLocationValid]);
 
-    useFocusEffect(() => {
-        dispatch(actions.initializeBooking())
-    });
+    useFocusEffect(useCallback(() => {
+        dispatch(actions.initializeBooking());
+    }, [dispatch]));
 
     const labelColor = useThemeColor({
         light: colors.light.secondary,

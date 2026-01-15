@@ -30,6 +30,7 @@ import {
     selectIsGettingAvailableSlots 
 } from '@/redux/booking/selector';
 import { AvailableSlot } from '@/redux/booking/types';
+import { formatDate } from '@/constants/helpers';
 
 interface AppointmentDateTimeSelectorProps {
     containerStyle?: ViewStyle;
@@ -124,16 +125,6 @@ const AppointmentDateTimeSelector = ({
         const timeValue = slot.time || slot.dateTime;
         if (timeValue) {
             dispatch(actions.setAppointmentTime(timeValue));
-        }
-    };
-
-    const formatDate = (date: Date) => {
-        if (isToday(date)) {
-            return 'Today';
-        } else if (isTomorrow(date)) {
-            return 'Tomorrow';
-        } else {
-            return format(date, 'EEE, MMM d');
         }
     };
 
