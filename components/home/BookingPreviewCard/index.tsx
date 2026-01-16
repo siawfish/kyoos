@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { Booking } from '@/redux/bookings/types';
+import { Booking } from '@/redux/booking/types';
 import { BookingStatuses } from '@/redux/app/types';
 
 interface BookingPreviewCardProps {
@@ -72,7 +72,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
     }
 
     const statusColor = getStatusColor(booking.status, isDark);
-    const startTime = booking.service.appointmentDateTime.time.value;
+    const startTime = booking.startTime;
 
     const handlePress = () => {
         router.push(`/(tabs)/(bookings)/${booking.id}`);
@@ -99,7 +99,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                     </View>
                     
                     <ThemedText style={[styles.title, { color: textColor }]} numberOfLines={1}>
-                        {booking.service.description}
+                        {booking.description}
                     </ThemedText>
                     
                     <View style={styles.detailsRow}>
@@ -108,7 +108,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                                 CLIENT
                             </ThemedText>
                             <ThemedText style={[styles.detailValue, { color: textColor }]} numberOfLines={1}>
-                                {booking.client.name}
+                                {booking.worker.name}
                             </ThemedText>
                         </View>
                         <View style={[styles.divider, { backgroundColor: secondaryColor }]} />
@@ -117,7 +117,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                                 DURATION
                             </ThemedText>
                             <ThemedText style={[styles.detailValue, { color: textColor }]}>
-                                {booking.service.summary.estimatedDuration}
+                                {booking.estimatedDuration}
                             </ThemedText>
                         </View>
                     </View>

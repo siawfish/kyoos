@@ -3,7 +3,7 @@ import IconButton from '@/components/ui/IconButton';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { Booking } from '@/redux/bookings/types';
+import { Booking } from '@/redux/booking/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import React from 'react';
@@ -26,18 +26,18 @@ const ContactCard = ({ booking }: ContactCardProps) => {
         <View style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
             <View style={[styles.topAccent, { backgroundColor: borderColor }]} />
             <View style={styles.content}>
-                <Text style={[styles.sectionLabel, { color: labelColor }]}>CLIENT</Text>
+                <Text style={[styles.sectionLabel, { color: labelColor }]}>WORKER</Text>
             <View style={styles.row}>
                 <View style={styles.user}>
                     <Image
-                            source={booking.client.avatar ? { uri: booking.client.avatar } : user}
+                            source={booking?.worker?.avatar ? { uri: booking?.worker?.avatar } : user}
                         style={styles.img}
                     />
                         <View style={styles.userInfo}>
-                            <Text style={[styles.name, { color: textColor }]}>{booking.client.name}</Text>
-                            {booking.client.location?.address && (
+                            <Text style={[styles.name, { color: textColor }]}>{booking?.worker?.name}</Text>
+                            {booking?.location?.address && (
                                 <Text style={[styles.address, { color: labelColor }]} numberOfLines={1}>
-                                    {booking.client.location.address}
+                                    {booking?.location?.address}
                                 </Text>
                             )}
                         </View>

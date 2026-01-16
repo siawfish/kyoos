@@ -23,6 +23,10 @@ export const formatDate = (date: Date) => {
   }
 };
 
+export const formatTime = (time: string) => {
+  return format(time, 'h:mm a');
+}
+
 export function getStatusColors(status: BookingStatuses): StatusColors {
   const statusColors: Record<BookingStatuses, StatusColors> = {
     PENDING: {

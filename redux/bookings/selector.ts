@@ -14,3 +14,12 @@ export const selectIsLoading = createSelector(
   (bookingsState) => bookingsState.isLoading
 );
 
+export const selectBooking = createSelector(
+  [selectBookingsDomain],
+  (bookingsState) => bookingsState.booking
+);
+
+export const selectPagination = createSelector(
+  [selectBookingsDomain],
+  (bookingsState) => bookingsState.pagination
+);

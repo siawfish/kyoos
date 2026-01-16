@@ -45,8 +45,10 @@ const portfolioSlice = createSlice({
       state.selectedWorkerId = action.payload;
     },
     setPortfolios: (state, action: PayloadAction<{ portfolios: Portfolio[], pagination: Pagination }>) => {
-      state.portfolios = action.payload.portfolios;
-      state.pagination = action.payload.pagination;
+      const pagination = action.payload.pagination;
+      const portfolios = pagination.page === 1 ? action.payload.portfolios : [...state.portfolios, ...action.payload.portfolios];
+      state.portfolios = portfolios;
+      state.pagination = pagination;
       state.isLoading = false;
     },
     setError: (state, action: PayloadAction<string>) => {

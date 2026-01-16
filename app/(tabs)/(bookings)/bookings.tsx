@@ -13,8 +13,7 @@ import { AgendaEntry } from 'react-native-calendars';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectBookings, selectIsLoading } from '@/redux/bookings/selector';
 import { actions } from '@/redux/bookings/slice';
-import { Booking } from '@/redux/bookings/types';
-
+import { Booking } from '@/redux/booking/types';
 interface BookingAgendaEntry extends AgendaEntry {
   booking?: Booking;
 }
@@ -49,7 +48,7 @@ export default function BookingsScreen() {
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     allBookings.forEach((booking: Booking) => {
-      const dateKey = booking.service.appointmentDateTime.date.value;
+      const dateKey = booking.date;
       counts[dateKey] = (counts[dateKey] || 0) + 1;
     });
     return counts;
@@ -58,7 +57,7 @@ export default function BookingsScreen() {
   // Filter bookings for the selected date
   const filteredBookings = useMemo(() => {
     return allBookings.filter((booking: Booking) => {
-      const bookingDate = booking.service.appointmentDateTime.date.value;
+      const bookingDate = booking.date;
       if (!bookingDate) return false;
       return isSameDay(new Date(bookingDate), selectedDate);
     });
@@ -66,9 +65,9 @@ export default function BookingsScreen() {
 
   // Convert filtered bookings to agenda items
   const agendaItems: BookingAgendaEntry[] = filteredBookings.map((booking: Booking) => ({
-    name: `${booking.service.description} with ${booking.client.name}`,
+    name: `${booking.description} with ${booking.worker.name}`,
     height: 80,
-    day: booking.service.appointmentDateTime.date.value,
+    day: booking.date,
     booking
   }));
   

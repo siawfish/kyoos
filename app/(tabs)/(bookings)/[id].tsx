@@ -12,14 +12,15 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectBookings, selectIsLoading } from "@/redux/bookings/selector";
+import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings/selector";
 import { actions } from "@/redux/bookings/slice";
-import { Booking } from "@/redux/bookings/types";
+import { Booking } from "@/redux/booking/types";
 
 const Details = () => {
   const dispatch = useDispatch();
   const { id } = useLocalSearchParams<{ id: string }>();
   const allBookings = useSelector(selectBookings);
+  const booking = useSelector(selectBooking);
   const isLoading = useSelector(selectIsLoading);
   const theme = useAppTheme();
   const isDark = theme === 'dark';
@@ -27,17 +28,19 @@ const Details = () => {
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [showReschedule, setShowReschedule] = React.useState(false);
 
-  // Fetch bookings if not already loaded
-  useEffect(() => {
-    if (allBookings.length === 0 && !isLoading) {
-      dispatch(actions.fetchBookings());
-    }
-  }, [dispatch, allBookings.length, isLoading]);
-
   // Find the booking by ID
-  const booking = useMemo(() => {
+  const stateBooking = useMemo(() => {
     return allBookings.find((b: Booking) => b.id === id);
   }, [allBookings, id]);
+
+  // Fetch bookings if not already loaded
+  useEffect(() => {
+    if (!stateBooking) {
+      dispatch(actions.fetchBooking(id));
+      return;
+    }
+    dispatch(actions.fetchBookingSuccess(stateBooking));
+  }, [dispatch, stateBooking, id]);
 
   const textColor = useThemeColor({
     light: colors.light.text,
@@ -111,7 +114,7 @@ const Details = () => {
           onConfirm={() => setShowConfirm(false)} 
           title="Cancel Booking?" 
           icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-          description={`Are you sure you want to cancel this booking? This action can not be reversed. ${booking.client.name} will also be notified.`}
+          description={`Are you sure you want to cancel this booking? This action can not be reversed. ${booking?.worker?.name} will also be notified.`}
           confirmText="Yes, Cancel Booking"
           cancelText="Cancel"
         />

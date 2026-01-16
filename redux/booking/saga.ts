@@ -17,6 +17,7 @@ import { Location } from '../auth/types';
 import { selectUserLocation } from '../app/selector';
 import { router } from 'expo-router';
 import { addHours } from 'date-fns';
+import { actions as bookingsActions } from '../bookings/slice';
 
 export function* confirmBooking() {
     try {
@@ -28,7 +29,7 @@ export function* confirmBooking() {
         const searchId: string = yield select(selectSearchReferenceId);
         const response: ApiResponse<Booking> = yield call(request, {
             method: 'POST',
-            url: `/api/users/booking`,
+            url: `/api/users/bookings`,
             data: {
                 serviceType,
                 serviceLocation: serviceType === ServiceLocationType.PERSON ? serviceLocation : null,
@@ -42,6 +43,7 @@ export function* confirmBooking() {
             throw new Error(response.message || response.error || 'An error occurred while booking');
         }
         yield put(actions.onConfirmBookingSuccess(response.data.id));
+        yield put(bookingsActions.fetchBookingSuccess(response.data));
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while booking';
         yield put(actions.onConfirmBookingError(errorMessage));
@@ -88,7 +90,7 @@ export function* getAvailableTimes(action: PayloadAction<string>) {
         const worker: Worker = yield select(selectArtisan);
         const response: ApiResponse<GetAvailableTimesResponse> = yield call(request, {
             method: 'GET',
-            url: `/api/users/booking/${worker?.id}/availability?date=${date}`,
+            url: `/api/users/bookings/${worker?.id}/availability?date=${date}`,
         })
         if (response.error) {
             throw new Error(response.message || response.error || 'An error occurred while getting available times');

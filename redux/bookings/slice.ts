@@ -1,10 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { Booking, BookingsState } from './types';
+import { BookingsResponse, BookingsState } from './types';
+import { Booking } from '@/redux/booking/types';
 
 export const initialState: BookingsState = {
   bookings: [],
+  booking: null,
   isLoading: false,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  },
 };
 
 interface RehydrateAction {
@@ -22,11 +32,24 @@ const bookingsSlice = createSlice({
     fetchBookings: (state) => {
       state.isLoading = true;
     },
-    fetchBookingsSuccess: (state, action: PayloadAction<Booking[]>) => {
-      state.bookings = action.payload;
+    fetchBookingsSuccess: (state, action: PayloadAction<BookingsResponse>) => {
+      const pagination = action.payload.pagination;
+      const bookings = pagination.page === 1 ? action.payload.bookings : [...state.bookings, ...action.payload.bookings];
+      state.bookings = bookings;
+      state.pagination = pagination;
       state.isLoading = false;
     },
     fetchBookingsFailure: (state) => {
+      state.isLoading = false;
+    },
+    fetchBooking: (state, action: PayloadAction<string>) => {
+      state.isLoading = true;
+    },
+    fetchBookingSuccess: (state, action: PayloadAction<Booking>) => {
+      state.booking = action.payload;
+      state.isLoading = false;
+    },
+    fetchBookingFailure: (state) => {
       state.isLoading = false;
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {

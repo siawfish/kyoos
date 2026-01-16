@@ -1,15 +1,14 @@
-import Thumbnails from '@/components/ui/Thumbnails'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
-import { Booking } from '@/redux/bookings/types'
-import { Media } from '@/redux/app/types'
+import { Booking } from '@/redux/booking/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { format } from 'date-fns'
 import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import Status from './Status'
+import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
+import numeral from 'numeral'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -39,27 +38,27 @@ const BookingDetails = ({
                     BOOKING DETAILS
                 </Text>
                 <Text style={[styles.headerTitle, { color: textColor }]}>
-                    {booking.service.description}
+                    {booking?.description}
                 </Text>
                 <View style={styles.clientRow}>
                     <Text style={[styles.withText, { color: labelColor }]}>with</Text>
                       <Image 
-                          source={require('@/assets/images/individual.png')} 
-                          style={styles.avatar}
+                        source={{ uri: booking?.worker?.avatar }} 
+                        style={[styles.avatar, { backgroundColor: labelColor }]}
                       />
                     <Text style={[styles.clientName, { color: textColor }]}>
-                            {booking.client.name}
+                        {booking?.worker?.name}
                     </Text>
                 </View>
             </View>
 
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
-                <Status status={booking.status} />
+                <Status status={booking?.status} />
                 <View>
                     <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>
-                        GHS {booking.service.summary.estimatedPrice || '0.00'}
+                        GHS {numeral(booking?.estimatedPrice).format('0,0.00') || '0.00'}
                     </Text>
                   </View>
                 </View>
@@ -75,7 +74,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>DATE & TIME</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {format(new Date(booking.service.appointmentDateTime.date.value), 'EEEE, MMM d')} • {booking.service.appointmentDateTime.time.value}
+                                {`${formatDate(new Date(booking?.date))} • ${formatTime(booking?.startTime)}`}
                             </Text>
                         </View>
                     </View>
@@ -89,7 +88,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>DURATION</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {booking.service.summary.estimatedDuration}
+                                {convertFromMillisecondsToHours(booking?.estimatedDuration)} hours
                             </Text>
                         </View>
                     </View>
@@ -103,7 +102,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>REQUIRED TOOLS</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {booking.service.summary.requiredTools.join(', ') || 'None specified'}
+                                {booking.requiredTools.join(', ') || 'None specified'}
                             </Text>
                         </View>
                     </View>
@@ -111,15 +110,15 @@ const BookingDetails = ({
             </View>
 
             {/* Description & Media */}
-            {(booking.description || booking.service.media?.length > 0) && (
+            {(booking.description || booking.media?.length > 0) && (
                 <View style={styles.descriptionSection}>
                     <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
                     <Text style={[styles.descriptionText, { color: textColor }]}>
-                        {booking.description || booking.service.description}
+                        {booking.description}
                     </Text>
-                    {booking.service.media?.length > 0 && (
-                        <Thumbnails data={booking.service.media as Media[]} />
-                    )}
+                    {/* {booking.media?.length > 0 && (
+                        <Thumbnails data={booking.media} />
+                    )} */}
                 </View>
             )}
 

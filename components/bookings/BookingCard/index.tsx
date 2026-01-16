@@ -1,12 +1,13 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
-import { Booking } from '@/redux/bookings/types'
+import { Booking } from '@/redux/booking/types'
 import { BookingStatuses } from '@/redux/app/types'
 import { router } from 'expo-router'
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
+import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
@@ -48,8 +49,6 @@ const BookingCard = ({
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const statusColor = getStatusColor(booking.status, isDark);
 
-    const startTime = booking.service.appointmentDateTime.time.value;
-
     return (
         <TouchableOpacity
             onPress={() => router.push(`/(tabs)/(bookings)/${booking.id}`)}
@@ -65,21 +64,21 @@ const BookingCard = ({
                         </Text>
                     </View>
                     <Text style={[styles.time, { color: textColor }]}>
-                        {startTime}
+                        {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
                     </Text>
                 </View>
                 
                 <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
-                    {booking.service.description}
+                    {booking.description}
                 </Text>
                 
                 <View style={styles.detailsRow}>
                     <View style={styles.detailItem}>
                         <Text style={[styles.detailLabel, { color: labelColor }]}>
-                            CLIENT
+                            WORKER
                         </Text>
                         <Text style={[styles.detailValue, { color: textColor }]} numberOfLines={1}>
-                            {booking.client.name}
+                            {booking.worker.name}
                         </Text>
                     </View>
                     <View style={[styles.divider, { backgroundColor: labelColor }]} />
@@ -88,7 +87,7 @@ const BookingCard = ({
                             DURATION
                         </Text>
                         <Text style={[styles.detailValue, { color: textColor }]}>
-                            {booking.service.summary.estimatedDuration}
+                            {convertFromMillisecondsToHours(booking.estimatedDuration)} hours
                         </Text>
                     </View>
                 </View>
