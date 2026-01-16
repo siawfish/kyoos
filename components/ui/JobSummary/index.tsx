@@ -91,6 +91,16 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
         ]).start();
     }, [isExpanded, animatedHeight, chevronRotation]);
 
+    const evaluatedEstimatedPrice = useMemo(()=>{
+        if (typeof summary?.estimatedPrice === 'number') {
+            return numeral(summary?.estimatedPrice).format('0,0.00');
+        }
+        if (typeof summary?.estimatedPrice === 'string') {
+            return numeral(Number(summary?.estimatedPrice)).format('0,0.00');
+        }
+        return '';
+    },[summary?.estimatedPrice])
+
     return (
         <BlurView 
             intensity={80} 
@@ -213,7 +223,7 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
                 <ThemedText 
                     style={[styles.priceValue, { color: summary?.estimatedPrice ? tintColor : secondaryColor }, !summary?.estimatedPrice && styles.emptyValue]}
                 >
-                    {artisan?.id ? `${user?.settings?.currency} ${numeral(estimatedPrice).format('0,0.00')}` : summary?.estimatedPrice ? `${user?.settings?.currency} ${summary?.estimatedPrice}` : 'To be discussed'}
+                    {artisan?.id ? `${user?.settings?.currency} ${evaluatedEstimatedPrice}` : evaluatedEstimatedPrice ? `${user?.settings?.currency} ${evaluatedEstimatedPrice}` : 'To be discussed'}
                 </ThemedText>
             </View>
             </View>

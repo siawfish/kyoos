@@ -1,12 +1,14 @@
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { actions } from './slice';
+import { actions as bookingActions } from '../booking/slice';
 import { BookingsResponse } from './types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { Booking } from '../booking/types';
-import { selectSelectedDate } from './selector';
+import { selectBooking, selectBookings, selectSelectedDate } from './selector';
+import { addHours, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
 
 function* fetchBookings() {
   try {
@@ -58,9 +60,56 @@ function* fetchBooking(action: PayloadAction<string>) {
   }
 }
 
+export function* rescheduleBooking(action: PayloadAction<string>) {
+  const bookings: Booking[] = yield select(selectBookings);
+  const booking = bookings.find(booking => booking.id === action.payload);
+  if (!booking) return;
+  yield put(bookingActions.updateBooking({
+    summary: {
+      estimatedDuration: booking.estimatedDuration,
+      requiredSkills: booking.requiredSkills,
+      requiredTools: booking.requiredTools,
+      estimatedPrice: booking.estimatedPrice.toString(),
+      reasoning: '',
+    },
+    artisan: booking.worker,
+    description: booking.description,
+    requiredSkills: booking.requiredSkills.map(skill => skill.name),
+    appointmentDateTime: {
+      date: {
+        value: booking.date,
+        error: '',
+      },
+      time: {
+        value: '',
+        error: '',
+      },
+    },
+    serviceLocationType: booking.serviceType,
+    serviceLocation: booking.location,
+    media: booking.media,
+    bookingId: booking.id,
+  }));
+  let selectedDate = new Date(booking.date);
+  // if date is today, pass the date as it is. if not reset the time to 00:00:00
+  if (isToday(selectedDate)) {
+    // set time to an hour away from now
+    selectedDate = addHours(new Date(), 1);
+  } else if (isPast(selectedDate)) {
+    selectedDate = addHours(new Date(), 1);
+  } else {
+    selectedDate = setHours(selectedDate, 7);
+    selectedDate = setMinutes(selectedDate, 0);
+    selectedDate = setSeconds(selectedDate, 0);
+  }
+  const dateString = selectedDate.toISOString();
+  yield put(bookingActions.getAvailableTimes(dateString));
+}
+
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);
   yield takeLatest(actions.setSelectedDate, fetchBookings);
+  yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
 }
 

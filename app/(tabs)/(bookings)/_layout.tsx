@@ -10,6 +10,7 @@ export default function BookingsLayout() {
     >
       <Stack.Screen name="bookings" />
       <Stack.Screen name="[id]" />
+      <Stack.Screen name="booking" />
     </Stack>
   );
 }

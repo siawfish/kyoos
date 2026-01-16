@@ -1,6 +1,6 @@
 import cancel from '@/assets/images/cancel.png';
 import Button from '@/components/ui/Button';
-import ThemedText from '@/components/ui/Themed/ThemedText';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -30,14 +30,6 @@ const ConfirmSheet = ({
       },
       "background"
     );
-
-    const color = useThemeColor(
-        {
-          light: colors.light.background,
-          dark: colors.dark.background,
-        },
-        "text"
-    );
     const renderFooter = useCallback(
       (props: BottomSheetDefaultFooterProps) => (
         <BottomSheetFooter {...props}>
@@ -51,7 +43,7 @@ const ConfirmSheet = ({
           </View>
         </BottomSheetFooter>
       ),
-      []
+      [onClose]
     );
     return (
         <BottomSheet

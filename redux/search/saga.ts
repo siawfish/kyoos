@@ -24,8 +24,8 @@ export function* search({payload}: PayloadAction<{navigateTo?: RelativePathStrin
         formData.append('location', JSON.stringify(location));
         media.forEach((item) => {
             const file = {
-                uri: item.uri,
-                name: item.uri.split('/').pop(),
+                uri: item.url,
+                name: item.url.split('/').pop(),
                 type: item.type,
                 width: item?.width,
                 height: item?.height,
@@ -58,6 +58,7 @@ export function* search({payload}: PayloadAction<{navigateTo?: RelativePathStrin
         yield put(actions.setSearchReferenceId(data.searchReferenceId));
         yield put(actions.setDescriptionModalVisible(false));
         yield put(actions.setSelectedArtisan(null));
+        yield put(bookingActions.initializeBooking());
         router.push(navigateTo);
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while searching';

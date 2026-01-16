@@ -89,7 +89,7 @@ const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCa
                 style={[
                   styles.dayNumber,
                   { color: selected ? (isDark ? colors.light.black : colors.dark.white) : textColor },
-                  today && !selected && { color: colors.light.tint },
+                  today && !selected && { color: isDark ? colors.dark.secondary : colors.light.tint },
                 ]}
               >
                 {format(date, 'd')}

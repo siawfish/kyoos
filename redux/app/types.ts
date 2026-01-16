@@ -42,6 +42,9 @@ export enum OptionIcons {
     FLAG = 'flag',
     EDIT = 'pencil',
     DELETE = 'trash',
+    CHAT = 'bubble',
+    CALENDAR = 'calendar',
+    CLOSE = 'close',
 }
 
 

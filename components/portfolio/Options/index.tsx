@@ -13,9 +13,11 @@ import { Options as OptionsType } from '@/redux/app/types';
 export function Options({
     options,
     snapPoints = ['40%'],
+    title = 'Portfolio Actions',
 }: {
     options: OptionsType[],
     snapPoints?: string[],
+    title?: string,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -117,7 +119,7 @@ export function Options({
                                             lightColor={colors.light.text} 
                                             darkColor={colors.dark.text}
                                         >
-                                            Portfolio Actions
+                                            {title}
                                         </ThemedText>
                                     </View>
                                     <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />

@@ -23,7 +23,7 @@ export interface Summary {
     estimatedDuration: number;
     requiredSkills: Skill[];
     requiredTools: string[];
-    estimatedPrice: string;
+    estimatedPrice: string | number;
     reasoning: string;
 }
   

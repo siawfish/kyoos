@@ -5,6 +5,7 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { actions as bookingActions } from "@/redux/booking/slice";
 import { selectSearchReferenceId } from "@/redux/search/selector";
 import { actions } from "@/redux/search/slice";
 import { Worker } from "@/redux/search/types";
@@ -69,6 +70,7 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
         } else {
             // If searchReferenceId exists, navigate directly to booking screen
             onClose();
+            dispatch(bookingActions.initializeBooking());
             router.push({
                 pathname: '/(tabs)/(search)/(booking)/booking',
                 params: {
@@ -76,10 +78,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                 }
             });
         }
-    };
-
-    const handleDescriptionModalClose = () => {
-        dispatch(actions.setSelectedArtisan(null));
     };
 
     const handleSeeProfile = () => {

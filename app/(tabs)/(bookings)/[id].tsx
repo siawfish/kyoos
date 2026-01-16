@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo } from "react";
 import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import BookingDetails from "@/components/bookings/BookingDetails";
 import Header from "@/components/bookings/BookingDetails/Header";
 import Actions from "@/components/bookings/BookingDetails/Actions";
-import Reschedule from "@/components/bookings/BookingDetails/Reschedule";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -92,6 +91,17 @@ const Details = () => {
     );
   }
 
+  const confirmReschedule = () => {
+      setShowReschedule(false);
+      dispatch(actions.rescheduleBooking(booking.id));
+      router.push({
+          pathname: '/(tabs)/(bookings)/booking',
+          params: {
+            callbackRoute: `/(tabs)/(bookings)/${booking.id}`,
+          },
+      });
+  };
+
   return (
     <ThemedSafeAreaView style={styles.container}>
       <Header onReschedule={() => setShowReschedule(true)} />
@@ -120,7 +130,16 @@ const Details = () => {
         />
       )}
       {showReschedule && (
-        <Reschedule isOpen={showReschedule} onClose={() => setShowReschedule(false)} />
+        <ConfirmActionSheet 
+          isOpen={showReschedule} 
+          isOpenChange={() => setShowReschedule(!showReschedule)} 
+          onConfirm={confirmReschedule} 
+          title="Reschedule Booking?" 
+          icon={<Image source={require('@/assets/images/calendar.png')} style={styles.dangerIcon} />}
+          description={`Are you sure you want to reschedule this booking? This action cannot be reversed. ${booking?.worker?.name} will also be notified.`}
+          confirmText="Yes, Reschedule Booking"
+          cancelText="Cancel"
+        />
       )}
     </ThemedSafeAreaView>
   );

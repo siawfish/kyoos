@@ -5,9 +5,10 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFooter, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { BlurView } from 'expo-blur';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 
@@ -54,29 +55,48 @@ const CustomDay = ({ date, state, onPress, selectedDate, isDark = false }: Custo
 };
 
 const Reschedule = ({
-    onClose,
-    isOpen,
+  onClose,
+  isOpen,
 }:RescheduleProps) => {
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-    const [selectedDate, setSelectedDate] = useState<string>('');
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
-    const backgroundColor = useThemeColor(
-      {
-        light: colors.light.background,
-        dark: colors.dark.background,
-      },
-      "background"
-    );
-    const borderColor = isDark ? colors.dark.white : colors.light.black;
-    const textColor = useThemeColor({
-      light: colors.light.text,
-      dark: colors.dark.text
-    }, 'text');
-    const labelColor = useThemeColor({
-      light: colors.light.secondary,
-      dark: colors.dark.secondary
-    }, 'text');
+  const backgroundColor = useThemeColor(
+    {
+      light: colors.light.background,
+      dark: colors.dark.background,
+    },
+    "background"
+  );
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
+  const textColor = useThemeColor({
+    light: colors.light.text,
+    dark: colors.dark.text
+  }, 'text');
+  const labelColor = useThemeColor({
+    light: colors.light.secondary,
+    dark: colors.dark.secondary
+  }, 'text');
+
+
+  const renderFooter = useCallback((props: BottomSheetDefaultFooterProps) => (
+    <BottomSheetFooter {...props}>
+      <View style={styles.footerContainer}>
+        <Button
+            style={styles.button}
+            labelStyle={styles.buttonLabel}
+            label='CONFIRM DATE'
+            onPress={() => {
+                // TODO: Handle date confirmation
+                onClose?.();
+            }}
+            disabled={!selectedDate}
+        />
+      </View>
+    </BottomSheetFooter>
+  ),
+  [selectedDate, onClose]);
 
   if (!isOpen) return null;
 
@@ -105,6 +125,7 @@ const Reschedule = ({
               borderTopWidth: 0.5,
               borderColor,
             }}
+            footerComponent={renderFooter}
             >
             <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
                 <View style={styles.header}>
@@ -122,49 +143,37 @@ const Reschedule = ({
                 </View>
                 <View style={styles.calendarContainer}>
                 <Calendar 
-                        onDayPress={(day) => {
-                            setSelectedDate(day.dateString);
-                        }}
-                        markedDates={{
-                            [selectedDate]: {
-                                selected: true,
-                                selectedColor: borderColor,
-                                selectedTextColor: textColor,
-                            }
-                        }}
-                        dayComponent={(props) => <CustomDay {...props} selectedDate={selectedDate} isDark={isDark} />}
-                    theme={{
-                        calendarBackground: backgroundColor, 
-                        dayTextColor: textColor,
-                        textSectionTitleColor: labelColor,
-                        selectedDayBackgroundColor: borderColor,
-                        selectedDayTextColor: textColor,
-                        todayTextColor: isDark ? colors.dark.secondary : colors.light.tint,
-                        dotColor: colors.light.tint,
-                        monthTextColor: textColor,
-                        textDisabledColor: labelColor,
-                        arrowColor: borderColor,
-                        textDayFontFamily: 'Regular',
-                        textMonthFontFamily: 'Bold',
-                        textDayHeaderFontFamily: 'SemiBold',
-                        textDayFontSize: fontPixel(14),
-                        textMonthFontSize: fontPixel(16),
-                        textDayHeaderFontSize: fontPixel(10),
-                        }}
-                        style={styles.calendar}
-                    />
-                </View>
-                <View style={styles.footerContainer}>
-                    <Button
-                        style={styles.button}
-                        labelStyle={styles.buttonLabel}
-                        label='CONFIRM DATE'
-                        onPress={() => {
-                            // TODO: Handle date confirmation
-                            onClose?.();
-                        }}
-                        disabled={!selectedDate}
-                    />
+                  onDayPress={(day) => {
+                      setSelectedDate(day.dateString);
+                  }}
+                  markedDates={{
+                  [selectedDate]: {
+                      selected: true,
+                      selectedColor: borderColor,
+                      selectedTextColor: textColor,
+                    }
+                  }}
+                  dayComponent={(props) => <CustomDay {...props} selectedDate={selectedDate} isDark={isDark} />}
+                  theme={{
+                      calendarBackground: backgroundColor, 
+                      dayTextColor: textColor,
+                      textSectionTitleColor: labelColor,
+                      selectedDayBackgroundColor: borderColor,
+                      selectedDayTextColor: textColor,
+                      todayTextColor: isDark ? colors.dark.secondary : colors.light.tint,
+                      dotColor: colors.light.tint,
+                      monthTextColor: textColor,
+                      textDisabledColor: labelColor,
+                      arrowColor: borderColor,
+                      textDayFontFamily: 'Regular',
+                      textMonthFontFamily: 'Bold',
+                      textDayHeaderFontFamily: 'SemiBold',
+                      textDayFontSize: fontPixel(14),
+                      textMonthFontSize: fontPixel(16),
+                      textDayHeaderFontSize: fontPixel(10),
+                    }}
+                    style={styles.calendar}
+                  />
                 </View>
             </BottomSheetView>
         </BottomSheet>
@@ -228,7 +237,7 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(16),
+    paddingBottom: heightPixel(50),
   },
   button: {
     marginHorizontal: 0,

@@ -2,13 +2,17 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/booking/types'
-import { BookingStatuses } from '@/redux/app/types'
+import { BookingStatuses, OptionIcons, Options } from '@/redux/app/types'
 import { router } from 'expo-router'
-import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useState } from 'react'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
-
+import { Options as OptionsComponent } from '@/components/portfolio/Options'
+import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
+import Reschedule from '@/components/bookings/BookingDetails/Reschedule'
+import { useAppDispatch } from '@/store/hooks'
+import { actions } from '@/redux/bookings/slice'
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
 }
@@ -30,7 +34,7 @@ const getStatusColor = (status: BookingStatuses, isDark: boolean) => {
         case BookingStatuses.PENDING:
         case BookingStatuses.ACCEPTED:
         default:
-            return isDark ? colors.dark.secondary : colors.light.secondary;
+        return isDark ? colors.dark.secondary : colors.light.secondary;
     }
 }
 
@@ -40,6 +44,11 @@ const BookingCard = ({
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const booking = reservation.booking;
+    const dispatch = useAppDispatch();
+
+    const [showReschedule, setShowReschedule] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     if (!booking) return null;
 
@@ -49,7 +58,63 @@ const BookingCard = ({
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const statusColor = getStatusColor(booking.status, isDark);
 
+    const handleChatWorker = () => {
+        router.push(`/(tabs)/(messaging)/${booking.id}`);
+    };
+
+    const confirmReschedule = () => {
+        setShowReschedule(false);
+        dispatch(actions.rescheduleBooking(booking.id));
+        router.push({
+            pathname: '/(tabs)/(bookings)/booking',
+            params: {
+                callbackRoute: `/(tabs)/(bookings)/bookings`,
+            },
+        });
+    };
+
+    const handleReschedule = () => {
+        setShowReschedule(true);
+    };
+
+    const handleCancel = () => {
+        setShowCancelConfirm(true);
+    };
+
+    const handleDelete = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmCancel = () => {
+        // TODO: Implement cancel booking logic
+        setShowCancelConfirm(false);
+    };
+
+    const handleConfirmDelete = () => {
+        // TODO: Implement delete booking logic
+        setShowDeleteConfirm(false);
+    };
+
+    const getBookingOptions = (): Options[] => {
+        const isPending = booking.status === BookingStatuses.PENDING;
+        
+        if (isPending) {
+            return [
+                { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
+                { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
+                { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
+            ];
+        }
+        
+        return [
+            { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
+            { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
+            { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
+        ];
+    };
+
     return (
+        <>
         <TouchableOpacity
             onPress={() => router.push(`/(tabs)/(bookings)/${booking.id}`)}
             style={[styles.card, { backgroundColor: cardBg, borderColor }]}
@@ -63,9 +128,22 @@ const BookingCard = ({
                             {booking.status}
                         </Text>
                     </View>
-                    <Text style={[styles.time, { color: textColor }]}>
-                        {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
-                    </Text>
+                    <View style={styles.topRowRight}>
+                        <Text style={[styles.time, { color: textColor }]}>
+                            {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={(e) => {
+                                e.stopPropagation();
+                            }}
+                            activeOpacity={1}
+                        >
+                            <OptionsComponent 
+                                options={getBookingOptions()} 
+                                title="Booking Actions"
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 
                 <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
@@ -93,6 +171,43 @@ const BookingCard = ({
                 </View>
             </View>            
         </TouchableOpacity>
+        {showReschedule && (
+            <ConfirmActionSheet 
+                isOpen={showReschedule} 
+                isOpenChange={setShowReschedule} 
+                onConfirm={confirmReschedule} 
+                title="Reschedule Booking?" 
+                icon={<Image source={require('@/assets/images/calendar.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to reschedule this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                confirmText="Yes, Reschedule Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showCancelConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showCancelConfirm} 
+                isOpenChange={setShowCancelConfirm} 
+                onConfirm={handleConfirmCancel} 
+                title="Cancel Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                confirmText="Yes, Cancel Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showDeleteConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showDeleteConfirm} 
+                isOpenChange={setShowDeleteConfirm} 
+                onConfirm={handleConfirmDelete} 
+                title="Delete Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description="Are you sure you want to delete this booking? This action cannot be reversed."
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+            />
+        )}
+        </>
     )
 }
 
@@ -160,5 +275,14 @@ const styles = StyleSheet.create({
         height: heightPixel(28),
         marginHorizontal: widthPixel(12),
         opacity: 0.3,
+    },
+    topRowRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(8),
+    },
+    dangerIcon: {
+        width: widthPixel(60),
+        height: widthPixel(60),
     },
 })
