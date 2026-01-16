@@ -10,19 +10,18 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectArtisan, selectBookingId, selectDescription, selectError, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
+import { selectArtisan, selectBookingId, selectDescription, selectError, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary, selectIsLoading } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
-import { selectAllWorkers } from "@/redux/search/selector";
 import { actions as searchActions } from "@/redux/search/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { RelativePathString, useLocalSearchParams, useRouter } from "expo-router";
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useMemo, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ServiceLocationType } from "@/redux/booking/types";
 
 export default function BookingScreen() {
     const router = useRouter();
-    const { artisanId, callbackRoute } = useLocalSearchParams<{ artisanId: string, callbackRoute?: string }>();
+    const { callbackRoute } = useLocalSearchParams<{ callbackRoute?: string }>();
     const scrollViewRef = useRef<ScrollView>(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const dispatch = useAppDispatch();
@@ -35,20 +34,11 @@ export default function BookingScreen() {
     const serviceLocationType = useAppSelector(selectServiceLocationType);
     const description = useAppSelector(selectDescription);
     const media = useAppSelector(selectMedia);
-    const allWorkers = useAppSelector(selectAllWorkers);
     const serviceLocation = useAppSelector(selectServiceLocation);
+    const isLoading = useAppSelector(selectIsLoading);
     const isWorkerQualified = useMemo(()=>{
         return artisan?.skills?.map(skill => skill.id).some(skill => summary.requiredSkills.some(requiredSkill => requiredSkill.id === skill)) || !!bookingId;
     },[artisan?.skills, summary?.requiredSkills, bookingId]);
-
-    useEffect(() => {
-        if (artisanId) {
-            const artisan = allWorkers.find((worker) => worker.id === artisanId);
-            if (artisan) {
-                dispatch(actions.setArtisan(artisan));
-            }
-        }
-    }, [artisanId, dispatch, allWorkers]);
 
     const isServiceLocationValid = useMemo(() => {
         if(serviceLocationType === ServiceLocationType.SHOP) {
@@ -62,8 +52,8 @@ export default function BookingScreen() {
 
 
     const isRequestEnabled = useMemo(() => {
-        return appointmentDate?.value && appointmentTime?.value && isWorkerQualified && isServiceLocationValid;
-    }, [appointmentDate?.value, appointmentTime?.value, isWorkerQualified, isServiceLocationValid]);
+        return !!appointmentDate?.value && !!appointmentTime?.value && isWorkerQualified && isServiceLocationValid && !isLoading;
+    }, [appointmentDate?.value, appointmentTime?.value, isWorkerQualified, isServiceLocationValid, isLoading]);
 
     const labelColor = useThemeColor({
         light: colors.light.secondary,
@@ -94,6 +84,10 @@ export default function BookingScreen() {
 
     const handleRequestBooking = () => {
         if (isRequestEnabled) {
+            if(bookingId) {
+                dispatch(actions.submitUpdateBooking(callbackRoute as RelativePathString));
+                return;
+            }
             router.push('/(tabs)/(search)/(booking)/review-booking');
         }
     };
@@ -119,6 +113,34 @@ export default function BookingScreen() {
                     onPress={handleBackPress}
                 />
             </View>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                <Text style={[styles.label, { color: labelColor }]}>BOOK SERVICE</Text>
+                <View style={styles.headerSubtitle}>
+                    <ThemedText 
+                        type="defaultSemiBold" 
+                        style={styles.subtitleText}
+                        darkColor={colors.dark.secondary}
+                        lightColor={colors.light.secondary}
+                    >
+                        with
+                    </ThemedText>
+                    <Image 
+                        source={{ uri: artisan?.avatar }} 
+                        style={[styles.avatar, { backgroundColor: cardBg }]}
+                        resizeMode="cover"
+                    />
+                    <ThemedText 
+                        type="defaultSemiBold"
+                        style={styles.artisanName}
+                        darkColor={colors.dark.text}
+                        lightColor={colors.light.text}
+                    >
+                        {artisan?.name}
+                    </ThemedText>
+                </View>
+            </View>
 
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -132,34 +154,6 @@ export default function BookingScreen() {
                     scrollEventThrottle={16}
                     keyboardDismissMode="on-drag"
                 >
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                        <Text style={[styles.label, { color: labelColor }]}>BOOK SERVICE</Text>
-                        <View style={styles.headerSubtitle}>
-                            <ThemedText 
-                                type="defaultSemiBold" 
-                                style={styles.subtitleText}
-                                darkColor={colors.dark.secondary}
-                                lightColor={colors.light.secondary}
-                            >
-                                with
-                            </ThemedText>
-                            <Image 
-                                source={{ uri: artisan?.avatar }} 
-                                style={[styles.avatar, { backgroundColor: cardBg }]}
-                                resizeMode="cover"
-                            />
-                            <ThemedText 
-                                type="defaultSemiBold"
-                                style={styles.artisanName}
-                                darkColor={colors.dark.text}
-                                lightColor={colors.light.text}
-                            >
-                                {artisan?.name}
-                            </ThemedText>
-                        </View>
-                    </View>
 
                     {/* Description */}
                     {description && (
@@ -235,6 +229,7 @@ export default function BookingScreen() {
                     label={bookingId ? "UPDATE BOOKING" : "REQUEST BOOKING"}
                     disabled={!isRequestEnabled}
                     onPress={handleRequestBooking}
+                    isLoading={isLoading}
                 />
                 {!isWorkerQualified && (
                     <ThemedText 

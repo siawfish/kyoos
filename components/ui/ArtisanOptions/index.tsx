@@ -70,12 +70,9 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
         } else {
             // If searchReferenceId exists, navigate directly to booking screen
             onClose();
-            dispatch(bookingActions.initializeBooking());
+            dispatch(bookingActions.initializeBooking(artisan?.id!));
             router.push({
-                pathname: '/(tabs)/(search)/(booking)/booking',
-                params: {
-                    artisanId: artisan?.id
-                }
+                pathname: '/(tabs)/(search)/(booking)/booking'
             });
         }
     };

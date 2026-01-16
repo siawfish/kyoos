@@ -9,6 +9,7 @@ import { request } from '@/services/api';
 import { Booking } from '../booking/types';
 import { selectBooking, selectBookings, selectSelectedDate } from './selector';
 import { addHours, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
+import { router } from 'expo-router';
 
 function* fetchBookings() {
   try {
@@ -106,10 +107,64 @@ export function* rescheduleBooking(action: PayloadAction<string>) {
   yield put(bookingActions.getAvailableTimes(dateString));
 }
 
+function* cancelBooking(action: PayloadAction<string>) {
+  try {
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/bookings/${action.payload}/cancel`,
+    })
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while canceling booking');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Booking canceled successfully',
+    });
+    yield put(actions.fetchBookings());
+    yield put(actions.fetchBooking(action.payload));
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while canceling booking';
+    Toast.show({
+      type: 'error',
+      text1: 'Error canceling booking',
+      text2: errorMessage,
+    });
+  }
+}
+
+function* deleteBooking(action: PayloadAction<string>) {
+  try {
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'DELETE',
+      url: `/api/users/bookings/${action.payload}`,
+    })
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while deleting booking');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Booking deleted successfully',
+    });
+    yield put(actions.fetchBookings());
+    router.dismissTo('/(tabs)/(bookings)/bookings');
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while deleting booking';
+    Toast.show({
+      type: 'error',
+      text1: 'Error deleting booking',
+      text2: errorMessage,
+    });
+  }
+}
+
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);
   yield takeLatest(actions.setSelectedDate, fetchBookings);
+  yield takeLatest(actions.cancelBooking, cancelBooking);
+  yield takeLatest(actions.deleteBooking, deleteBooking);
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
 }
 

@@ -58,6 +58,8 @@ const bookingsSlice = createSlice({
     fetchBookingFailure: (state) => {
       state.isLoading = false;
     },
+    deleteBooking: (state, action: PayloadAction<string>) => {},
+    cancelBooking: (state, action: PayloadAction<string>) => {},
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },

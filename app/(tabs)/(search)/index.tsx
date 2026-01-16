@@ -43,10 +43,6 @@ export default function HomeScreen() {
     const bookingCardOpacity = useRef(new Animated.Value(0)).current;
     const toggleRotation = useRef(new Animated.Value(0)).current;
 
-    useEffect(() => {
-        dispatch(actions.resetState());
-    }, [dispatch]);
-
     useFocusEffect(useCallback(() => {
         dispatch(actions.onInitialize({
             lat: location?.lat || ACCRA_REGION.latitude,

@@ -21,6 +21,7 @@ interface ConfirmActionSheetProps {
   confirmTextStyle?: TextStyle;
   icon?: React.ReactNode;
   onCancel?: () => void;
+  snapPoints?: (string | number)[];
 }
 
 export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
@@ -35,6 +36,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
   confirmTextStyle={},
   onCancel,
   icon=<Image source={require('@/assets/images/caution.png')} style={styles.icon} />,
+  snapPoints = ['45%'],
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const theme = useAppTheme();
@@ -58,7 +60,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
     dark: colors.dark.text
   }, 'text');
 
-  const snapPoints = useMemo(() => ['45%'], []);
+  const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
   // Handle closing the bottom sheet
   const handleClose = useCallback(() => {
@@ -94,7 +96,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
         <BottomSheet
           ref={bottomSheetRef}
           index={0}
-          snapPoints={snapPoints}
+          snapPoints={memoizedSnapPoints}
           onChange={handleSheetChanges}
           onClose={handleClose}
           enablePanDownToClose={true}

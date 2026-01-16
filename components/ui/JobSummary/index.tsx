@@ -12,6 +12,7 @@ import { useAppSelector } from "@/store/hooks";
 import { selectUser } from "@/redux/app/selector";
 import { useState, useRef, useEffect, useMemo } from "react";
 import numeral from "numeral";
+import { selectBookingId } from "@/redux/booking/selector";
 
 interface JobSummaryProps {
     artisan: Worker;
@@ -25,6 +26,7 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
     const chevronRotation = useRef(new Animated.Value(0)).current;
     const user = useAppSelector(selectUser);
     const workerSkills = artisan?.skills;
+    const bookingId = useAppSelector(selectBookingId);
     const rate = useMemo(()=>{
         return workerSkills?.find(skill => skill.id === summary?.requiredSkills[0]?.id)?.rate;
     },[workerSkills, summary?.requiredSkills])
@@ -92,14 +94,17 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
     }, [isExpanded, animatedHeight, chevronRotation]);
 
     const evaluatedEstimatedPrice = useMemo(()=>{
-        if (typeof summary?.estimatedPrice === 'number') {
-            return numeral(summary?.estimatedPrice).format('0,0.00');
-        }
-        if (typeof summary?.estimatedPrice === 'string') {
+        if (bookingId) {
             return numeral(Number(summary?.estimatedPrice)).format('0,0.00');
         }
+        if (typeof estimatedPrice === 'number') {
+            return numeral(estimatedPrice).format('0,0.00');
+        }
+        if (typeof estimatedPrice === 'string') {
+            return numeral(Number(estimatedPrice)).format('0,0.00');
+        }
         return '';
-    },[summary?.estimatedPrice])
+    },[estimatedPrice, summary?.estimatedPrice, bookingId])
 
     return (
         <BlurView 

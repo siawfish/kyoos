@@ -103,7 +103,10 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
         if (localDescription.trim()) {
             // Dispatch action to set description in booking state
             dispatch(actions.setSearch(localDescription.trim()));
-            dispatch(actions.onSearch({navigateTo: `/(tabs)/(search)/(booking)/booking?artisanId=${artisan?.id}`}));
+            dispatch(actions.onSearch({
+                navigateTo: '/(tabs)/(search)/(booking)/booking',
+                artisanId: artisan?.id
+            }));
         }
     }, [localDescription, dispatch, artisan?.id]);
 

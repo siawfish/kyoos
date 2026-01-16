@@ -64,12 +64,9 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
             dispatch(actions.setDescriptionModalVisible(true));
         } else {
             // If searchReferenceId exists, navigate directly to booking screen
-            dispatch(bookingActions.initializeBooking());
+            dispatch(bookingActions.initializeBooking(worker.id));
             router.push({
-                pathname: '/(tabs)/(search)/(booking)/booking',
-                params: {
-                    artisanId: worker.id
-                }
+                pathname: '/(tabs)/(search)/(booking)/booking'
             });
         }
     };

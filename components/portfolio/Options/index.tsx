@@ -12,7 +12,7 @@ import { Options as OptionsType } from '@/redux/app/types';
 
 export function Options({
     options,
-    snapPoints = ['40%'],
+    snapPoints = ['45%'],
     title = 'Portfolio Actions',
 }: {
     options: OptionsType[],

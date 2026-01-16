@@ -10,7 +10,6 @@ import { AgendaEntry } from 'react-native-calendars'
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 import { Options as OptionsComponent } from '@/components/portfolio/Options'
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
-import Reschedule from '@/components/bookings/BookingDetails/Reschedule'
 import { useAppDispatch } from '@/store/hooks'
 import { actions } from '@/redux/bookings/slice'
 interface BookingAgendaEntry extends AgendaEntry {
@@ -88,20 +87,29 @@ const BookingCard = ({
     const handleConfirmCancel = () => {
         // TODO: Implement cancel booking logic
         setShowCancelConfirm(false);
+        dispatch(actions.cancelBooking(booking.id));
     };
 
     const handleConfirmDelete = () => {
         // TODO: Implement delete booking logic
         setShowDeleteConfirm(false);
+        dispatch(actions.deleteBooking(booking.id));
     };
 
     const getBookingOptions = (): Options[] => {
         const isPending = booking.status === BookingStatuses.PENDING;
+        const isCancelled = booking.status === BookingStatuses.CANCELLED;
         
         if (isPending) {
             return [
                 { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
                 { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
+                { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
+            ];
+        }
+
+        if (isCancelled) {
+            return [
                 { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
             ];
         }
@@ -141,6 +149,7 @@ const BookingCard = ({
                             <OptionsComponent 
                                 options={getBookingOptions()} 
                                 title="Booking Actions"
+                                snapPoints={getBookingOptions().length > 2 ? ['42%'] : ['30%']}
                             />
                         </TouchableOpacity>
                     </View>

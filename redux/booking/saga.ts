@@ -7,15 +7,15 @@ import { actions } from '@/redux/booking/slice';
 import { Summary, Worker } from '@/redux/search/types';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
-import { selectArtisan, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
+import { selectAllWorkers, selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
+import { selectArtisan, selectBookingId, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
 import { Location } from '../auth/types';
 import { selectUserLocation } from '../app/selector';
-import { router } from 'expo-router';
+import { RelativePathString, router } from 'expo-router';
 import { addHours } from 'date-fns';
 import { actions as bookingsActions } from '../bookings/slice';
 
@@ -32,7 +32,7 @@ export function* confirmBooking() {
             url: `/api/users/bookings`,
             data: {
                 serviceType,
-                serviceLocation: serviceType === ServiceLocationType.PERSON ? serviceLocation : null,
+                location: serviceType === ServiceLocationType.PERSON ? serviceLocation : null,
                 workerId: worker?.id,
                 date: date?.value,
                 startTime: time?.value,
@@ -47,21 +47,17 @@ export function* confirmBooking() {
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while booking';
         yield put(actions.onConfirmBookingError(errorMessage));
-        const worker: Worker = yield select(selectArtisan);
-        router.replace({
-            pathname: '/(tabs)/(search)/(booking)/booking',
-            params: {
-                artisanId: worker?.id,
-            },
-        });
+        router.replace('/(tabs)/(search)/(booking)/booking');
     }
 }
 
-export function* initializeBooking() {
+export function* initializeBooking(action: PayloadAction<string>) {
     const media: Media[] = yield select(selectMedia);
     const summary: Summary = yield select(selectSummary);
     const search: string = yield select(selectSearch);
     const userLocation: Location = yield select(selectUserLocation);
+    const allWorkers: Worker[] = yield select(selectAllWorkers);
+    const artisan = allWorkers.find((worker) => worker.id === action.payload);
     const defaultDateTime = new Date().toISOString();
     yield put(actions.updateBooking({
         media,
@@ -79,6 +75,7 @@ export function* initializeBooking() {
                 error: '',
             },
         },
+        artisan: artisan || null,
     }));
     const dateString = addHours(defaultDateTime, 1).toISOString();
     yield put(actions.getAvailableTimes(dateString));
@@ -127,9 +124,50 @@ export function* reverseGeocodeServiceLocation(action: PayloadAction<string>) {
     }
 }
 
+export function* submitUpdateBooking(action: PayloadAction<string>) {
+  try {
+    const time: FormElement = yield select(selectServiceTime);
+    const date: FormElement = yield select(selectServiceDate);
+    const serviceLocation: Location = yield select(selectServiceLocation);
+    const serviceLocationType: ServiceLocationType = yield select(selectServiceLocationType);
+    const bookingId: string = yield select(selectBookingId);
+    const booking: Partial<Booking> = {};
+    if (time?.value) {
+        booking.startTime = time.value;
+    }
+    if (date?.value) {
+        booking.date = date.value;
+    }
+    if (serviceLocation && serviceLocationType === ServiceLocationType.PERSON) {
+        booking.location = serviceLocation;
+    }
+    if (serviceLocationType) {
+        booking.serviceType = serviceLocationType;
+    }
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'PATCH',
+      url: `/api/users/bookings/${bookingId}`,
+      data: booking,
+    })
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while updating booking');
+    }
+    yield put(actions.submitUpdateBookingSuccess());
+    yield put(bookingsActions.fetchBookingSuccess(response.data));
+    yield put(bookingsActions.setSelectedDate(response.data.date));
+    router.dismissTo(action.payload as RelativePathString);
+  }
+  catch (error:unknown) {
+    console.log(error);
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while updating booking';
+    yield put(actions.submitUpdateBookingError(errorMessage));
+  }
+}
+
 export function* bookingSaga() {
   yield takeLatest(actions.onConfirmBooking, confirmBooking);
   yield takeLatest(actions.initializeBooking, initializeBooking);
   yield takeLatest(actions.getAvailableTimes, getAvailableTimes);
   yield takeLatest(actions.reverseGeocodeServiceLocation, reverseGeocodeServiceLocation);
+  yield takeLatest(actions.submitUpdateBooking, submitUpdateBooking);
 }

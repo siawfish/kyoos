@@ -49,7 +49,7 @@ const searchSlice = createSlice({
       state.nearestWorkers = action.payload.workers;
       state.totalNearbyWorkers = action.payload.total;
     },
-    onSearch: (state, action: PayloadAction<{navigateTo?: string}>) => {
+    onSearch: (state, action: PayloadAction<{navigateTo?: string, artisanId?: string}>) => {
       state.isLoading = true;
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {

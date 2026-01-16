@@ -13,8 +13,8 @@ import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
 
-export function* search({payload}: PayloadAction<{navigateTo?: RelativePathString}>) {
-    const { navigateTo = '/(tabs)/(search)/results' } = payload;
+export function* search({payload}: PayloadAction<{navigateTo?: RelativePathString, artisanId?: string}>) {
+    const { navigateTo = '/(tabs)/(search)/results', artisanId } = payload;
     try {
         const search: string = yield select(selectSearch);
         const media: Media[] = yield select(selectMedia);
@@ -56,9 +56,11 @@ export function* search({payload}: PayloadAction<{navigateTo?: RelativePathStrin
         yield put(actions.setRecommendedWorkers(data.recommendedWorkers));
         yield put(actions.setClosestWorkers(data.closestWorkers));
         yield put(actions.setSearchReferenceId(data.searchReferenceId));
-        yield put(actions.setDescriptionModalVisible(false));
-        yield put(actions.setSelectedArtisan(null));
-        yield put(bookingActions.initializeBooking());
+        if (artisanId) {
+            yield put(actions.setDescriptionModalVisible(false));
+            yield put(actions.setSelectedArtisan(null));
+            yield put(bookingActions.initializeBooking(artisanId));
+        }
         router.push(navigateTo);
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while searching';
@@ -74,6 +76,8 @@ export function* search({payload}: PayloadAction<{navigateTo?: RelativePathStrin
 
 export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>) {
     try {
+        yield put(bookingActions.resetState());
+        yield put(actions.resetState());
         const { data, error, message } : ApiResponse<InitializeResponse> = yield call(request, {
             method: 'GET',
             url: '/api/users/search',

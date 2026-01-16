@@ -54,7 +54,7 @@ const bookingSlice = createSlice({
   name: 'booking',
   initialState,
   reducers: {
-    initializeBooking: () => {},
+    initializeBooking: (state, action: PayloadAction<string>) => {},
     onConfirmBooking: (state) => {
       state.isLoading = true;
       state.isSuccess = false;
@@ -129,6 +129,19 @@ const bookingSlice = createSlice({
         ...action.payload
       };
     },
+    submitUpdateBooking: (state, action: PayloadAction<string>) => {
+      state.isLoading = true;
+      state.isSuccess = false;
+    },
+    submitUpdateBookingSuccess: (state) => {
+      state.isLoading = false;
+      state.isSuccess = true;
+    },
+    submitUpdateBookingError: (state, action: PayloadAction<string>) => {
+      state.isLoading = false;
+      state.isSuccess = false;
+      state.error = action.payload;
+    },
     setArtisan: (state, action: PayloadAction<Worker>) => {
       state.artisan = action.payload;
     },
@@ -144,7 +157,7 @@ const bookingSlice = createSlice({
     reverseGeocodeServiceLocation: (state, action: PayloadAction<string>) => {
       // This action is handled by the saga
     },
-    resetState: (state) => {
+    resetState: () => {
       return initialState;
     }
   },
