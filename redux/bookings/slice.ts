@@ -7,6 +7,7 @@ export const initialState: BookingsState = {
   bookings: [],
   booking: null,
   isLoading: false,
+  selectedDate: new Date().toISOString(),
   pagination: {
     page: 1,
     limit: 10,
@@ -30,6 +31,10 @@ const bookingsSlice = createSlice({
   initialState,
   reducers: {
     fetchBookings: (state) => {
+      state.isLoading = true;
+    },
+    setSelectedDate: (state, action: PayloadAction<string>) => {
+      state.selectedDate = action.payload;
       state.isLoading = true;
     },
     fetchBookingsSuccess: (state, action: PayloadAction<BookingsResponse>) => {

@@ -23,3 +23,8 @@ export const selectPagination = createSelector(
   [selectBookingsDomain],
   (bookingsState) => bookingsState.pagination
 );
+
+export const selectSelectedDate = createSelector(
+  [selectBookingsDomain],
+  (bookingsState) => bookingsState.selectedDate
+);

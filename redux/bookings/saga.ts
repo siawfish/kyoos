@@ -1,17 +1,22 @@
 import Toast from 'react-native-toast-message';
-import { call, put, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { actions } from './slice';
 import { BookingsResponse } from './types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { Booking } from '../booking/types';
+import { selectSelectedDate } from './selector';
 
 function* fetchBookings() {
   try {
+    const selectedDate: string = yield select(selectSelectedDate);
     const response: ApiResponse<BookingsResponse> = yield call(request, {
       method: 'GET',
       url: `/api/users/bookings`,
+      params: {
+        date: selectedDate,
+      },
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while fetching bookings');
@@ -56,5 +61,6 @@ function* fetchBooking(action: PayloadAction<string>) {
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);
+  yield takeLatest(actions.setSelectedDate, fetchBookings);
 }
 
