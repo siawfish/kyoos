@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         height: Dimensions.get('window').height / 2,
-        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
         padding: widthPixel(16),

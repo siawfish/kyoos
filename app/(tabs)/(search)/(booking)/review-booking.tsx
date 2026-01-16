@@ -19,7 +19,8 @@ import {
     selectIsLoading, 
     selectIsSuccess,
     selectArtisan,
-    selectServiceLocation
+    selectServiceLocation,
+    selectBookingId
 } from "../../../../redux/booking/selector";
 import { actions } from "../../../../redux/booking/slice";
 import { actions as searchActions } from "../../../../redux/search/slice";
@@ -56,6 +57,7 @@ export default function ReviewBooking() {
     const estimatedPrice = useMemo(()=>{
         return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;
     },[rate, summary?.estimatedDuration]);
+    const bookingId = useAppSelector(selectBookingId);
 
     const theme = useAppTheme();
     const isDark = theme === 'dark';
@@ -100,7 +102,8 @@ export default function ReviewBooking() {
     };
 
     const handleSuccessClose = () => {
-        router.replace('/(tabs)/(bookings)');
+        if(!bookingId) return;
+        router.replace(`/(tabs)/(bookings)/${bookingId}`);
         dispatch(actions.resetState());
         dispatch(searchActions.resetState());
     };

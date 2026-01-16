@@ -16,6 +16,7 @@ import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types
 import { Location } from '../auth/types';
 import { selectUserLocation } from '../app/selector';
 import { router } from 'expo-router';
+import { addHours } from 'date-fns';
 
 export function* confirmBooking() {
     try {
@@ -40,7 +41,7 @@ export function* confirmBooking() {
         if (response.error || !response.data) {
             throw new Error(response.message || response.error || 'An error occurred while booking');
         }
-        yield put(actions.onConfirmBookingSuccess());
+        yield put(actions.onConfirmBookingSuccess(response.data.id));
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while booking';
         yield put(actions.onConfirmBookingError(errorMessage));
@@ -59,13 +60,26 @@ export function* initializeBooking() {
     const summary: Summary = yield select(selectSummary);
     const search: string = yield select(selectSearch);
     const userLocation: Location = yield select(selectUserLocation);
+    const defaultDateTime = new Date().toISOString();
     yield put(actions.updateBooking({
         media,
         summary,
         description: search,
         requiredSkills: summary.requiredSkills.map((skill) => skill.name),
         serviceLocation: userLocation,
+        appointmentDateTime: {
+            date: {
+                value: defaultDateTime,
+                error: '',
+            },
+            time: {
+                value: '',
+                error: '',
+            },
+        },
     }));
+    const dateString = addHours(defaultDateTime, 1).toISOString();
+    yield put(actions.getAvailableTimes(dateString));
 }
 
 export function* getAvailableTimes(action: PayloadAction<string>) {

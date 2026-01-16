@@ -2,19 +2,14 @@ import { Stack } from 'expo-router';
 
 export default function BookingsLayout() {
   return (
-    <Stack>
-      <Stack.Screen 
-        name="bookings" 
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen 
-        name="[id]" 
-        options={{
-          headerShown: false,
-        }}
-      />
+    <Stack
+      initialRouteName="bookings"
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="bookings" />
+      <Stack.Screen name="[id]" />
     </Stack>
   );
 }

@@ -84,3 +84,8 @@ export const selectError = createSelector(
     [selectDomain],
     (booking) => booking?.error,
 );
+
+export const selectBookingId = createSelector(
+    [selectDomain],
+    (booking) => booking?.bookingId,
+);

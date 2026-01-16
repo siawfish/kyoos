@@ -33,6 +33,7 @@ export const initialState: BookingState = {
     lng: 0,
   },
   media: [],
+  bookingId: '',
   availableSlots: [],
   isGettingAvailableSlots: false,
   isLoading: false,
@@ -58,7 +59,8 @@ const bookingSlice = createSlice({
       state.isLoading = true;
       state.isSuccess = false;
     },
-    onConfirmBookingSuccess: (state) => {
+    onConfirmBookingSuccess: (state, action: PayloadAction<string>) => {
+      state.bookingId = action.payload;
       state.isLoading = false;
       state.isSuccess = true;
     },

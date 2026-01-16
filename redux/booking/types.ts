@@ -3,6 +3,7 @@ import { Summary, Worker } from "../search/types";
 import { Location } from "../auth/types";
 
 export interface BookingState {
+    bookingId: string;
     summary: Summary;
     artisan: Worker | null;
     description: string;

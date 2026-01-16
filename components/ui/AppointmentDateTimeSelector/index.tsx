@@ -19,7 +19,7 @@ import { colors } from '@/constants/theme/colors';
 import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { isToday, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
+import { addHours, isToday, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
 import IOSDatePickerModal from '@/components/ui/IOSDatePickerModal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { actions } from '@/redux/booking/slice';
@@ -107,7 +107,10 @@ const AppointmentDateTimeSelector = ({
         onBlur();
         if (selectedDate) {
             // if date is today, pass the date as it is. if not reset the time to 00:00:00
-            if (!isToday(selectedDate)) {
+            if (isToday(selectedDate)) {
+                // set time to an hour away from now
+                selectedDate = addHours(selectedDate, 1);
+            } else {
                 selectedDate = setHours(selectedDate, 7);
                 selectedDate = setMinutes(selectedDate, 0);
                 selectedDate = setSeconds(selectedDate, 0);

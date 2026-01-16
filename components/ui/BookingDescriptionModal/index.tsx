@@ -78,9 +78,14 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
 
     const handleSheetChanges = useCallback((index: number) => {
         if (index === -1) {
+            if (isLoading) {
+                // Prevent closing during search - expand back to prevent dismissal
+                bottomSheetRef.current?.expand();
+                return;
+            }
             dispatch(actions.setDescriptionModalVisible(false));
         }
-    }, [dispatch]);
+    }, [dispatch, isLoading]);
 
     useEffect(() => {
         if (descriptionModalVisible) {
@@ -103,9 +108,12 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
     }, [localDescription, dispatch, artisan?.id]);
 
     const handleClose = useCallback(() => {
+        if (isLoading) {
+            return;
+        }
         Keyboard.dismiss();
         dispatch(actions.setDescriptionModalVisible(false));
-    }, [dispatch]);
+    }, [dispatch, isLoading]);
 
     const handleClearInput = () => {
         setLocalDescription('');
@@ -144,7 +152,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
         >
             <View style={styles.modalOverlay}>
                 <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-                <TouchableWithoutFeedback onPress={handleClose}>
+                <TouchableWithoutFeedback onPress={isLoading ? undefined : handleClose}>
                     <View style={StyleSheet.absoluteFill} />
                 </TouchableWithoutFeedback>
                 <BottomSheet
@@ -153,7 +161,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                     index={0}
                     onChange={handleSheetChanges}
                     onClose={handleClose}
-                    enablePanDownToClose
+                    enablePanDownToClose={!isLoading}
                     enableDynamicSizing={true}
                     keyboardBehavior="extend"
                     keyboardBlurBehavior="restore"
@@ -184,7 +192,7 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                                     Describe Your Issue
                                 </ThemedText>
                             </View>
-                            <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
+                            <BackButton iconName="x" onPress={isLoading ? undefined : handleClose} containerStyle={styles.closeButton} />
                         </View>
 
                         {/* Content */}
