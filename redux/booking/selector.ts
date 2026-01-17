@@ -1,6 +1,6 @@
-import {RootState} from '@/store';
-import {createSelector} from '@reduxjs/toolkit';
-import {initialState} from './slice';
+import { RootState } from '@/store';
+import { createSelector } from '@reduxjs/toolkit';
+import { initialState } from './slice';
 
 // TODO: Add an explanation for this
 const selectDomain = (state: RootState) => state?.booking || initialState;
@@ -88,4 +88,9 @@ export const selectError = createSelector(
 export const selectBookingId = createSelector(
     [selectDomain],
     (booking) => booking?.bookingId,
+);
+
+export const selectSearchHistoryId = createSelector(
+    [selectDomain],
+    (booking) => booking?.searchHistoryId,
 );

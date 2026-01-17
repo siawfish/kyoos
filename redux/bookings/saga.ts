@@ -1,15 +1,15 @@
-import Toast from 'react-native-toast-message';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { actions } from './slice';
-import { actions as bookingActions } from '../booking/slice';
-import { BookingsResponse } from './types';
-import { PayloadAction } from '@reduxjs/toolkit';
-import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
-import { Booking } from '../booking/types';
-import { selectBookings, selectSelectedDate } from './selector';
+import { ApiResponse } from '@/services/types';
+import { PayloadAction } from '@reduxjs/toolkit';
 import { addHours, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { actions as bookingActions } from '../booking/slice';
+import { Booking } from '../booking/types';
+import { selectBookings, selectSelectedDate } from './selector';
+import { actions } from './slice';
+import { BookingsResponse } from './types';
 
 function* fetchBookings() {
   try {
@@ -90,6 +90,52 @@ export function* rescheduleBooking(action: PayloadAction<string>) {
     serviceLocation: booking.location,
     media: booking.media,
     bookingId: booking.id,
+  }));
+  let selectedDate = new Date(booking.date);
+  // if date is today, pass the date as it is. if not reset the time to 00:00:00
+  if (isToday(selectedDate)) {
+    // set time to an hour away from now
+    selectedDate = addHours(new Date(), 1);
+  } else if (isPast(selectedDate)) {
+    selectedDate = addHours(new Date(), 1);
+  } else {
+    selectedDate = setHours(selectedDate, 7);
+    selectedDate = setMinutes(selectedDate, 0);
+    selectedDate = setSeconds(selectedDate, 0);
+  }
+  const dateString = selectedDate.toISOString();
+  yield put(bookingActions.getAvailableTimes(dateString));
+}
+
+function* rebookBooking(action: PayloadAction<string>) {
+  const bookings: Booking[] = yield select(selectBookings);
+  const booking = bookings.find(booking => booking.id === action.payload);
+  if (!booking) return;
+  yield put(bookingActions.updateBooking({
+    summary: {
+      estimatedDuration: booking.estimatedDuration,
+      requiredSkills: booking.requiredSkills,
+      requiredTools: booking.requiredTools,
+      estimatedPrice: booking.estimatedPrice.toString(),
+      reasoning: '',
+    },
+    artisan: booking.worker,
+    description: booking.description,
+    requiredSkills: booking.requiredSkills.map(skill => skill.name),
+    appointmentDateTime: {
+      date: {
+        value: booking.date,
+        error: '',
+      },
+      time: {
+        value: '',
+        error: '',
+      },
+    },
+    serviceLocationType: booking.serviceType,
+    serviceLocation: booking.location,
+    media: booking.media,
+    searchHistoryId: booking.searchId,
   }));
   let selectedDate = new Date(booking.date);
   // if date is today, pass the date as it is. if not reset the time to 00:00:00
@@ -228,5 +274,6 @@ export function* bookingsSaga() {
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
   yield takeLatest(actions.completeBooking, completeBooking);
   yield takeLatest(actions.reportBooking, reportBooking);
+  yield takeLatest(actions.rebookBooking, rebookBooking);
 }
 

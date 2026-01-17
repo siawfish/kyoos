@@ -1,18 +1,18 @@
-import { StyleSheet, View, ViewStyle, TouchableOpacity, Animated, Easing } from "react-native";
-import { BlurView } from 'expo-blur';
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { colors } from "@/constants/theme/colors";
-import { heightPixel, widthPixel, fontPixel } from "@/constants/normalize";
-import { Feather } from '@expo/vector-icons';
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { useAppTheme } from "@/hooks/use-app-theme";
-import { Summary, Worker } from "@/redux/search/types";
 import { convertFromMillisecondsToHours } from "@/constants/helpers";
-import { useAppSelector } from "@/store/hooks";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectUser } from "@/redux/app/selector";
-import { useState, useRef, useEffect, useMemo } from "react";
-import numeral from "numeral";
 import { selectBookingId } from "@/redux/booking/selector";
+import { Summary, Worker } from "@/redux/search/types";
+import { useAppSelector } from "@/store/hooks";
+import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import numeral from "numeral";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface JobSummaryProps {
     artisan: Worker;
@@ -28,7 +28,8 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
     const workerSkills = artisan?.skills;
     const bookingId = useAppSelector(selectBookingId);
     const rate = useMemo(()=>{
-        return workerSkills?.find(skill => skill.id === summary?.requiredSkills[0]?.id)?.rate;
+        const skill = workerSkills?.find(skill => skill.id === summary?.requiredSkills[0]?.id)
+        return skill?.rate;
     },[workerSkills, summary?.requiredSkills])
     const estimatedPrice = useMemo(()=>{
         return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;

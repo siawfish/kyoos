@@ -1,9 +1,10 @@
 import { BookingStatuses, FormElement, Media } from "@/redux/app/types";
-import { Skill, Summary, Worker } from "../search/types";
 import { Location } from "../auth/types";
+import { Skill, Summary, Worker } from "../search/types";
 
 export interface BookingState {
     bookingId: string;
+    searchHistoryId: string;
     summary: Summary;
     artisan: Worker | null;
     description: string;

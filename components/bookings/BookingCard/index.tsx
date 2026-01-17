@@ -1,17 +1,17 @@
+import { Options as OptionsComponent } from '@/components/portfolio/Options'
+import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
+import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
-import { Booking } from '@/redux/booking/types'
 import { BookingStatuses, OptionIcons, Options } from '@/redux/app/types'
+import { Booking } from '@/redux/booking/types'
+import { actions } from '@/redux/bookings/slice'
+import { useAppDispatch } from '@/store/hooks'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
-import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
-import { Options as OptionsComponent } from '@/components/portfolio/Options'
-import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
-import { useAppDispatch } from '@/store/hooks'
-import { actions } from '@/redux/bookings/slice'
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
 }
@@ -112,6 +112,12 @@ const BookingCard = ({
     const handleConfirmRebook = () => {
         setShowRebookConfirm(false);
         dispatch(actions.rebookBooking(booking.id));
+        router.push({
+            pathname: '/(tabs)/(bookings)/booking',
+            params: {
+                callbackRoute: `/(tabs)/(bookings)/bookings`,
+            },
+        });
     };
 
     const handleReport = () => {
@@ -153,8 +159,8 @@ const BookingCard = ({
 
         if (isCompleted) {
             return [
-                { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleRebook},
-                { label: 'Report', icon: OptionIcons.REPORT, onPress: handleReport, isDanger: true },
+                { label: 'Book Again', icon: OptionIcons.CALENDAR, onPress: handleRebook},
+                { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: handleReport, isDanger: true },
             ];
         }
         

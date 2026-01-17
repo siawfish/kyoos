@@ -1,19 +1,19 @@
 import { FormElement, Media } from '@/redux/app/types';
 import { actions } from '@/redux/booking/slice';
 import { Summary, Worker } from '@/redux/search/types';
+import { request } from '@/services/api';
+import { ApiResponse } from '@/services/types';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { addHours } from 'date-fns';
+import { RelativePathString, router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { selectAllWorkers, selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
-import { selectArtisan, selectBookingId, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
-import { PayloadAction } from '@reduxjs/toolkit';
-import { ApiResponse } from '@/services/types';
-import { request } from '@/services/api';
-import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
-import { Location } from '../auth/types';
 import { selectUserLocation } from '../app/selector';
-import { RelativePathString, router } from 'expo-router';
-import { addHours } from 'date-fns';
+import { Location } from '../auth/types';
 import { actions as bookingsActions } from '../bookings/slice';
+import { selectAllWorkers, selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
+import { selectArtisan, selectBookingId, selectSearchHistoryId, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
+import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
 
 export function* confirmBooking() {
     try {
@@ -23,6 +23,7 @@ export function* confirmBooking() {
         const time: FormElement = yield select(selectServiceTime);
         const date: FormElement = yield select(selectServiceDate);
         const searchId: string = yield select(selectSearchReferenceId);
+        const searchHistoryId: string = yield select(selectSearchHistoryId);
         const response: ApiResponse<Booking> = yield call(request, {
             method: 'POST',
             url: `/api/users/bookings`,
@@ -32,7 +33,7 @@ export function* confirmBooking() {
                 workerId: worker?.id,
                 date: date?.value,
                 startTime: time?.value,
-                searchId,
+                searchId: searchId || searchHistoryId,
             }
         })
         if (response.error || !response.data) {

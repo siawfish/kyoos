@@ -1,8 +1,8 @@
 import { AvailableSlot, BookingState, ServiceLocationType } from '@/redux/booking/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
-import { Worker } from '../search/types';
 import { Location } from '../auth/types';
+import { Worker } from '../search/types';
 
 // The initial state of the GithubRepoForm container
 export const initialState: BookingState = {
@@ -34,6 +34,7 @@ export const initialState: BookingState = {
   },
   media: [],
   bookingId: '',
+  searchHistoryId: '',
   availableSlots: [],
   isGettingAvailableSlots: false,
   isLoading: false,

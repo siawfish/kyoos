@@ -1,7 +1,7 @@
+import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
-import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import ServiceLocation from "@/components/ui/ServiceLocation";
@@ -10,14 +10,14 @@ import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectArtisan, selectBookingId, selectDescription, selectError, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary, selectIsLoading } from "@/redux/booking/selector";
+import { selectArtisan, selectBookingId, selectDescription, selectError, selectIsLoading, selectMedia, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime, selectSummary } from "@/redux/booking/selector";
 import { actions } from "@/redux/booking/slice";
+import { ServiceLocationType } from "@/redux/booking/types";
 import { actions as searchActions } from "@/redux/search/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { RelativePathString, useLocalSearchParams, useRouter } from "expo-router";
 import { RefObject, useMemo, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import { ServiceLocationType } from "@/redux/booking/types";
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -86,6 +86,15 @@ export default function BookingScreen() {
         if (isRequestEnabled) {
             if(bookingId) {
                 dispatch(actions.submitUpdateBooking(callbackRoute as RelativePathString));
+                return;
+            }
+            if(callbackRoute) {
+                router.push({
+                    pathname: '/(tabs)/(bookings)/review-booking',
+                    params: {
+                        callbackRoute,
+                    },
+                });
                 return;
             }
             router.push('/(tabs)/(search)/(booking)/review-booking');
