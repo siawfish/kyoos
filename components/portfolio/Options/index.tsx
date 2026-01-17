@@ -42,6 +42,10 @@ export function Options({
         light: colors.light.secondary,
         dark: colors.dark.secondary
     }, 'text');
+    const successColor = useThemeColor({
+        light: colors.light.green,
+        dark: colors.dark.green
+    }, 'text');
 
     const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
@@ -140,11 +144,11 @@ export function Options({
                                                 }}
                                                 disabled={option.isDisabled}
                                             >
-                                                <SimpleLineIcons name={option?.icon} size={fontPixel(18)} color={option?.isDanger ? colors.light.danger : textColor} />
+                                                <SimpleLineIcons name={option?.icon} size={fontPixel(18)} color={option?.isDanger ? colors.light.danger : option?.isSuccess ? successColor : textColor} />
                                                 <ThemedText 
                                                     style={[styles.optionText]} 
-                                                    lightColor={option?.isDanger ? colors.light.danger : textColor} 
-                                                    darkColor={option?.isDanger ? colors.dark.danger : textColor}
+                                                    lightColor={option?.isDanger ? colors.light.danger : option?.isSuccess ? successColor : textColor} 
+                                                    darkColor={option?.isDanger ? colors.dark.danger : option?.isSuccess ? successColor : textColor}
                                                 >
                                                     {option.label}
                                                 </ThemedText>

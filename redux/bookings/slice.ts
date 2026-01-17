@@ -60,6 +60,7 @@ const bookingsSlice = createSlice({
     },
     deleteBooking: (state, action: PayloadAction<string>) => {},
     cancelBooking: (state, action: PayloadAction<string>) => {},
+    completeBooking: (state, action: PayloadAction<string>) => {},
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },

@@ -1,7 +1,3 @@
-/**
- * Gets the repositories of the game from Game
- */
-
 import { FormElement, Media } from '@/redux/app/types';
 import { actions } from '@/redux/booking/slice';
 import { Summary, Worker } from '@/redux/search/types';

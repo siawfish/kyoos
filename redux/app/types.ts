@@ -34,6 +34,7 @@ export interface Options {
     onPress: () => void;
     isDisabled?: boolean;
     isDanger?: boolean;
+    isSuccess?: boolean;
 }
 
 export enum OptionIcons {
@@ -45,6 +46,8 @@ export enum OptionIcons {
     CHAT = 'bubble',
     CALENDAR = 'calendar',
     CLOSE = 'close',
+    COMPLETE = 'check',
+    REPORT = 'flag',
 }
 
 

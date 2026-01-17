@@ -53,18 +53,20 @@ const Button = forwardRef<View, ButtonProps>(({
         {isLoading && <ActivityIndicator color={color} style={styles.loader} />}
         {icon}
         {children ? 
-            children :
-            <ThemedText 
-                type='defaultSemiBold'
-                style={[
-                    {
-                      color
-                    },
-                    labelStyle
-                ]}
-            >
-                {label}
-            </ThemedText>
+          children :
+          label ?
+          <ThemedText 
+              type='defaultSemiBold'
+              style={[
+                  {
+                    color
+                  },
+                  labelStyle
+              ]}
+          >
+            {label}
+          </ThemedText> :
+          null
         }
     </TouchableOpacity>
   )

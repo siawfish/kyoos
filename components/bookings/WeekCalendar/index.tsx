@@ -66,7 +66,6 @@ const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCa
           const selected = isSelected(date)
           const today = isToday(date)
           const count = getBookingCount(date)
-
           return (
             <TouchableOpacity
               key={index}

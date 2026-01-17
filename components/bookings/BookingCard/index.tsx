@@ -48,7 +48,9 @@ const BookingCard = ({
     const [showReschedule, setShowReschedule] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
+    const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+    const [showRebookConfirm, setShowRebookConfirm] = useState(false);
+    const [showReportConfirm, setShowReportConfirm] = useState(false);
     if (!booking) return null;
 
     const cardBg = isDark ? 'transparent' : colors.light.background;
@@ -96,10 +98,45 @@ const BookingCard = ({
         dispatch(actions.deleteBooking(booking.id));
     };
 
+    const handleComplete = () => {
+        // TODO: Implement complete booking logic
+        setShowCompleteConfirm(true);
+        dispatch(actions.completeBooking(booking.id));
+    };
+
+    const handleConfirmComplete = () => {
+        // TODO: Implement complete booking logic
+        setShowCompleteConfirm(false);
+        dispatch(actions.completeBooking(booking.id));
+    };
+
+    const handleRebook = () => {
+        // TODO: Implement rebook booking logic
+        setShowRebookConfirm(true);
+    };
+
+    const handleConfirmRebook = () => {
+        // TODO: Implement rebook booking logic
+        setShowRebookConfirm(false);
+        // dispatch(actions.rebookBooking(booking.id));
+    };
+
+    const handleReport = () => {
+        // TODO: Implement report booking logic
+        setShowReportConfirm(true);
+    };
+
+    const handleConfirmReport = () => {
+        // TODO: Implement report booking logic
+        setShowReportConfirm(false);
+    };
+
+
     const getBookingOptions = (): Options[] => {
         const isPending = booking.status === BookingStatuses.PENDING;
         const isCancelled = booking.status === BookingStatuses.CANCELLED;
-        
+        const isOngoing = booking.status === BookingStatuses.ONGOING;
+        const isCompleted = booking.status === BookingStatuses.COMPLETED;
         if (isPending) {
             return [
                 { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
@@ -113,6 +150,21 @@ const BookingCard = ({
                 { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
             ];
         }
+
+        if (isOngoing) {
+            return [
+                { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
+                { label: 'Complete Booking', icon: OptionIcons.COMPLETE, onPress: handleComplete, isSuccess: true },
+                { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
+            ];
+        }
+
+        if (isCompleted) {
+            return [
+                { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleRebook},
+                { label: 'Report', icon: OptionIcons.REPORT, onPress: handleReport, isDanger: true },
+            ];
+        }
         
         return [
             { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
@@ -120,6 +172,11 @@ const BookingCard = ({
             { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
         ];
     };
+
+    const renderSnapPoints = () => {
+        const options = getBookingOptions();
+        return options.length > 2 ? ['42%'] : options.length > 1 ? ['35%'] : ['30%'];
+    }
 
     return (
         <>
@@ -149,7 +206,7 @@ const BookingCard = ({
                             <OptionsComponent 
                                 options={getBookingOptions()} 
                                 title="Booking Actions"
-                                snapPoints={getBookingOptions().length > 2 ? ['42%'] : ['30%']}
+                                snapPoints={renderSnapPoints()}
                             />
                         </TouchableOpacity>
                     </View>
@@ -186,8 +243,8 @@ const BookingCard = ({
                 isOpenChange={setShowReschedule} 
                 onConfirm={confirmReschedule} 
                 title="Reschedule Booking?" 
-                icon={<Image source={require('@/assets/images/calendar.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to reschedule this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to reschedule this booking with ${booking.worker.name}?`}
                 confirmText="Yes, Reschedule Booking"
                 cancelText="Cancel"
             />
@@ -213,6 +270,42 @@ const BookingCard = ({
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
                 description="Are you sure you want to delete this booking? This action cannot be reversed."
                 confirmText="Yes, Delete"
+                cancelText="Cancel"
+            />
+        )}
+        {showCompleteConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showCompleteConfirm} 
+                isOpenChange={setShowCompleteConfirm} 
+                onConfirm={handleConfirmComplete} 
+                title="Complete Booking?" 
+                icon={<Image source={require('@/assets/images/success.png')} style={styles.dangerIcon} />}
+                description="Can you confirm that the booking has been completed?"
+                confirmText="Yes, Complete Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showRebookConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showRebookConfirm} 
+                isOpenChange={setShowRebookConfirm} 
+                onConfirm={handleConfirmRebook} 
+                title="Rebook Booking?" 
+                icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to book another session with ${booking.worker.name}?`}
+                confirmText="Yes, Rebook Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showReportConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showReportConfirm} 
+                isOpenChange={setShowReportConfirm} 
+                onConfirm={handleConfirmReport} 
+                title="Report Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
+                confirmText="Yes, Report Booking"
                 cancelText="Cancel"
             />
         )}
