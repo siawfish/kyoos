@@ -28,3 +28,8 @@ export const selectSelectedDate = createSelector(
   [selectBookingsDomain],
   (bookingsState) => bookingsState.selectedDate
 );
+
+export const selectIsUpdatingBooking = createSelector(
+  [selectBookingsDomain],
+  (bookingsState) => bookingsState.isUpdatingBooking
+);

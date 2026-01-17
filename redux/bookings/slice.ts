@@ -16,6 +16,7 @@ export const initialState: BookingsState = {
     hasNext: false,
     hasPrev: false,
   },
+  isUpdatingBooking: false,
 };
 
 interface RehydrateAction {
@@ -58,9 +59,22 @@ const bookingsSlice = createSlice({
     fetchBookingFailure: (state) => {
       state.isLoading = false;
     },
-    deleteBooking: (state, action: PayloadAction<string>) => {},
-    cancelBooking: (state, action: PayloadAction<string>) => {},
-    completeBooking: (state, action: PayloadAction<string>) => {},
+    rebookBooking: (state, action: PayloadAction<string>) => {},
+    deleteBooking: (state, action: PayloadAction<string>) => {
+      state.isUpdatingBooking = true;
+    },
+    cancelBooking: (state, action: PayloadAction<string>) => {
+      state.isUpdatingBooking = true;
+    },
+    completeBooking: (state, action: PayloadAction<string>) => {
+      state.isUpdatingBooking = true;
+    },
+    reportBooking: (state, action: PayloadAction<string>) => {
+      state.isUpdatingBooking = true;
+    },
+    setIsUpdatingBooking: (state, action: PayloadAction<boolean>) => {
+      state.isUpdatingBooking = action.payload;
+    },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },

@@ -87,48 +87,40 @@ const BookingCard = ({
     };
 
     const handleConfirmCancel = () => {
-        // TODO: Implement cancel booking logic
         setShowCancelConfirm(false);
         dispatch(actions.cancelBooking(booking.id));
     };
 
     const handleConfirmDelete = () => {
-        // TODO: Implement delete booking logic
         setShowDeleteConfirm(false);
         dispatch(actions.deleteBooking(booking.id));
     };
 
     const handleComplete = () => {
-        // TODO: Implement complete booking logic
         setShowCompleteConfirm(true);
-        dispatch(actions.completeBooking(booking.id));
     };
 
     const handleConfirmComplete = () => {
-        // TODO: Implement complete booking logic
         setShowCompleteConfirm(false);
         dispatch(actions.completeBooking(booking.id));
     };
 
     const handleRebook = () => {
-        // TODO: Implement rebook booking logic
         setShowRebookConfirm(true);
     };
 
     const handleConfirmRebook = () => {
-        // TODO: Implement rebook booking logic
         setShowRebookConfirm(false);
-        // dispatch(actions.rebookBooking(booking.id));
+        dispatch(actions.rebookBooking(booking.id));
     };
 
     const handleReport = () => {
-        // TODO: Implement report booking logic
         setShowReportConfirm(true);
     };
 
     const handleConfirmReport = () => {
-        // TODO: Implement report booking logic
         setShowReportConfirm(false);
+        dispatch(actions.reportBooking(booking.id));
     };
 
 

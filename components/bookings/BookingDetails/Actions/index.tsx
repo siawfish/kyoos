@@ -4,7 +4,7 @@ import { colors } from '@/constants/theme/colors';
 import { Ionicons } from "@expo/vector-icons";
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { selectBooking } from '@/redux/bookings/selector';
+import { selectBooking, selectIsUpdatingBooking } from '@/redux/bookings/selector';
 import { useAppSelector } from '@/store/hooks';
 import { BookingStatuses } from '@/redux/app/types';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -24,6 +24,7 @@ const Actions = ({
     onDelete,
 }:ActionsProps) => {
   const booking = useAppSelector(selectBooking);
+  const isUpdatingBooking = useAppSelector(selectIsUpdatingBooking);
   const iconColor = useThemeColor({
     light: colors.light.white,
     dark: colors.dark.black
@@ -106,6 +107,8 @@ const Actions = ({
             icon={item.icon}  
             style={item.style}
             labelStyle={item.labelStyle}
+            isLoading={item.label ? isUpdatingBooking : false}
+            disabled={isUpdatingBooking}
           />
         ))
       }

@@ -7,7 +7,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { Booking } from '../booking/types';
-import { selectBooking, selectBookings, selectSelectedDate } from './selector';
+import { selectBookings, selectSelectedDate } from './selector';
 import { addHours, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
 import { router } from 'expo-router';
 
@@ -119,7 +119,7 @@ function* cancelBooking(action: PayloadAction<string>) {
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: 'Booking canceled successfully',
+      text2: 'Booking has been canceled successfully',
     });
     yield put(actions.fetchBookings());
     yield put(actions.fetchBooking(action.payload));
@@ -127,9 +127,11 @@ function* cancelBooking(action: PayloadAction<string>) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while canceling booking';
     Toast.show({
       type: 'error',
-      text1: 'Error canceling booking',
+      text1: 'Error',
       text2: errorMessage,
     });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
   }
 }
 
@@ -145,7 +147,7 @@ function* deleteBooking(action: PayloadAction<string>) {
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: 'Booking deleted successfully',
+      text2: 'Booking has been deleted successfully',
     });
     yield put(actions.fetchBookings());
     router.dismissTo('/(tabs)/(bookings)/bookings');
@@ -153,9 +155,67 @@ function* deleteBooking(action: PayloadAction<string>) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while deleting booking';
     Toast.show({
       type: 'error',
-      text1: 'Error deleting booking',
+      text1: 'Error',
       text2: errorMessage,
     });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
+  }
+}
+
+function* completeBooking(action: PayloadAction<string>) {
+  try {
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/bookings/${action.payload}/complete`,
+    })
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while completing booking');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Booking has been marked as completed successfully',
+    });
+    yield put(actions.fetchBookings());
+    yield put(actions.fetchBooking(action.payload));
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while completing booking';
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
+  }
+}
+
+function* reportBooking(action: PayloadAction<string>) {
+  try {
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/bookings/${action.payload}/report`,
+    })
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while reporting booking');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'You complaint has been received. We will review it and get back to you soon.',
+    });
+    yield put(actions.fetchBookings());
+    yield put(actions.fetchBooking(action.payload));
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while reporting booking';
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
   }
 }
 
@@ -166,5 +226,7 @@ export function* bookingsSaga() {
   yield takeLatest(actions.cancelBooking, cancelBooking);
   yield takeLatest(actions.deleteBooking, deleteBooking);
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
+  yield takeLatest(actions.completeBooking, completeBooking);
+  yield takeLatest(actions.reportBooking, reportBooking);
 }
 

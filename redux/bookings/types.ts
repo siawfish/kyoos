@@ -8,6 +8,7 @@ export interface BookingsState {
     isLoading: boolean;
     pagination: Pagination;
     selectedDate: string;
+    isUpdatingBooking: boolean;
 }
 
 export interface BookingsResponse {
