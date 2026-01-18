@@ -91,14 +91,14 @@ export const convertFromMillisecondsToHours = (milliseconds: number) => {
 }
 
 // Helper function to calculate worker's average hourly rate for required skills
-export const calculateWorkerHourlyRate = (worker: Worker, requiredSkills: Skill[]): number => {
-  if (!requiredSkills || requiredSkills.length === 0) return 0;
+export const calculateWorkerHourlyRate = (worker: Worker): number => {
+  if (!worker.skills || worker.skills.length === 0) return 0;
   
   let totalRate = 0;
   let skillCount = 0;
   
   // Calculate average rate for required skills
-  for (const requiredSkill of requiredSkills) {
+  for (const requiredSkill of worker.skills) {
       const workerSkill = worker?.skills?.find(s => s.skillId === requiredSkill.id);
       if (workerSkill && workerSkill.rate) {
           totalRate += workerSkill.rate;
@@ -110,15 +110,15 @@ export const calculateWorkerHourlyRate = (worker: Worker, requiredSkills: Skill[
 };
 
 // Helper function to calculate worker's cost based on their rates and estimated duration
-export const calculateWorkerCost = (worker: Worker, requiredSkills: Skill[], estimatedDuration: number): number => {
-  if (!estimatedDuration || requiredSkills.length === 0) return 0;
+export const calculateWorkerCost = (worker: Worker, estimatedDuration: number): number => {
+  if (!estimatedDuration || worker.skills.length === 0) return 0;
   
   const durationInHours = convertFromMillisecondsToHours(estimatedDuration);
   let totalCost = 0;
   let hasValidSkills = false;
   
   // Calculate cost for each required skill
-  for (const requiredSkill of requiredSkills) {
+  for (const requiredSkill of worker.skills) {
       const workerSkill = worker?.skills?.find(s => s.skillId === requiredSkill.id);
       if (workerSkill && workerSkill.rate) {
           totalCost += workerSkill.rate * durationInHours;

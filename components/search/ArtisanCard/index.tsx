@@ -70,8 +70,8 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, onPress }: Ar
         onPress?.(artisan.id);
     };
 
-    const workerCost = useMemo(() => calculateWorkerCost(artisan, artisan.skills, estimatedDuration || 0), [artisan, artisan.skills, estimatedDuration]);
-    const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan, artisan.skills), [artisan, artisan.skills]);
+    const workerCost = useMemo(() => calculateWorkerCost(artisan, estimatedDuration || 0), [artisan, estimatedDuration]);
+    const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan), [artisan]);
     const averageRate = useMemo(() => calculateWorkerAverageRate(artisan), [artisan]);
     
     const displayPrice = workerCost > 0 ? workerCost : (hourlyRate || averageRate);

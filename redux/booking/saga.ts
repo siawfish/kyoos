@@ -15,7 +15,8 @@ import { selectAllWorkers, selectMedia, selectSearch, selectSearchReferenceId, s
 import { selectArtisan, selectBookingId, selectSearchHistoryId, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
 import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
 
-export function* confirmBooking() {
+export function* confirmBooking(action: PayloadAction<RelativePathString>) {
+    const callbackRoute = action.payload || '/(tabs)/(search)/(booking)/booking';
     try {
         const serviceType: ServiceLocationType = yield select(selectServiceLocationType);
         const serviceLocation: Location = yield select(selectServiceLocation);
@@ -44,7 +45,7 @@ export function* confirmBooking() {
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while booking';
         yield put(actions.onConfirmBookingError(errorMessage));
-        router.replace('/(tabs)/(search)/(booking)/booking');
+        router.replace(callbackRoute as RelativePathString);
     }
 }
 
@@ -55,6 +56,8 @@ export function* initializeBooking(action: PayloadAction<string>) {
     const userLocation: Location = yield select(selectUserLocation);
     const allWorkers: Worker[] = yield select(selectAllWorkers);
     const artisan = allWorkers.find((worker) => worker.id === action.payload);
+    const searchId: string = yield select(selectSearchReferenceId);
+    const searchHistoryId: string = yield select(selectSearchHistoryId);
     const defaultDateTime = new Date().toISOString();
     yield put(actions.updateBooking({
         media,
@@ -73,6 +76,7 @@ export function* initializeBooking(action: PayloadAction<string>) {
             },
         },
         artisan: artisan || null,
+        searchHistoryId: searchHistoryId || searchId,
     }));
     const dateString = addHours(defaultDateTime, 1).toISOString();
     yield put(actions.getAvailableTimes(dateString));
@@ -162,7 +166,7 @@ export function* submitUpdateBooking(action: PayloadAction<string>) {
 }
 
 export function* bookingSaga() {
-  yield takeLatest(actions.onConfirmBooking, confirmBooking);
+  yield takeLatest(actions.onConfirmBooking.type, confirmBooking);
   yield takeLatest(actions.initializeBooking, initializeBooking);
   yield takeLatest(actions.getAvailableTimes, getAvailableTimes);
   yield takeLatest(actions.reverseGeocodeServiceLocation, reverseGeocodeServiceLocation);

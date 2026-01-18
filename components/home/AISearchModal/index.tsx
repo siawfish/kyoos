@@ -7,7 +7,7 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Media, MediaType } from '@/redux/app/types';
+import { Media, MimeType } from '@/redux/app/types';
 import { selectIsLoading, selectMedia, selectSearch } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -142,7 +142,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
             }
             
             // Trigger the search - saga will read from Redux state
-            dispatch(actions.onSearch({}));
+            dispatch(actions.onSearch());
             
             // Close modal after a brief delay to allow LoadingPopover to show
             setTimeout(() => {
@@ -312,7 +312,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                                         <View style={[styles.selectedMediaContainer, { borderTopColor: borderColor }]}>
                                             <View style={styles.selectedMediaWrapper}>
                                                 <Image 
-                                                    source={{ uri: selectedMedia.uri }} 
+                                                    source={{ uri: selectedMedia.url }} 
                                                     style={styles.selectedMediaImage}
                                                 />
                                                 <TouchableOpacity 
@@ -324,7 +324,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                                                 </TouchableOpacity>
                                             </View>
                                             <ThemedText style={[styles.mediaTypeLabel, { color: secondaryColor }]}>
-                                                {selectedMedia.type === MediaType.VIDEO ? 'VIDEO ATTACHED' : 'IMAGE ATTACHED'}
+                                                {selectedMedia.type === MimeType.MP4 ? 'VIDEO ATTACHED' : 'IMAGE ATTACHED'}
                                             </ThemedText>
                                         </View>
                                     )}

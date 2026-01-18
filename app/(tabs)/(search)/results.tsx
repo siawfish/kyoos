@@ -75,7 +75,7 @@ const SearchPromptPreview = ({ search, media }: { search: string, media: Media[]
                     {media.map((item, index) => (
                         <View key={index} style={styles.mediaItem}>
                             <Image
-                                source={{ uri: item.uri }}
+                                source={{ uri: item.url }}
                                 style={styles.mediaImage}
                                 resizeMode="cover"
                             />
@@ -117,7 +117,6 @@ const ArtisanList = ({ title, artisans, requiredSkills, estimatedDuration, onPre
                         <View key={artisan.id} style={[styles.artisanCardWrapper, { marginRight: index === artisans.length - 1 ? 0 : widthPixel(16) }]}>
                             <ArtisanCard 
                                 artisan={artisan} 
-                                requiredSkills={requiredSkills}
                                 estimatedDuration={estimatedDuration}
                                 onPress={onPress}
                             />
@@ -422,7 +421,6 @@ export default function Results() {
                                         }}
                                     >
                                         <WorkerMapMarker 
-                                            skills={requiredSkills}
                                             worker={artisan} 
                                             estimatedDuration={summary.estimatedDuration}
                                             pinColor={pinColor}
@@ -524,6 +522,7 @@ export default function Results() {
                     showsVerticalScrollIndicator={false}
                 > 
                     <JobSummary 
+                        artisan={selectedArtisanObject}
                         summary={summary} 
                         containerStyle={{ marginHorizontal: 0, marginTop: 0, marginBottom: 16 }}
                     />
@@ -582,7 +581,6 @@ export default function Results() {
                     selectedArtisanObject && (
                         <ArtisanCard
                             artisan={selectedArtisanObject}
-                            requiredSkills={requiredSkills}
                             estimatedDuration={summary.estimatedDuration}
                         />
                     )

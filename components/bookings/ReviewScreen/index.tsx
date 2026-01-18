@@ -99,7 +99,11 @@ export default function ReviewBooking() {
     }, 'background');
 
     const handleConfirmBooking = () => {
-        dispatch(actions.onConfirmBooking());
+        if(callbackRoute) {
+            dispatch(actions.onConfirmBooking('/(tabs)/(bookings)/bookings' as RelativePathString));
+        } else {
+            dispatch(actions.onConfirmBooking());
+        }
     };
 
     const handleSuccessClose = () => {
@@ -107,7 +111,6 @@ export default function ReviewBooking() {
         if(callbackRoute) {
             router.dismissTo(callbackRoute);
         } else {
-            router.dismissAll();
             router.push(`/(tabs)/(bookings)/${bookingId}`);
         }
         dispatch(actions.resetState());
@@ -155,6 +158,8 @@ export default function ReviewBooking() {
                     iconName="arrow-left"
                     onPress={() => router.back()}
                 />
+                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                <Text style={[styles.pageTitle, { color: labelColor }]}>REVIEW BOOKING</Text>
             </View>
 
             <ScrollView 
@@ -162,12 +167,6 @@ export default function ReviewBooking() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.pageTitle, { color: labelColor }]}>REVIEW BOOKING</Text>
-                </View>
-
                 {/* Worker Details Section */}
                 {artisan && (
                     <View style={styles.section}>
@@ -409,9 +408,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(8),
-    },
-    header: {
-        marginBottom: heightPixel(24),
+        gap: heightPixel(8),
     },
     accentBar: {
         width: widthPixel(40),

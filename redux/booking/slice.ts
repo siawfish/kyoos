@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 import { Location } from '../auth/types';
 import { Worker } from '../search/types';
+import { RelativePathString } from 'expo-router';
 
 // The initial state of the GithubRepoForm container
 export const initialState: BookingState = {
@@ -56,7 +57,7 @@ const bookingSlice = createSlice({
   initialState,
   reducers: {
     initializeBooking: (state, action: PayloadAction<string>) => {},
-    onConfirmBooking: (state) => {
+    onConfirmBooking: (state, action: PayloadAction<RelativePathString | undefined>) => {
       state.isLoading = true;
       state.isSuccess = false;
     },

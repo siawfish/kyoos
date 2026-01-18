@@ -8,13 +8,13 @@ import { InitializeResponse, SearchResponse } from '@/redux/search/types';
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { RelativePathString, router } from 'expo-router';
+import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
 
-export function* search({payload}: PayloadAction<{navigateTo?: RelativePathString, artisanId?: string}>) {
-    const { navigateTo = '/(tabs)/(search)/results', artisanId } = payload;
+export function* search({payload}: PayloadAction<string>) {
+    const artisanId = payload;
     try {
         const search: string = yield select(selectSearch);
         const media: Media[] = yield select(selectMedia);
@@ -60,8 +60,10 @@ export function* search({payload}: PayloadAction<{navigateTo?: RelativePathStrin
             yield put(actions.setDescriptionModalVisible(false));
             yield put(actions.setSelectedArtisan(null));
             yield put(bookingActions.initializeBooking(artisanId));
+            router.push('/(tabs)/(search)/(booking)/booking')
+        } else {
+            router.push('/(tabs)/(search)/results');
         }
-        router.push(navigateTo);
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while searching';
         Toast.show({

@@ -4,14 +4,15 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { Link } from 'expo-router'
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
 const Header = ({
   onReschedule,
+  onBack
 }: {
   onReschedule: () => void;
+  onBack: () => void;
 }) => {
     const color = useThemeColor(
       {
@@ -30,12 +31,11 @@ const Header = ({
     return (
         <View style={styles.header}>
             <View style={styles.backButtonContainer}>
-              <Link href="../" asChild>
-                <BackButton 
-                  containerStyle={styles.backButton} 
-                  iconName='arrow-left'
-                />
-              </Link>
+              <BackButton 
+                containerStyle={styles.backButton} 
+                iconName='arrow-left'
+                onPress={onBack}
+              />
               <Button 
                 style={{...styles.rescheduleButton, borderColor: borderColor}}
                 labelStyle={{...styles.rescheduleLabel, color: color}}
