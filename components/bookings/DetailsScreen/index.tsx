@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +14,7 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings/selector";
 import { actions } from "@/redux/bookings/slice";
 import { Booking } from "@/redux/booking/types";
+import { BookingStatuses } from "@/redux/app/types";
 
 const Details = () => {
   const dispatch = useDispatch();
@@ -24,8 +25,12 @@ const Details = () => {
   const theme = useAppTheme();
   const isDark = theme === 'dark';
 
-  const [showConfirm, setShowConfirm] = React.useState(false);
-  const [showReschedule, setShowReschedule] = React.useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [showRebookConfirm, setShowRebookConfirm] = useState(false);
+  const [showReportConfirm, setShowReportConfirm] = useState(false);
 
   // Find the booking by ID
   const stateBooking = useMemo(() => {
@@ -64,7 +69,7 @@ const Details = () => {
   if (isLoading && !booking) {
     return (
       <ThemedSafeAreaView style={styles.container}>
-        <Header onReschedule={() => {}} onBack={handleBack} />
+        <Header onBack={handleBack} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
@@ -72,11 +77,114 @@ const Details = () => {
     );
   }
 
+  const confirmReschedule = () => {
+    if(!booking) return;
+    setShowReschedule(false);
+    dispatch(actions.rescheduleBooking(booking.id));
+    router.push({
+      pathname: '/(tabs)/(bookings)/booking',
+      params: {
+        callbackRoute: `/(tabs)/(bookings)/${booking.id}`,
+      },
+    });
+  };
+
+  const handleReschedule = () => {
+      setShowReschedule(true);
+  };
+
+  const handleCancel = () => {
+      setShowCancelConfirm(true);
+  };
+
+  const handleDelete = () => {
+      setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmCancel = () => {
+    if(!booking) return;
+    setShowCancelConfirm(false);
+    dispatch(actions.cancelBooking(booking.id));
+  };
+
+  const handleConfirmDelete = () => {
+    if(!booking) return;
+    setShowDeleteConfirm(false);
+    dispatch(actions.deleteBooking(booking.id));
+  };
+
+  const handleComplete = () => {
+    setShowCompleteConfirm(true);
+  };
+
+  const handleConfirmComplete = () => {
+    if(!booking) return;
+    setShowCompleteConfirm(false);
+    dispatch(actions.completeBooking(booking.id));
+  };
+
+  const handleRebook = () => {
+    setShowRebookConfirm(true);
+  };
+
+  const handleConfirmRebook = () => {
+    if(!booking) return;
+    setShowRebookConfirm(false);
+    dispatch(actions.rebookBooking(booking.id));
+    router.push({
+      pathname: '/(tabs)/(bookings)/booking',
+      params: {
+        callbackRoute: `/(tabs)/(bookings)/${booking.id}`,
+      },
+    });
+  };
+
+  const handleReport = () => {
+      setShowReportConfirm(true);
+  };
+
+  const handleConfirmReport = () => {
+    if(!booking) return;
+    setShowReportConfirm(false);
+    dispatch(actions.reportBooking(booking.id));
+  };
+
+  const determineRescheduleAction = () => {
+    if(booking?.status === BookingStatuses.PENDING) {
+      return {
+        onPress: handleReschedule,
+        label: 'RESCHEDULE',
+      };
+    }
+    if(booking?.status === BookingStatuses.ACCEPTED) {
+      return {
+        onPress: handleReschedule,
+        label: 'RESCHEDULE',
+      };
+    }
+    if(booking?.status === BookingStatuses.DECLINED) {
+      return {
+        onPress: handleReschedule,
+        label: 'RESCHEDULE',
+      };
+    }
+    if(booking?.status === BookingStatuses.CANCELLED) {
+      return undefined;
+    }
+    if(booking?.status === BookingStatuses.COMPLETED) {
+      return {
+        onPress: handleRebook,
+        label: 'REBOOK',
+      };
+    }
+    return undefined;
+  };
+
   // Booking not found state
   if (!booking) {
     return (
       <ThemedSafeAreaView style={styles.container}>
-        <Header onReschedule={() => {}} onBack={handleBack} />
+        <Header onReschedule={determineRescheduleAction()} onBack={handleBack} />
         <View style={styles.notFoundContainer}>
           <View style={[styles.notFoundCard, { borderColor: accentColor, backgroundColor }]}>
             <View style={[styles.notFoundAccent, { backgroundColor: accentColor }]} />
@@ -95,20 +203,12 @@ const Details = () => {
     );
   }
 
-  const confirmReschedule = () => {
-      setShowReschedule(false);
-      dispatch(actions.rescheduleBooking(booking.id));
-      router.push({
-          pathname: '/(tabs)/(bookings)/booking',
-          params: {
-            callbackRoute: `/(tabs)/(bookings)/${booking.id}`,
-          },
-      });
-  };
-
   return (
     <ThemedSafeAreaView style={styles.container}>
-      <Header onReschedule={() => setShowReschedule(true)} onBack={handleBack} />
+      <Header 
+        onReschedule={determineRescheduleAction()} 
+        onBack={handleBack} 
+      />
       <View style={styles.contentContainer}>
         <BookingDetails booking={booking} />
       </View>
@@ -119,32 +219,85 @@ const Details = () => {
           borderTopColor: borderColor,
         }
       ]}>
-        <Actions onCancel={() => setShowConfirm(true)} />
+        <Actions 
+          onCancel={handleCancel} 
+          onComplete={handleComplete} 
+          onReport={handleReport} 
+          onDelete={handleDelete} 
+        />
       </View>
-      {showConfirm && (
-        <ConfirmActionSheet 
-          isOpen={showConfirm} 
-          isOpenChange={() => setShowConfirm(!showConfirm)} 
-          onConfirm={() => setShowConfirm(false)} 
-          title="Cancel Booking?" 
-          icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-          description={`Are you sure you want to cancel this booking? This action can not be reversed. ${booking?.worker?.name} will also be notified.`}
-          confirmText="Yes, Cancel Booking"
-          cancelText="Cancel"
-        />
-      )}
-      {showReschedule && (
-        <ConfirmActionSheet 
-          isOpen={showReschedule} 
-          isOpenChange={() => setShowReschedule(!showReschedule)} 
-          onConfirm={confirmReschedule} 
-          title="Reschedule Booking?" 
-          icon={<Image source={require('@/assets/images/calendar.png')} style={styles.dangerIcon} />}
-          description={`Are you sure you want to reschedule this booking? This action cannot be reversed. ${booking?.worker?.name} will also be notified.`}
-          confirmText="Yes, Reschedule Booking"
-          cancelText="Cancel"
-        />
-      )}
+        {showReschedule && (
+            <ConfirmActionSheet 
+                isOpen={showReschedule} 
+                isOpenChange={setShowReschedule} 
+                onConfirm={confirmReschedule} 
+                title="Reschedule Booking?" 
+                icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to reschedule this booking with ${booking.worker.name}?`}
+                confirmText="Yes, Reschedule Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showCancelConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showCancelConfirm} 
+                isOpenChange={setShowCancelConfirm} 
+                onConfirm={handleConfirmCancel} 
+                title="Cancel Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                confirmText="Yes, Cancel Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showDeleteConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showDeleteConfirm} 
+                isOpenChange={setShowDeleteConfirm} 
+                onConfirm={handleConfirmDelete} 
+                title="Delete Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description="Are you sure you want to delete this booking? This action cannot be reversed."
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+            />
+        )}
+        {showCompleteConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showCompleteConfirm} 
+                isOpenChange={setShowCompleteConfirm} 
+                onConfirm={handleConfirmComplete} 
+                title="Complete Booking?" 
+                icon={<Image source={require('@/assets/images/success.png')} style={styles.dangerIcon} />}
+                description="Can you confirm that the booking has been completed?"
+                confirmText="Yes, Complete Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showRebookConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showRebookConfirm} 
+                isOpenChange={setShowRebookConfirm} 
+                onConfirm={handleConfirmRebook} 
+                title="Rebook Booking?" 
+                icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to book another session with ${booking.worker.name}?`}
+                confirmText="Yes, Rebook Booking"
+                cancelText="Cancel"
+            />
+        )}
+        {showReportConfirm && (
+            <ConfirmActionSheet 
+                isOpen={showReportConfirm} 
+                isOpenChange={setShowReportConfirm} 
+                onConfirm={handleConfirmReport} 
+                title="Report Booking?" 
+                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+                description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
+                confirmText="Yes, Report Booking"
+                cancelText="Cancel"
+            />
+        )}
     </ThemedSafeAreaView>
   );
 };

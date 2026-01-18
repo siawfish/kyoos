@@ -157,8 +157,12 @@ export function* submitUpdateBooking(action: PayloadAction<string>) {
     yield put(bookingsActions.fetchBookingSuccess(response.data));
     yield put(bookingsActions.setSelectedDate(response.data.date));
     router.dismissTo(action.payload as RelativePathString);
-  }
-  catch (error:unknown) {
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Booking details have been updated successfully',
+    });
+  }  catch (error:unknown) {
     console.log(error);
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while updating booking';
     yield put(actions.submitUpdateBookingError(errorMessage));

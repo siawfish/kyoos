@@ -11,7 +11,10 @@ const Header = ({
   onReschedule,
   onBack
 }: {
-  onReschedule: () => void;
+  onReschedule?: {
+    onPress: () => void;
+    label: string;
+  };
   onBack: () => void;
 }) => {
     const color = useThemeColor(
@@ -36,13 +39,17 @@ const Header = ({
                 iconName='arrow-left'
                 onPress={onBack}
               />
-              <Button 
-                style={{...styles.rescheduleButton, borderColor: borderColor}}
-                labelStyle={{...styles.rescheduleLabel, color: color}}
-                icon={<Ionicons name="calendar" size={fontPixel(16)} color={color} />}
-                label="RESCHEDULE"
-                onPress={onReschedule}
-              />
+              {
+                onReschedule && (
+                  <Button 
+                    style={{...styles.rescheduleButton, borderColor: borderColor}}
+                    labelStyle={{...styles.rescheduleLabel, color: color}}
+                    icon={<Ionicons name="calendar" size={fontPixel(16)} color={color} />}
+                    label={onReschedule.label}
+                    onPress={onReschedule.onPress}
+                  />
+                )
+              }
             </View>
         </View>
     )

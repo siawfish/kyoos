@@ -5,7 +5,7 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { Booking } from '@/redux/booking/types';
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
@@ -21,6 +21,11 @@ const ContactCard = ({ booking }: ContactCardProps) => {
     const borderColor = isDark ? colors.dark.white : colors.light.black;
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
+
+    const handleChatWorker = () => {
+      if(!booking) return;
+      router.push(`/(tabs)/(messaging)/${booking.id}`);
+    };
 
     return (
         <View style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
@@ -42,15 +47,13 @@ const ContactCard = ({ booking }: ContactCardProps) => {
                             )}
                         </View>
                     </View>
-                    <Link href="/(tabs)/(messaging)/1" asChild>
-                        <IconButton style={[styles.btn, { borderColor }]}>
-                            <Ionicons
-                                name="chatbubble-outline"
-                                size={widthPixel(18)}
-                                color={textColor}
-                            />
-                        </IconButton>
-                    </Link>
+                    <IconButton onPress={handleChatWorker} style={[styles.btn, { borderColor }]}>
+                        <Ionicons
+                            name="chatbubble-outline"
+                            size={widthPixel(18)}
+                            color={textColor}
+                        />
+                    </IconButton>
                 </View>
             </View>
         </View>
