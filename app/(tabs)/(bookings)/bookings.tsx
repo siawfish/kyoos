@@ -7,15 +7,15 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { format } from 'date-fns';
+import { Booking } from '@/redux/booking/types';
+import { selectBookings, selectBookingsForSelectedDate, selectCurrentWeekStart, selectIsLoading, selectSelectedDate } from '@/redux/bookings/selector';
+import { actions } from '@/redux/bookings/slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { FlashList } from '@shopify/flash-list';
+import { format, startOfWeek } from 'date-fns';
 import React, { useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { AgendaEntry } from 'react-native-calendars';
-import { FlashList } from '@shopify/flash-list';
-import { selectBookings, selectIsLoading, selectSelectedDate } from '@/redux/bookings/selector';
-import { actions } from '@/redux/bookings/slice';
-import { Booking } from '@/redux/booking/types';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
 interface BookingAgendaEntry extends AgendaEntry {
   booking?: Booking;
 }
@@ -23,14 +23,30 @@ interface BookingAgendaEntry extends AgendaEntry {
 export default function BookingsScreen() {
   const dispatch = useAppDispatch();
   const bookings = useAppSelector(selectBookings);
+  const bookingsForSelectedDate = useAppSelector(selectBookingsForSelectedDate);
   const isLoading = useAppSelector(selectIsLoading);
-  const selectedDateString = useAppSelector(selectSelectedDate);  
+  const selectedDateString = useAppSelector(selectSelectedDate);
+  const currentWeekStart = useAppSelector(selectCurrentWeekStart);
 
+  const selectedDate = useMemo(() => {
+    return new Date(selectedDateString);
+  }, [selectedDateString]);
+
+  // Sync week start and fetch bookings when week changes
+  useEffect(() => {
+    const newWeekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+    const currentWeekStartDate = new Date(currentWeekStart);
+    
+    if (newWeekStart.getTime() !== currentWeekStartDate.getTime()) {
+      // Week changed - update week start (this will trigger fetch via saga)
+      dispatch(actions.setCurrentWeekStart(newWeekStart.toISOString()));
+    }
+  }, [selectedDate, currentWeekStart, dispatch]);
+
+  // Initial fetch on mount (uses current week start from state)
   useEffect(() => {
     dispatch(actions.fetchBookings());
   }, [dispatch]);
-  
-  const selectedDate = new Date(selectedDateString);
   const theme = useAppTheme();
   const isDark = theme === 'dark';
 
@@ -51,14 +67,17 @@ export default function BookingsScreen() {
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     bookings.forEach((booking: Booking) => {
-      const dateKey = booking.date;
+      // Normalize date to 'yyyy-MM-dd' format to match WeekCalendar lookup
+      const dateKey = booking.date.includes('T') 
+        ? format(new Date(booking.date), 'yyyy-MM-dd')
+        : booking.date;
       counts[dateKey] = (counts[dateKey] || 0) + 1;
     });
     return counts;
   }, [bookings]);
 
-  // Convert filtered bookings to agenda items
-  const agendaItems: BookingAgendaEntry[] = bookings.map((booking: Booking) => ({
+  // Convert filtered bookings to agenda items (for selected day display)
+  const agendaItems: BookingAgendaEntry[] = bookingsForSelectedDate.map((booking: Booking) => ({
     name: `${booking.description} with ${booking.worker.name}`,
     height: 80,
     day: booking.date,

@@ -1,19 +1,13 @@
 import { FormElement, Media, Theme, User } from "@/redux/app/types";
 import { Booking } from "../booking/types";
-import { Pagination } from "@/services/types";
 
 export interface BookingsState {
     bookings: Booking[];
     booking: Booking | null;
     isLoading: boolean;
-    pagination: Pagination;
     selectedDate: string;
+    currentWeekStart: string;
     isUpdatingBooking: boolean;
-}
-
-export interface BookingsResponse {
-    bookings: Booking[];
-    pagination: Pagination;
 }
 
 export interface Service {

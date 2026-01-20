@@ -4,7 +4,7 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { RelativePathString, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -36,7 +36,7 @@ const SettingsItem = ({ title, icon, color, borderColor, href, onPress }: Settin
     : (isDark ? colors.dark.grey : colors.light.grey);
 
   return (
-    <TouchableOpacity onPress={onPress ? onPress : () => router.push(href as any)} style={[styles.settingsItem, { borderColor: borderColor, borderBottomWidth: borderColor ? 1 : 0 }]}>
+    <TouchableOpacity onPress={onPress ? onPress : () => router.push(href as RelativePathString)} style={[styles.settingsItem, { borderColor: borderColor, borderBottomWidth: borderColor ? 1 : 0 }]}>
       <View style={styles.settingsItemContent}>
         <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor }]}>
           <Ionicons name={icon as any} size={22} color={iconColor} />

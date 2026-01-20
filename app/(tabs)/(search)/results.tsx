@@ -59,7 +59,7 @@ const SearchPromptPreview = ({ search, media }: { search: string, media: Media[]
     }, 'white');
 
     return (
-        <BlurView intensity={80} tint={blurTint as any} style={[styles.promptContainer, { backgroundColor, borderColor }]}>
+        <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.promptContainer, { backgroundColor, borderColor }]}>
             <View style={styles.promptHeader}>
                 <View style={styles.promptHeaderContent}>
                     <Feather name="search" size={16} color={tintColor} />
@@ -453,7 +453,7 @@ export default function Results() {
             {showCards && (
                 <BlurView 
                     intensity={40} 
-                    tint={blurTint as any} 
+                    tint={blurTint as BlurTint} 
                     style={[StyleSheet.absoluteFill, styles.mapBlurOverlay]}
                 />
             )}
@@ -477,7 +477,7 @@ export default function Results() {
                     <View style={styles.headerRightButtons}>
                         {/* Reset Map Button - Only show when in map view */}
                         {!showCards && (
-                            <BlurView intensity={80} tint={blurTint as any} style={[styles.resetButton, { backgroundColor, borderColor }]}>
+                            <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.resetButton, { backgroundColor, borderColor }]}>
                                 <TouchableOpacity 
                                     onPress={fitAllMarkers}
                                     style={[styles.resetButtonInner]}
@@ -493,7 +493,7 @@ export default function Results() {
                         <Animated.View style={{
                             transform: [{ scale: buttonScale }]
                         }}>
-                            <BlurView intensity={80} tint={blurTint as any} style={[styles.toggleButton, { backgroundColor, borderColor }]}>
+                            <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.toggleButton, { backgroundColor, borderColor }]}>
                                 <TouchableOpacity 
                                     onPress={handleToggleCards}
                                     style={[styles.toggleButtonInner, { borderColor }]}
@@ -542,7 +542,7 @@ export default function Results() {
                         containerStyle={{ marginHorizontal: 0, marginTop: 0, marginBottom: 16 }}
                     />
                     {(requiredSkills.length === 0 || unifiedWorkers.length === 0) ? (
-                        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor, borderColor }]}>
+                        <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.section, { backgroundColor, borderColor }]}>
                             <View style={[styles.emptyListContainer, { backgroundColor: backgroundColor + '80' }]}>
                                 {/* display empty icon */}
                                 <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />

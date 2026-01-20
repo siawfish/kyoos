@@ -1,33 +1,33 @@
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { addHours, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
+import { addDays, addHours, format, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { actions as bookingActions } from '../booking/slice';
 import { Booking } from '../booking/types';
-import { selectBookings, selectSelectedDate } from './selector';
+import { selectBookings, selectCurrentWeekStart } from './selector';
 import { actions } from './slice';
-import { BookingsResponse } from './types';
 
 function* fetchBookings() {
   try {
-    const selectedDate: string = yield select(selectSelectedDate);
-    const response: ApiResponse<BookingsResponse> = yield call(request, {
+    const currentWeekStart: string = yield select(selectCurrentWeekStart);
+    const weekStartDate = new Date(currentWeekStart);
+    const weekEndDate = addDays(weekStartDate, 6);
+    
+    const response: ApiResponse<Booking[]> = yield call(request, {
       method: 'GET',
       url: `/api/users/bookings`,
       params: {
-        date: selectedDate,
+        startDate: format(weekStartDate, 'yyyy-MM-dd'),
+        endDate: format(weekEndDate, 'yyyy-MM-dd'),
       },
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while fetching bookings');
     }
-    yield put(actions.fetchBookingsSuccess({
-      bookings: response.data?.bookings,
-      pagination: response.data?.pagination
-    }));
+    yield put(actions.fetchBookingsSuccess(response.data));
   } catch (error:unknown) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while fetching bookings';
     Toast.show({
@@ -45,7 +45,7 @@ function* fetchBooking(action: PayloadAction<string>) {
     const response: ApiResponse<Booking> = yield call(request, {
       method: 'GET',
       url: `/api/users/bookings/${bookingId}`,
-  })
+    })
   if (response.error || !response.data) {
     throw new Error(response.message || response.error || 'An error occurred while fetching booking');
   }
@@ -268,7 +268,7 @@ function* reportBooking(action: PayloadAction<string>) {
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);
-  yield takeLatest(actions.setSelectedDate, fetchBookings);
+  yield takeLatest(actions.setCurrentWeekStart, fetchBookings);
   yield takeLatest(actions.cancelBooking, cancelBooking);
   yield takeLatest(actions.deleteBooking, deleteBooking);
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);

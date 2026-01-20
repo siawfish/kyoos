@@ -1,19 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Modal, 
-  Animated, 
-  Dimensions,
-  Easing
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Feather } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Feather } from '@expo/vector-icons';
+import { BlurTint, BlurView } from 'expo-blur';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  StyleSheet,
+  View
+} from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -280,7 +280,7 @@ export default function LoadingPopover({
       animationType="none"
       statusBarTranslucent
     >
-      <BlurView intensity={90} tint={blurTint as any} style={StyleSheet.absoluteFill} />
+      <BlurView intensity={90} tint={blurTint as BlurTint} style={StyleSheet.absoluteFill} />
       
       <Animated.View 
         style={[

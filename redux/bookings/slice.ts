@@ -1,21 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { REHYDRATE } from 'redux-persist';
-import { BookingsResponse, BookingsState } from './types';
 import { Booking } from '@/redux/booking/types';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { startOfWeek } from 'date-fns';
+import { REHYDRATE } from 'redux-persist';
+import { BookingsState } from './types';
 
 export const initialState: BookingsState = {
   bookings: [],
   booking: null,
   isLoading: false,
   selectedDate: new Date().toISOString(),
-  pagination: {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  },
+  currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
   isUpdatingBooking: false,
 };
 
@@ -36,13 +30,13 @@ const bookingsSlice = createSlice({
     },
     setSelectedDate: (state, action: PayloadAction<string>) => {
       state.selectedDate = action.payload;
+    },
+    setCurrentWeekStart: (state, action: PayloadAction<string>) => {
+      state.currentWeekStart = action.payload;
       state.isLoading = true;
     },
-    fetchBookingsSuccess: (state, action: PayloadAction<BookingsResponse>) => {
-      const pagination = action.payload.pagination;
-      const bookings = pagination.page === 1 ? action.payload.bookings : [...state.bookings, ...action.payload.bookings];
-      state.bookings = bookings;
-      state.pagination = pagination;
+    fetchBookingsSuccess: (state, action: PayloadAction<Booking[]>) => {
+      state.bookings = action.payload;
       state.isLoading = false;
     },
     fetchBookingsFailure: (state) => {
@@ -88,6 +82,9 @@ const bookingsSlice = createSlice({
         return {
           ...state,
           ...action.payload.bookings,
+          // Reset loading states on rehydrate to prevent stuck loading
+          isLoading: false,
+          isUpdatingBooking: false,
         };
       }
       return state;
