@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { calculateWorkerCost } from '@/constants/helpers';
+import { calculateWorkerCost, formatPrice } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -8,7 +8,6 @@ import { Worker } from '@/redux/search/types';
 import { useAppSelector } from '@/store/hooks';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
-import numeral from 'numeral';
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -20,14 +19,9 @@ interface WorkerMapMarkerProps {
     displayCost?: boolean;
 }
 
-const formatPrice = (price: number) => {
-    return numeral(price).format('0,0');
-};
-
 export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, onPress, displayCost = true }: WorkerMapMarkerProps) {
     const user = useAppSelector(selectUser);
     const currency = user?.settings?.currency || 'GHS';
-    const skills = worker.skills;
     
     const tintColor = useThemeColor({
         light: colors.light.tint,
@@ -64,8 +58,8 @@ export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, o
 
     // Calculate worker's individual cost
     const workerCost = useMemo(() => {
-        return calculateWorkerCost(worker, skills, estimatedDuration || 0)
-    }, [worker, skills, estimatedDuration]);
+        return calculateWorkerCost(worker, estimatedDuration || 0)
+    }, [worker, estimatedDuration]);
 
     return (
         <TouchableOpacity onPress={() => onPress?.(worker.id)} style={styles.container} activeOpacity={0.8}>
@@ -121,14 +115,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 0.5,
-        overflow: 'hidden',
+        // overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
             height: 2,
         },
         shadowOpacity: 0.2,
-        shadowRadius: 4,
+        shadowRadius: 0,
         elevation: 6,
     },
     priceAccent: {

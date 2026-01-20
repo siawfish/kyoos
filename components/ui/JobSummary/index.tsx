@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { convertFromMillisecondsToHours } from "@/constants/helpers";
+import { convertFromMillisecondsToHours, formatPrice } from "@/constants/helpers";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -10,7 +10,6 @@ import { Summary, Worker } from "@/redux/search/types";
 import { useAppSelector } from "@/store/hooks";
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import numeral from "numeral";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
@@ -32,8 +31,8 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
         return skill?.rate;
     },[workerSkills, summary?.requiredSkills])
     const estimatedPrice = useMemo(()=>{
-        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;
-    },[rate, summary?.estimatedDuration])
+        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : summary?.estimatedPrice;
+    },[rate, summary?.estimatedDuration, summary?.estimatedPrice])
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const accentColor = isDark ? colors.dark.white : colors.light.black;
@@ -96,15 +95,9 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
 
     const evaluatedEstimatedPrice = useMemo(()=>{
         if (bookingId) {
-            return numeral(Number(summary?.estimatedPrice)).format('0,0.00');
+            return formatPrice(summary?.estimatedPrice);
         }
-        if (typeof estimatedPrice === 'number') {
-            return numeral(estimatedPrice).format('0,0.00');
-        }
-        if (typeof estimatedPrice === 'string') {
-            return numeral(Number(estimatedPrice)).format('0,0.00');
-        }
-        return '';
+        return formatPrice(estimatedPrice);
     },[estimatedPrice, summary?.estimatedPrice, bookingId])
 
     return (

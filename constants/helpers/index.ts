@@ -1,8 +1,9 @@
-import { Skill, Worker } from '@/redux/search/types';
-import { BookingStatuses, PermissionType, StatusColors, MimeType } from '@/redux/app/types';
-import { format, formatRelative, isToday, isTomorrow } from 'date-fns'
-import * as Location from 'expo-location';
+import { BookingStatuses, MimeType, PermissionType, StatusColors } from '@/redux/app/types';
 import { Location as LocationType } from '@/redux/auth/types';
+import { Worker } from '@/redux/search/types';
+import { format, formatRelative, isToday, isTomorrow } from 'date-fns';
+import * as Location from 'expo-location';
+import numeral from 'numeral';
 
 export const timeToString = (time: number) => {
     const date = new Date(time);
@@ -154,6 +155,14 @@ export const getCurrentLocation = async (): Promise<LocationType | null> => {
     console.error("error: getting current location", error);
     return null;    
   }
+};
+
+export const formatPrice = (price: number | string) => {
+  if (!price) return '0.00';
+  if (typeof price === 'string') {
+    return numeral(Number(price)).format('0,0.00');
+  }
+  return numeral(price).format('0,0.00');
 };
 
 export const isVideo = (mimeType: MimeType) => {

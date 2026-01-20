@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { calculateWorkerAverageRate, calculateWorkerCost, calculateWorkerHourlyRate } from "@/constants/helpers";
+import { calculateWorkerAverageRate, calculateWorkerCost, calculateWorkerHourlyRate, formatPrice } from "@/constants/helpers";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -9,7 +9,6 @@ import { Worker } from "@/redux/search/types";
 import { useAppSelector } from "@/store/hooks";
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import numeral from "numeral";
 import React, { useMemo } from "react";
 import { Image, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
@@ -19,10 +18,6 @@ interface ArtisanCardProps {
     estimatedDuration?: number;
     onPress?: (id: string) => void;
 }
-
-const formatPrice = (price: number) => {
-    return numeral(price).format('0,0');
-};
 
 const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, onPress }: ArtisanCardProps) => {
     const user = useAppSelector(selectUser);

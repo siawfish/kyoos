@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, View, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { Feather } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface SearchInputTriggerProps {
     onPress: () => void;
