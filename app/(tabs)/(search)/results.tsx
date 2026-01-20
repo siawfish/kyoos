@@ -1,29 +1,29 @@
+import AISearchModal from "@/components/home/AISearchModal";
+import ArtisanCard from "@/components/search/ArtisanCard";
+import ArtisanOptions from "@/components/ui/ArtisanOptions";
+import BackButton from "@/components/ui/BackButton";
+import Button from "@/components/ui/Button";
+import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
+import JobSummary from "@/components/ui/JobSummary";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { widthPixel, heightPixel, fontPixel } from "@/constants/normalize";
-import { useRouter } from "expo-router";
-import { StyleSheet, View, ScrollView, Image, TouchableOpacity, Animated } from "react-native";
-import { colors } from "@/constants/theme/colors";
-import { Feather } from '@expo/vector-icons';
-import Button from "@/components/ui/Button";
-import ArtisanCard from "@/components/search/ArtisanCard";
-import { useThemeColor } from "@/hooks/use-theme-color";
-import { Skill, Worker } from "../../../redux/search/types";
-import { selectMedia, selectClosestWorkers, selectRecommendedWorkers, selectSearch, selectRequiredSkills, selectSummary } from "../../../redux/search/selector";
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { Media } from "@/redux/app/types";
-import JobSummary from "@/components/ui/JobSummary";
-import { Marker } from 'react-native-maps';
-import type MapView from 'react-native-maps';
 import ThemedMapView from '@/components/ui/ThemedMapView';
-import { BlurTint, BlurView } from 'expo-blur';
-import BackButton from "@/components/ui/BackButton";
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { actions } from "../../../redux/search/slice";
 import WorkerMapMarker from "@/components/ui/WorkerMapMarker";
-import ArtisanOptions from "@/components/ui/ArtisanOptions";
-import AISearchModal from "@/components/home/AISearchModal";
-import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
+import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
+import { colors } from "@/constants/theme/colors";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Media } from "@/redux/app/types";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { Feather } from '@expo/vector-icons';
+import { BlurTint, BlurView } from 'expo-blur';
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import type MapView from 'react-native-maps';
+import { Marker } from 'react-native-maps';
+import { selectClosestWorkers, selectMedia, selectRecommendedWorkers, selectRequiredSkills, selectSearch, selectSummary } from "../../../redux/search/selector";
+import { actions } from "../../../redux/search/slice";
+import { Skill, Worker } from "../../../redux/search/types";
 
 const INITIAL_REGION = {
   latitude: 5.5560,
@@ -48,13 +48,18 @@ const SearchPromptPreview = ({ search, media }: { search: string, media: Media[]
         dark: colors.dark.background + '95',
     }, 'background');
 
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
 
     const searchBackgroundColor = useThemeColor({
         light: colors.light.white,
         dark: colors.dark.black
     }, 'white');
+
     return (
-        <BlurView intensity={80} tint={blurTint as any} style={[styles.promptContainer, { backgroundColor }]}>
+        <BlurView intensity={80} tint={blurTint as any} style={[styles.promptContainer, { backgroundColor, borderColor }]}>
             <View style={styles.promptHeader}>
                 <View style={styles.promptHeaderContent}>
                     <Feather name="search" size={16} color={tintColor} />
@@ -99,12 +104,17 @@ const ArtisanList = ({ title, artisans, requiredSkills, estimatedDuration, onPre
     }, 'background');
 
     const backgroundColor = useThemeColor({
-        light: colors.light.background + '95',
+        light: colors.light.misc + '95',
         dark: colors.dark.background + '95',
     }, 'background');
 
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
+
     return (
-        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
+        <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.section, { backgroundColor, borderColor }]}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>{title}</ThemedText>
             {artisans?.length > 0 ? (
                 <ScrollView 
@@ -171,6 +181,11 @@ export default function Results() {
         light: colors.light.secondary,
         dark: colors.dark.secondary,
     }, 'secondary');
+
+    const borderColor = useThemeColor({
+        light: colors.light.grey,
+        dark: colors.dark.grey,
+    }, 'grey');
 
     const handleCancelSearch = () => {
         router.push('/(tabs)/(search)');
@@ -445,8 +460,8 @@ export default function Results() {
 
             {/* Empty State Overlay for Map View */}
             {(requiredSkills.length === 0 || unifiedWorkers.length === 0) && !showCards && (
-                <View style={styles.mapEmptyStateContainer}>
-                    <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.mapEmptyState, { backgroundColor }]}>
+                <View style={[styles.mapEmptyStateContainer]}>
+                    <BlurView intensity={80} tint={blurTint as BlurTint} style={[styles.mapEmptyState, { backgroundColor, borderColor }]}>
                         <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />
                         <ThemedText style={styles.emptyListText}>
                             We currently don&apos;t have service personels for this issue. Please try again later. Skilled professionals are being added every hour.
@@ -462,10 +477,10 @@ export default function Results() {
                     <View style={styles.headerRightButtons}>
                         {/* Reset Map Button - Only show when in map view */}
                         {!showCards && (
-                            <BlurView intensity={80} tint={blurTint as any} style={[styles.resetButton, { backgroundColor }]}>
+                            <BlurView intensity={80} tint={blurTint as any} style={[styles.resetButton, { backgroundColor, borderColor }]}>
                                 <TouchableOpacity 
                                     onPress={fitAllMarkers}
-                                    style={styles.resetButtonInner}
+                                    style={[styles.resetButtonInner]}
                                 >
                                     <Feather 
                                         name="maximize-2" 
@@ -478,10 +493,10 @@ export default function Results() {
                         <Animated.View style={{
                             transform: [{ scale: buttonScale }]
                         }}>
-                            <BlurView intensity={80} tint={blurTint as any} style={[styles.toggleButton, { backgroundColor }]}>
+                            <BlurView intensity={80} tint={blurTint as any} style={[styles.toggleButton, { backgroundColor, borderColor }]}>
                                 <TouchableOpacity 
                                     onPress={handleToggleCards}
-                                    style={styles.toggleButtonInner}
+                                    style={[styles.toggleButtonInner, { borderColor }]}
                                 >
                                     <Animated.View style={{
                                         transform: [{
@@ -527,7 +542,7 @@ export default function Results() {
                         containerStyle={{ marginHorizontal: 0, marginTop: 0, marginBottom: 16 }}
                     />
                     {(requiredSkills.length === 0 || unifiedWorkers.length === 0) ? (
-                        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor }]}>
+                        <BlurView intensity={80} tint={blurTint as any} style={[styles.section, { backgroundColor, borderColor }]}>
                             <View style={[styles.emptyListContainer, { backgroundColor: backgroundColor + '80' }]}>
                                 {/* display empty icon */}
                                 <Image source={require('@/assets/images/empty.png')} style={styles.emptyIcon} />
@@ -647,6 +662,7 @@ const styles = StyleSheet.create({
         marginBottom: heightPixel(16),
         padding: widthPixel(16),
         overflow: 'hidden',
+        borderWidth: 0.5,
     },
     sectionTitle: {
         fontSize: fontPixel(16),
@@ -666,6 +682,7 @@ const styles = StyleSheet.create({
     promptContainer: {
         marginVertical: heightPixel(8),
         overflow: 'hidden',
+        borderWidth: 1,
     },
     promptHeader: {
         paddingHorizontal: widthPixel(8),
@@ -752,17 +769,20 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         width: widthPixel(48),
         height: widthPixel(48),
+        borderWidth: 0.5,
     },
     toggleButtonInner: {
         width: '100%',
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 0.5,
     },
     resetButton: {
         overflow: 'hidden',
         width: widthPixel(48),
         height: widthPixel(48),
+        borderWidth: 0.5,
     },
     resetButtonInner: {
         width: '100%',
@@ -803,5 +823,6 @@ const styles = StyleSheet.create({
     mapEmptyState: {
         padding: widthPixel(24),
         alignItems: 'center',
+        borderWidth: 1,
     },
 });

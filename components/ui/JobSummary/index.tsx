@@ -242,7 +242,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderWidth: 0.5,
         borderLeftWidth: 0,
-        overflow: 'hidden',
         marginHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
         shadowColor: "#000",
