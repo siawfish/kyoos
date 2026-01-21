@@ -1,8 +1,8 @@
-import { StyleSheet, View, ScrollView, Image, TouchableOpacity, ViewStyle } from "react-native";
+import { heightPixel, widthPixel } from "@/constants/normalize";
+import { Media, MimeType } from "@/redux/app/types";
 import { Ionicons } from "@expo/vector-icons";
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { Media, MediaType } from "@/redux/app/types";
-import { heightPixel, widthPixel } from "@/constants/normalize";
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface MediaPreviewsProps {
   media: Media[];
@@ -50,14 +50,14 @@ export default function MediaPreviews({
     >
       {media.map((item, index) => (
         <View key={index} style={[styles.mediaPreview, { backgroundColor }]}>
-          {item.type === MediaType.IMAGE ? (
+          {item.type === MimeType.JPEG || item.type === MimeType.PNG || item.type === MimeType.GIF ? (
             <Image
-              source={{ uri: item.uri }}
+              source={{ uri: item.url }}
               style={styles.mediaPreviewImage}
               resizeMode="cover"
             />
           ) : (
-            <VideoThumbnail uri={item.uri} />
+            <VideoThumbnail uri={item.url} />
           )}
           {onRemove && (
             <TouchableOpacity 
