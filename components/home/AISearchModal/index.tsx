@@ -306,7 +306,7 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                                         }}
                                         textAlignVertical="top"
                                         selectionColor={tintColor}
-                                        maxLength={500}
+                                        maxLength={255}
                                     />
                                     {selectedMedia && (
                                         <View style={[styles.selectedMediaContainer, { borderTopColor: borderColor }]}>
@@ -337,12 +337,12 @@ const AISearchModal = ({ visible, onClose }: AISearchModalProps) => {
                                         <View style={styles.charCountContainer}>
                                             <ThemedText style={[
                                                 styles.charCount, 
-                                                { color: localSearch.length > 450 ? colors.light.danger : secondaryColor }
+                                                { color: localSearch.length > 230 ? colors.light.danger : secondaryColor }
                                             ]}>
                                                 {localSearch.length}
                                             </ThemedText>
                                             <ThemedText style={[styles.charCountTotal, { color: secondaryColor }]}>
-                                                /500
+                                                /255
                                             </ThemedText>
                                         </View>
                                     </View>

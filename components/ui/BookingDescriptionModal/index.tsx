@@ -233,18 +233,18 @@ const BookingDescriptionModal = ({ artisan }: BookingDescriptionModalProps) => {
                                         onChangeText={setLocalDescription}
                                         textAlignVertical="top"
                                         selectionColor={tintColor}
-                                        maxLength={500}
+                                        maxLength={255}
                                     />
                                     <View style={[styles.inputFooter, { borderTopColor: borderColor }]}>
                                         <View style={styles.charCountContainer}>
                                             <ThemedText style={[
                                                 styles.charCount, 
-                                                { color: localDescription.length > 450 ? colors.light.danger : secondaryColor }
+                                                { color: localDescription.length > 230 ? colors.light.danger : secondaryColor }
                                             ]}>
                                                 {localDescription.length}
                                             </ThemedText>
                                             <ThemedText style={[styles.charCountTotal, { color: secondaryColor }]}>
-                                                /500
+                                                /255
                                             </ThemedText>
                                         </View>
                                     </View>
