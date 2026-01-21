@@ -1,14 +1,14 @@
+import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/booking/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import numeral from 'numeral'
 import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import Status from './Status'
-import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
-import numeral from 'numeral'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -116,9 +116,23 @@ const BookingDetails = ({
                     <Text style={[styles.descriptionText, { color: textColor }]}>
                         {booking.description}
                     </Text>
-                    {/* {booking.media?.length > 0 && (
-                        <Thumbnails data={booking.media} />
-                    )} */}
+                    {booking.media?.length > 0 && (
+                        <ScrollView 
+                            horizontal 
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.mediaContainer}
+                        >
+                            {booking.media.map((item, index) => (
+                                <View key={index} style={styles.mediaItem}>
+                                    <Image
+                                        source={{ uri: item.url }}
+                                        style={styles.mediaImage}
+                                        resizeMode="cover"
+                                    />
+                                </View>
+                            ))}
+                        </ScrollView>
+                    )}
                 </View>
             )}
 
@@ -242,5 +256,20 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(14),
         fontFamily: 'Regular',
         lineHeight: fontPixel(20),
+    },
+    mediaContainer: {
+        flexDirection: 'row',
+        marginVertical: heightPixel(8),
+    },
+    mediaItem: {
+        width: widthPixel(80),
+        height: widthPixel(80),
+        marginRight: widthPixel(8),
+        overflow: 'hidden',
+    },
+    mediaImage: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: colors.light.lightTint,
     },
 });

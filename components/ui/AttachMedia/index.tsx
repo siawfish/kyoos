@@ -1,26 +1,26 @@
-import { Feather } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetView, BottomSheetFooter } from '@gorhom/bottom-sheet';
-import { 
-  StyleSheet, 
-  TouchableOpacity, 
-  View, 
-  Modal, 
-  TouchableWithoutFeedback,
-  Animated,
-  Platform,
-} from 'react-native';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import * as ImagePicker from 'expo-image-picker';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Media, MediaType } from '@/redux/app/types';
+import { Media, MimeType } from '@/redux/app/types';
+import { Feather } from '@expo/vector-icons';
+import BottomSheet, { BottomSheetFooter, BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
 } from 'expo-speech-recognition';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Animated,
+  Modal,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
 interface MediaOption {
   id: string;
@@ -226,25 +226,25 @@ export default function AttachMedia({
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsMultipleSelection: maxCount > 1,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: false,
         quality: 1,
-        selectionLimit: maxCount,
+        selectionLimit: 1,
       });
   
       handleClose();
       
       if (!result.canceled) {
         onChange?.(result.assets.map((asset) => ({
-          type: asset.type === 'video' ? MediaType.VIDEO : MediaType.IMAGE,
-          uri: asset.uri,
+          type: asset.mimeType as MimeType,
+          url: asset.uri,
           width: asset.width,
           height: asset.height,
         })));
       }
     } catch (error) {
-      console.error('Error picking media:', error);
-      alert('Failed to pick media. Please try again.');
+      console.error('Error picking image:', error);
+      alert('Failed to pick image. Please try again.');
       handleClose();
     }
   };
@@ -259,7 +259,7 @@ export default function AttachMedia({
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
   
@@ -267,15 +267,15 @@ export default function AttachMedia({
       
       if (!result.canceled) {
         onChange?.(result.assets.map((asset) => ({
-          type: asset.type === 'video' ? MediaType.VIDEO : MediaType.IMAGE,
-          uri: asset.uri,
+          type: asset.mimeType as MimeType,
+          url: asset.uri,
           width: asset.width,
           height: asset.height,
         })));
       }
     } catch (error) {
       console.error('Error using camera:', error);
-      alert('Failed to capture. Please try again.');
+      alert('Failed to capture photo. Please try again.');
       handleClose();
     }
   };
@@ -375,14 +375,14 @@ export default function AttachMedia({
       id: 'gallery',
       icon: 'image',
       label: 'Photo Library',
-      description: 'Choose from your gallery',
+      description: 'Choose an image from your gallery',
       onPress: handleMediaPicker,
     },
     {
       id: 'camera',
       icon: 'camera',
-      label: 'Take Photo/Video',
-      description: 'Capture with camera',
+      label: 'Take Photo',
+      description: 'Take a photo with camera',
       onPress: handleCamera,
     },
     {

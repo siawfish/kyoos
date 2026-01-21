@@ -704,11 +704,13 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(16),
     },
     promptDescriptionContainer: {
-        padding: widthPixel(16),
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(8),
     },
     mediaContainer: {
         flexDirection: 'row',
-        marginTop: heightPixel(8),
+        marginVertical: heightPixel(8),
+        paddingHorizontal: widthPixel(16),
     },
     mediaItem: {
         width: widthPixel(80),
