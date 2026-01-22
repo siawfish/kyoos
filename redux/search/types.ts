@@ -1,6 +1,13 @@
 import { AcceptedTerms, Media, Settings, UserTypes } from "@/redux/app/types";
 import { Location } from "@/redux/auth/types";
 import { Pagination } from "@/services/types";
+import { 
+    ConversationId, 
+    ConversationStatus, 
+    ConversationMessage, 
+    AgentQuestion, 
+    AgentSearchResults 
+} from "./agent-types";
 
 export interface SearchState {
     isInitializing: boolean;
@@ -17,6 +24,17 @@ export interface SearchState {
     searchModalVisible: boolean;
     selectedArtisan: string | null;
     descriptionModalVisible: boolean;
+    // Agent conversation state
+    agentConversationVisible: boolean;
+    agentConversation: {
+        conversationId: ConversationId | null;
+        status: ConversationStatus | null;
+        messages: ConversationMessage[];
+        currentQuestion: AgentQuestion | null;
+        isLoading: boolean;
+        error: string | null;
+        results: AgentSearchResults | null;
+    };
 }
 
 export interface Summary {

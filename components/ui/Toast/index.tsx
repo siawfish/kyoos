@@ -38,6 +38,8 @@ export const createToastConfig = (colorScheme: 'light' | 'dark') => ({
         fontFamily: 'Regular',
         color: colorScheme === 'dark' ? colors.dark.text : colors.light.text,
       }}
+      text1NumberOfLines={0}
+      text2NumberOfLines={0}
       renderTrailingIcon={()=>{
         return (
           <Image
@@ -83,6 +85,8 @@ export const createToastConfig = (colorScheme: 'light' | 'dark') => ({
         fontFamily: 'Regular',
         color: colorScheme === 'dark' ? colors.dark.text : colors.light.text,
       }}
+      text1NumberOfLines={0}
+      text2NumberOfLines={0}
       renderTrailingIcon={()=>{
         return (
           <Image
@@ -128,6 +132,8 @@ export const createToastConfig = (colorScheme: 'light' | 'dark') => ({
         fontFamily: 'Regular',
         color: colorScheme === 'dark' ? colors.dark.text : colors.light.text,
       }}
+      text1NumberOfLines={0}
+      text2NumberOfLines={0}
       renderTrailingIcon={()=>{
         return (
           <Image

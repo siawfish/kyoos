@@ -303,7 +303,7 @@ export default function HomeScreen() {
                 </BlurView>
             </View>
 
-            {/* AI Search Modal */}
+            {/* AI Search Modal - handles search input, questions, loading, and errors */}
             <AISearchModal 
               visible={searchModalVisible}
               onClose={() => dispatch(actions.setSearchModalVisible(false))}

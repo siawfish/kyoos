@@ -17,9 +17,10 @@ interface JobSummaryProps {
     artisan: Worker;
     summary: Summary;
     containerStyle?: ViewStyle;
+    formattedPrice?: string;
 }
 
-export default function JobSummary({ artisan, summary, containerStyle }: JobSummaryProps) {
+export default function JobSummary({ artisan, summary, containerStyle, formattedPrice }: JobSummaryProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const animatedHeight = useRef(new Animated.Value(0)).current;
     const chevronRotation = useRef(new Animated.Value(0)).current;
@@ -31,8 +32,8 @@ export default function JobSummary({ artisan, summary, containerStyle }: JobSumm
         return skill?.rate;
     },[workerSkills, summary?.requiredSkills])
     const estimatedPrice = useMemo(()=>{
-        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : summary?.estimatedPrice;
-    },[rate, summary?.estimatedDuration, summary?.estimatedPrice])
+        return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : formattedPrice ? formattedPrice : summary?.estimatedPrice;
+    },[rate, summary?.estimatedDuration, summary?.estimatedPrice, formattedPrice])
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const accentColor = isDark ? colors.dark.white : colors.light.black;

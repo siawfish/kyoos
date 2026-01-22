@@ -21,7 +21,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Animated, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import type MapView from 'react-native-maps';
 import { Marker } from 'react-native-maps';
-import { selectClosestWorkers, selectMedia, selectRecommendedWorkers, selectRequiredSkills, selectSearch, selectSummary } from "../../../redux/search/selector";
+import { selectFormattedAgentPrice, selectClosestWorkers, selectMedia, selectRecommendedWorkers, selectRequiredSkills, selectSearch, selectSummary } from "../../../redux/search/selector";
 import { actions } from "../../../redux/search/slice";
 import { Skill, Worker } from "../../../redux/search/types";
 
@@ -150,6 +150,7 @@ export default function Results() {
     const recommendedWorkers = useAppSelector(selectRecommendedWorkers);
     const closestWorkers = useAppSelector(selectClosestWorkers);
     const requiredSkills = useAppSelector(selectRequiredSkills);
+    const formattedAgentPrice = useAppSelector(selectFormattedAgentPrice);
     const [showCards, setShowCards] = useState(true);
     const dispatch = useAppDispatch();
     const [selectedArtisan, setSelectedArtisan] = useState<string | null>(null);
@@ -539,6 +540,7 @@ export default function Results() {
                     <JobSummary 
                         artisan={selectedArtisanObject}
                         summary={summary} 
+                        formattedPrice={formattedAgentPrice}
                         containerStyle={{ marginHorizontal: 0, marginTop: 0, marginBottom: 16 }}
                     />
                     {(requiredSkills.length === 0 || unifiedWorkers.length === 0) ? (

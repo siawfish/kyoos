@@ -1,5 +1,5 @@
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { calculateWorkerAverageRate, calculateWorkerCost, calculateWorkerHourlyRate, formatPrice } from "@/constants/helpers";
+import { calculateWorkerAverageRate, calculateWorkerCostPerHour, calculateWorkerHourlyRate, formatPrice } from "@/constants/helpers";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -65,7 +65,7 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, onPress }: Ar
         onPress?.(artisan.id);
     };
 
-    const workerCost = useMemo(() => calculateWorkerCost(artisan, estimatedDuration || 0), [artisan, estimatedDuration]);
+    const workerCost = useMemo(() => calculateWorkerCostPerHour(artisan, estimatedDuration || 0), [artisan, estimatedDuration]);
     const hourlyRate = useMemo(() => calculateWorkerHourlyRate(artisan), [artisan]);
     const averageRate = useMemo(() => calculateWorkerAverageRate(artisan), [artisan]);
     

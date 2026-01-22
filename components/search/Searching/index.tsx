@@ -4,20 +4,18 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Feather } from '@expo/vector-icons';
-import { BlurTint, BlurView } from 'expo-blur';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
   Easing,
-  Modal,
   StyleSheet,
   View
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-interface LoadingPopoverProps {
+interface SearchingProps {
   visible: boolean;
   title?: string;
   subtitle?: string;
@@ -31,11 +29,11 @@ const loadingMessages = [
   "Almost there",
 ];
 
-export default function LoadingPopover({ 
-  visible, 
+export default function Searching({ 
   title = "SEARCHING", 
-  subtitle = "Finding the perfect match" 
-}: LoadingPopoverProps) {
+  subtitle = "Finding the perfect match" ,
+  visible = true
+}: SearchingProps) {
   const [messageIndex, setMessageIndex] = useState(0);
   
   // Animation refs
@@ -274,175 +272,122 @@ export default function LoadingPopover({
   if (!visible) return null;
 
   return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="none"
-      statusBarTranslucent
+    <Animated.View 
+      style={[
+        styles.overlay,
+        { opacity: fadeAnimation }
+      ]}
     >
-      <BlurView intensity={90} tint={blurTint as BlurTint} style={StyleSheet.absoluteFill} />
-      
       <Animated.View 
         style={[
-          styles.overlay,
-          { opacity: fadeAnimation }
+          styles.container,
+          { 
+            backgroundColor,
+            borderColor,
+            transform: [{ scale: scaleAnimation }]
+          }
         ]}
       >
-        <Animated.View 
-          style={[
-            styles.container,
-            { 
-              backgroundColor,
-              borderColor,
-              transform: [{ scale: scaleAnimation }]
-            }
-          ]}
-        >
-          {/* Accent Line */}
-          <View style={[styles.accentLine, { backgroundColor: accentColor }]} />
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                AI SEARCH
+        {/* Accent Line */}
+        {/* <View style={[styles.accentLine, { backgroundColor: accentColor }]} /> */}
+        
+        {/* Header */}
+        {/* <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
+              AI SEARCH
+            </ThemedText>
+            <View style={[styles.aiBadge, { backgroundColor: tintColor + '15', borderColor: tintColor + '30' }]}>
+              <Feather name="cpu" size={10} color={tintColor} />
+              <ThemedText style={[styles.aiBadgeText, { color: tintColor }]}>
+                PROCESSING
               </ThemedText>
-              <View style={[styles.aiBadge, { backgroundColor: tintColor + '15', borderColor: tintColor + '30' }]}>
-                <Feather name="cpu" size={10} color={tintColor} />
-                <ThemedText style={[styles.aiBadgeText, { color: tintColor }]}>
-                  PROCESSING
-                </ThemedText>
-              </View>
             </View>
           </View>
+        </View> */}
 
-          {/* Main Visual Area */}
-          <View style={styles.visualContainer}>
-            {/* Ripple Rings */}
-            {[pulseRing1, pulseRing2, pulseRing3].map((ring, index) => (
-              <Animated.View
-                key={index}
-                style={[
-                  styles.rippleRing,
-                  {
-                    borderColor: tintColor,
-                    opacity: ring.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.4, 0],
-                    }),
-                    transform: [
-                      {
-                        scale: ring.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [1, 2.5],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              />
-            ))}
-            
-            {/* Icon Container with Glow */}
-            <Animated.View 
+        {/* Main Visual Area */}
+        <View style={styles.visualContainer}>
+          {/* Ripple Rings */}
+          {[pulseRing1, pulseRing2, pulseRing3].map((ring, index) => (
+            <Animated.View
+              key={index}
               style={[
-                styles.iconGlow,
-                { 
-                  backgroundColor: tintColor,
-                  opacity: glowAnimation,
-                }
-              ]} 
-            />
-            <Animated.View 
-              style={[
-                styles.iconContainer,
-                { 
-                  backgroundColor,
+                styles.rippleRing,
+                {
                   borderColor: tintColor,
-                  transform: [{ translateY: iconBounce }]
-                }
-              ]}
-            >
-              <Feather name="search" size={28} color={tintColor} />
-            </Animated.View>
-
-            {/* Scanning Lines */}
-            <View style={styles.scanLinesContainer}>
-              {lineAnimations.map((anim, index) => (
-                <Animated.View
-                  key={index}
-                  style={[
-                    styles.scanLine,
+                  opacity: ring.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.4, 0],
+                  }),
+                  transform: [
                     {
-                      backgroundColor: tintColor,
-                      opacity: anim.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0.1, 0.5, 0.1],
+                      scale: ring.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 2.5],
                       }),
-                      transform: [
-                        {
-                          translateX: anim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2],
-                          }),
-                        },
-                      ],
                     },
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Text Content */}
-          <View style={styles.textContainer}>
-            <ThemedText style={[styles.title, { color: textColor }]}>
-              {title}
-            </ThemedText>
-            
-            <Animated.View style={{ opacity: textFade }}>
-              <ThemedText style={[styles.dynamicMessage, { color: tintColor }]}>
-                {loadingMessages[messageIndex]}
-              </ThemedText>
-            </Animated.View>
-            
-            <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
-              {subtitle}
-            </ThemedText>
-          </View>
-
-          {/* Progress Bar */}
-          <View style={[styles.progressContainer, { backgroundColor: borderColor + '50' }]}>
-            <Animated.View 
-              style={[
-                styles.progressBar,
-                { 
-                  backgroundColor: tintColor,
-                  width: progressWidth,
-                }
-              ]} 
+                  ],
+                },
+              ]}
             />
-          </View>
+          ))}
           
-          {/* Footer Stats */}
-          <View style={styles.footer}>
-            <View style={styles.statItem}>
-              <Feather name="users" size={14} color={secondaryColor} />
-              <ThemedText style={[styles.statText, { color: secondaryColor }]}>
-                Scanning providers
-              </ThemedText>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: borderColor }]} />
-            <View style={styles.statItem}>
-              <Feather name="map-pin" size={14} color={secondaryColor} />
-              <ThemedText style={[styles.statText, { color: secondaryColor }]}>
-                Near you
-              </ThemedText>
-            </View>
-          </View>
-        </Animated.View>
+          {/* Icon Container with Glow */}
+          <Animated.View 
+            style={[
+              styles.iconGlow,
+              { 
+                backgroundColor: tintColor,
+                opacity: glowAnimation,
+              }
+            ]} 
+          />
+          <Animated.View 
+            style={[
+              styles.iconContainer,
+              { 
+                backgroundColor,
+                borderColor: tintColor,
+                transform: [{ translateY: iconBounce }]
+              }
+            ]}
+          >
+            <Feather name="search" size={28} color={tintColor} />
+          </Animated.View>
+        </View>
+
+        {/* Text Content */}
+        <View style={styles.textContainer}>
+          <ThemedText style={[styles.title, { color: textColor }]}>
+            {title}
+          </ThemedText>
+          
+          <Animated.View style={{ opacity: textFade }}>
+            <ThemedText style={[styles.dynamicMessage, { color: tintColor }]}>
+              {loadingMessages[messageIndex]}
+            </ThemedText>
+          </Animated.View>
+          
+          <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+            {subtitle}
+          </ThemedText>
+        </View>
+
+        {/* Progress Bar */}
+        <View style={[styles.progressContainer, { backgroundColor: borderColor + '50' }]}>
+          <Animated.View 
+            style={[
+              styles.progressBar,
+              { 
+                backgroundColor: tintColor,
+                width: progressWidth,
+              }
+            ]} 
+          />
+        </View>
       </Animated.View>
-    </Modal>
+    </Animated.View>
   );
 }
 
@@ -451,18 +396,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: widthPixel(24),
+    // paddingHorizontal: widthPixel(24),
   },
   container: {
     width: '100%',
-    maxWidth: widthPixel(340),
-    borderWidth: 0.5,
-    overflow: 'hidden',
   },
-  accentLine: {
-    height: heightPixel(3),
-    width: '100%',
-  },
+  // accentLine: {
+  //   height: heightPixel(3),
+  //   width: '100%',
+  // },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,10 +437,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   visualContainer: {
-    height: heightPixel(140),
+    height: heightPixel(200),
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: heightPixel(8),
+    marginVertical: heightPixel(40),
     overflow: 'hidden',
   },
   rippleRing: {

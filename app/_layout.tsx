@@ -64,6 +64,7 @@ function ThemedApp() {
           <Toast 
             config={createToastConfig(theme)} 
             topOffset={heightPixel(60)}
+            visibilityTime={8000}
           />
           <StatusBar style={theme} />
         </PortalProvider>

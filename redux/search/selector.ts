@@ -104,3 +104,54 @@ export const selectDescriptionModalVisible = createSelector(
     [selectDomain],
     (search) => search?.descriptionModalVisible || false,
 );
+
+// Agent conversation selectors
+export const selectAgentConversation = createSelector(
+    [selectDomain],
+    (search) => search?.agentConversation,
+);
+
+export const selectAgentConversationId = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.conversationId || null,
+);
+
+export const selectAgentConversationStatus = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.status || null,
+);
+
+export const selectAgentMessages = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.messages || [],
+);
+
+export const selectAgentCurrentQuestion = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.currentQuestion || null,
+);
+
+export const selectAgentIsLoading = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.isLoading || false,
+);
+
+export const selectAgentError = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.error || null,
+);
+
+export const selectAgentResults = createSelector(
+    [selectAgentConversation],
+    (conversation) => conversation?.results || null,
+);
+
+export const selectAgentConversationVisible = createSelector(
+    [selectDomain],
+    (search) => search?.agentConversationVisible || false,
+);
+
+export const selectFormattedAgentPrice = createSelector(
+    [selectAgentResults],
+    (results) => results?.formattedPrice || '',
+);

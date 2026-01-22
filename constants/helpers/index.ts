@@ -91,6 +91,12 @@ export const convertFromMillisecondsToHours = (milliseconds: number) => {
   return Math.round(hours);
 }
 
+export const calculateWorkerCostPerHour = (worker: Worker, duration: number): number => {
+  if (!worker.skills || worker.skills.length === 0) return 0;
+  const hourlyRate = calculateWorkerHourlyRate(worker);
+  return hourlyRate * convertFromMillisecondsToHours(duration);
+}
+
 // Helper function to calculate worker's average hourly rate for required skills
 export const calculateWorkerHourlyRate = (worker: Worker): number => {
   if (!worker.skills || worker.skills.length === 0) return 0;

@@ -1,5 +1,9 @@
 import { Media } from '@/redux/app/types';
 import { SearchState, Summary, Worker } from '@/redux/search/types';
+import { 
+  AgentResponse, 
+  ConversationStatus,
+} from '@/redux/search/agent-types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { REHYDRATE } from 'redux-persist';
 
@@ -25,6 +29,17 @@ export const initialState: SearchState = {
   searchModalVisible: false,
   selectedArtisan: null,
   descriptionModalVisible: false,
+  // Agent conversation initial state
+  agentConversationVisible: false,
+  agentConversation: {
+    conversationId: null,
+    status: null,
+    messages: [],
+    currentQuestion: null,
+    isLoading: false,
+    error: null,
+    results: null,
+  },
 }
 
 interface RehydrateAction {
@@ -48,9 +63,6 @@ const searchSlice = createSlice({
     setNearestWorkers: (state, action: PayloadAction<{workers: Worker[], total: number}>) => {
       state.nearestWorkers = action.payload.workers;
       state.totalNearbyWorkers = action.payload.total;
-    },
-    onSearch: (state, action: PayloadAction<string | undefined>) => {
-      state.isLoading = true;
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -89,6 +101,63 @@ const searchSlice = createSlice({
       return {
         ...initialState,
       };
+    },
+    // Agent conversation actions
+    startAgentConversation: (state, _action: PayloadAction<string>) => {
+      state.agentConversation.isLoading = true;
+      state.agentConversation.error = null;
+    },
+    continueAgentConversation: (state, _action: PayloadAction<{
+      conversationId: string;
+      message?: string;
+      selectedOptionId?: string;
+      selectedOptionIds?: string[];
+    }>) => {
+      state.agentConversation.isLoading = true;
+      state.agentConversation.error = null;
+    },
+    setAgentConversationResponse: (state, action: PayloadAction<AgentResponse>) => {
+      state.agentConversation.conversationId = action.payload.conversationId;
+      state.agentConversation.status = action.payload.status;
+      state.agentConversation.messages = action.payload.messages;
+      state.agentConversation.currentQuestion = action.payload.message.question || null;
+      state.agentConversation.results = action.payload.results || null;
+      state.agentConversation.isLoading = false;
+      state.agentConversation.error = null;
+      
+      // The unified AISearchModal handles all states (loading, question, error) internally
+      // Only close the modals when conversation is completed with results
+      if (action.payload.status === ConversationStatus.COMPLETED && action.payload.results) {
+        // Close both search and description modals when conversation completes
+        state.searchModalVisible = false;
+        state.descriptionModalVisible = false;
+        state.agentConversationVisible = false;
+      }
+      
+      // Update legacy state if we have results
+      if (action.payload.results) {
+        state.searchReferenceId = action.payload.results.searchReferenceId;
+        state.closestWorkers = action.payload.results.closestWorkers;
+        state.recommendedWorkers = action.payload.results.recommendedWorkers;
+        state.summary = {
+          estimatedDuration: action.payload.results.analysis.estimatedDuration,
+          requiredSkills: action.payload.results.analysis.requiredSkills,
+          requiredTools: action.payload.results.analysis.requiredTools,
+          estimatedPrice: action.payload.results.formattedPrice,
+          reasoning: action.payload.results.analysis.reasoning,
+        };
+      }
+    },
+    setAgentConversationError: (state, action: PayloadAction<string>) => {
+      state.agentConversation.isLoading = false;
+      state.agentConversation.error = action.payload;
+    },
+    setAgentConversationVisible: (state, action: PayloadAction<boolean>) => {
+      state.agentConversationVisible = action.payload;
+    },
+    resetAgentConversation: (state) => {
+      state.agentConversation = initialState.agentConversation;
+      state.agentConversationVisible = false;
     },
   },
   extraReducers: (builder) => {
