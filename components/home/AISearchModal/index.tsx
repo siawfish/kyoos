@@ -91,6 +91,17 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         return 'search';
     }, [agentError, agentIsLoading, currentQuestion, conversationStatus]);
 
+    // Auto-close modal when conversation completes with results
+    // This handles the case when the modal is opened from a screen using local state
+    const agentResults = useAppSelector((state) => state.search.agentConversation.results);
+    useEffect(() => {
+        if (visible && conversationStatus === ConversationStatus.COMPLETED && agentResults) {
+            // Reset agent conversation state and close modal
+            dispatch(actions.resetAgentConversation());
+            onClose();
+        }
+    }, [visible, conversationStatus, agentResults, dispatch, onClose]);
+
     // Mode-based content
     const headerLabel = mode === 'booking' ? 'BOOKING REQUEST' : 'SMART SEARCH';
     const headerTitle = useMemo(() => {
