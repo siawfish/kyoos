@@ -37,6 +37,8 @@ import {
 } from 'react-native';
 import Searching from '@/components/search/Searching';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
+import Toast from 'react-native-toast-message';
+import { createToastConfig } from '@/components/ui/Toast';
 
 interface AISearchModalProps {
     visible: boolean;
@@ -858,6 +860,11 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                 onConfirm={handleConfirmClose}
                 confirmText="Yes, Cancel"
                 cancelText="Continue"
+            />
+            <Toast 
+                config={createToastConfig(theme)} 
+                topOffset={heightPixel(60)}
+                visibilityTime={8000}
             />
         </Modal>
     );
