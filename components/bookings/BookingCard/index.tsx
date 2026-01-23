@@ -1,4 +1,5 @@
 import { Options as OptionsComponent } from '@/components/portfolio/Options'
+import BookingStatusBadge, { getStatusColor } from '@/components/ui/BookingStatusBadge'
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
@@ -7,11 +8,15 @@ import { useAppTheme } from '@/hooks/use-app-theme'
 import { BookingStatuses, OptionIcons, Options } from '@/redux/app/types'
 import { Booking } from '@/redux/booking/types'
 import { actions } from '@/redux/bookings/slice'
-import { useAppDispatch } from '@/store/hooks'
+import { actions as messagingActions } from '@/redux/messaging/slice'
+import { selectFetchingConversation } from '@/redux/messaging/selector'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
+import OverlayLoader from '@/components/ui/OverlayLoader'
+
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
 }
@@ -21,22 +26,6 @@ interface BookingCardProps {
     readonly isFirst?: boolean;
 }
 
-const getStatusColor = (status: BookingStatuses, isDark: boolean) => {
-    switch (status) {
-        case BookingStatuses.ONGOING:
-            return isDark ? colors.dark.white : colors.light.black;
-        case BookingStatuses.COMPLETED:
-            return colors.light.green;
-        case BookingStatuses.CANCELLED:
-        case BookingStatuses.DECLINED:
-            return colors.light.danger;
-        case BookingStatuses.PENDING:
-        case BookingStatuses.ACCEPTED:
-        default:
-        return isDark ? colors.dark.secondary : colors.light.secondary;
-    }
-}
-
 const BookingCard = ({
     reservation, 
 }: BookingCardProps) => {
@@ -44,6 +33,7 @@ const BookingCard = ({
     const isDark = theme === 'dark';
     const booking = reservation.booking;
     const dispatch = useAppDispatch();
+    const isLoadingMessaging = useAppSelector(selectFetchingConversation);
 
     const [showReschedule, setShowReschedule] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -51,6 +41,7 @@ const BookingCard = ({
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
     const [showRebookConfirm, setShowRebookConfirm] = useState(false);
     const [showReportConfirm, setShowReportConfirm] = useState(false);
+    
     if (!booking) return null;
 
     const cardBg = isDark ? 'transparent' : colors.light.background;
@@ -60,7 +51,7 @@ const BookingCard = ({
     const statusColor = getStatusColor(booking.status, isDark);
 
     const handleChatWorker = () => {
-        router.push(`/(tabs)/(messaging)/${booking.id}`);
+        dispatch(messagingActions.fetchOrCreateConversationByBooking(booking.id));
     };
 
     const confirmReschedule = () => {
@@ -186,11 +177,7 @@ const BookingCard = ({
             <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
             <View style={styles.content}>
                 <View style={styles.topRow}>
-                    <View style={[styles.statusBadge, { borderColor: statusColor }]}>
-                        <Text style={[styles.statusText, { color: statusColor }]}>
-                            {booking.status}
-                        </Text>
-                    </View>
+                    <BookingStatusBadge status={booking.status} size="small" />
                     <View style={styles.topRowRight}>
                         <Text style={[styles.time, { color: textColor }]}>
                             {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
@@ -233,8 +220,11 @@ const BookingCard = ({
                         </Text>
                     </View>
                 </View>
-            </View>            
+            </View>
         </TouchableOpacity>
+        {isLoadingMessaging && (
+            <OverlayLoader />
+        )}
         {showReschedule && (
             <ConfirmActionSheet 
                 isOpen={showReschedule} 
@@ -333,16 +323,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: heightPixel(12),
     },
-    statusBadge: {
-        borderWidth: 1,
-        paddingHorizontal: widthPixel(8),
-        paddingVertical: heightPixel(3),
-    },
-    statusText: {
-        fontSize: fontPixel(9),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1,
-    },
     time: {
         fontSize: fontPixel(13),
         fontFamily: 'SemiBold',
@@ -384,5 +364,5 @@ const styles = StyleSheet.create({
     dangerIcon: {
         width: widthPixel(60),
         height: widthPixel(60),
-    },
+    }
 })

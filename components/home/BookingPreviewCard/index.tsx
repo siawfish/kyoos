@@ -4,31 +4,15 @@ import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import BookingStatusBadge, { getStatusColor } from '@/components/ui/BookingStatusBadge';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { Booking } from '@/redux/booking/types';
-import { BookingStatuses } from '@/redux/app/types';
 
 interface BookingPreviewCardProps {
     booking: Booking | null;
 }
-
-const getStatusColor = (status: BookingStatuses, isDark: boolean) => {
-    switch (status) {
-        case BookingStatuses.ONGOING:
-            return isDark ? colors.dark.white : colors.light.black;
-        case BookingStatuses.COMPLETED:
-            return colors.light.green;
-        case BookingStatuses.CANCELLED:
-        case BookingStatuses.DECLINED:
-            return colors.light.danger;
-        case BookingStatuses.PENDING:
-        case BookingStatuses.ACCEPTED:
-        default:
-            return isDark ? colors.dark.secondary : colors.light.secondary;
-    }
-};
 
 const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
     const blurTint = useThemeColor({
@@ -88,11 +72,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                 <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
                 <View style={styles.content}>
                     <View style={styles.topRow}>
-                        <View style={[styles.statusBadge, { borderColor: statusColor }]}>
-                            <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                                {booking.status}
-                            </ThemedText>
-                        </View>
+                        <BookingStatusBadge status={booking.status} size="small" />
                         <ThemedText style={[styles.time, { color: textColor }]}>
                             {startTime}
                         </ThemedText>
@@ -153,16 +133,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: heightPixel(8),
-    },
-    statusBadge: {
-        borderWidth: 1,
-        paddingHorizontal: widthPixel(8),
-        paddingVertical: heightPixel(2),
-    },
-    statusText: {
-        fontSize: fontPixel(9),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1,
     },
     time: {
         fontSize: fontPixel(12),

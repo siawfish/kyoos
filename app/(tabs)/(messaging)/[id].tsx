@@ -8,9 +8,10 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { Media, MimeType } from '@/redux/app/types';
-import { selectMessages } from '@/redux/messaging/selector';
+import { selectConversations, selectCurrentConversationMessages, selectTypingUsersInConversation } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
 import { Message } from '@/redux/messaging/types';
+import { useMessaging } from '@/hooks/useMessaging';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { FlashList } from '@shopify/flash-list';
@@ -19,7 +20,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
   Dimensions,
   Image,
@@ -85,7 +86,8 @@ export default function ConversationScreen() {
     dark: colors.dark.secondary
   }, 'text');
   
-  const messages = useSelector(selectMessages);
+  const conversations = useSelector(selectConversations);
+  const conversationMessages = useSelector(selectCurrentConversationMessages);
   const [inputText, setInputText] = useState('');
   const [attachments, setAttachments] = useState<Media[]>([]);
   const [isAttachmentSheetOpen, setIsAttachmentSheetOpen] = useState(false);
@@ -95,8 +97,26 @@ export default function ConversationScreen() {
   const screenWidth = Dimensions.get('window').width;
   const { id } = useLocalSearchParams();
   const user = useSelector(selectUser);
-  const conversation = messages.find(m => m.id === id);
-  const sender = conversation?.participants.find(p => p.id !== user?.id);
+  const conversation = conversations.find(m => m.id === id);
+  const otherParticipant = user?.id === conversation?.clientId ? conversation?.worker : conversation?.client;
+  const typingUsers = useSelector(selectTypingUsersInConversation(id as string));
+  const { sendTypingIndicator, stopTypingIndicator } = useMessaging(id as string);
+
+  // Fetch messages for this conversation
+  useEffect(() => {
+    if (id) {
+      dispatch(actions.fetchConversationMessages(id as string));
+    }
+  }, [id, dispatch]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollViewRef.current && conversationMessages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [conversationMessages]);
 
   const snapPoints = useMemo(() => ['40%'], []);
 
@@ -340,12 +360,12 @@ export default function ConversationScreen() {
         <View style={styles.header}>
           <BackButton onPress={() => router.back()} iconName="arrow-left" />
           <View style={styles.headerRight}>
-            {sender?.avatar ? (
-              <Image source={{ uri: sender.avatar }} style={styles.headerAvatar} />
+            {otherParticipant?.avatar ? (
+              <Image source={{ uri: otherParticipant.avatar }} style={styles.headerAvatar} />
             ) : (
               <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
                 <ThemedText style={[styles.headerAvatarText, { color: whiteColor }]}>
-                  {sender?.name?.charAt(0).toUpperCase() || '?'}
+                  {otherParticipant?.name?.charAt(0).toUpperCase() || '?'}
                 </ThemedText>
               </View>
             )}
@@ -365,7 +385,7 @@ export default function ConversationScreen() {
       >
         <FlashList
           ref={scrollViewRef}
-          data={messages.find(m => m.id === id)?.messages as Message[]}
+          data={conversationMessages}
           contentContainerStyle={styles.listContainer}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}

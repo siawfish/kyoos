@@ -13,6 +13,7 @@ import { PermissionStatus } from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import { useMessaging } from '@/hooks/useMessaging';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -46,10 +47,18 @@ export default function Layout() {
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const segments = useSegments();
+  const { connect, disconnect } = useMessaging();
   const { currentPermission, permissionsQueue, handleOnPermissionDenied, handleOnPermissionGranted, locationPermission, pushNotificationPermission } = usePermissionsRequestQueue({
     onLocationPermissionGranted: () => setCurrentLocation(),
     onPushNotificationPermissionGranted: () => registerForPushNotificationsAsync()
   });
+  
+  useEffect(() => {
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
 
   const registerForPushNotificationsAsync = useCallback(async () => {
     if (Platform.OS === 'android') {

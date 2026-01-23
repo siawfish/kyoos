@@ -1,123 +1,32 @@
 import { FlashList } from '@shopify/flash-list';
-import { format } from 'date-fns';
-import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-
 import EmptyList from '@/components/ui/EmptyList';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectUser } from '@/redux/app/selector';
-import { User } from '@/redux/app/types';
-import { selectIsLoading, selectMessages } from '@/redux/messaging/selector';
+import { selectIsLoading, selectConversations, selectIsRefreshing } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
 import { Conversation } from '@/redux/messaging/types';
-
-const ConversationItem = ({ item } : { item: Conversation }) => {
-  const dispatch = useDispatch();
-  const user = useSelector(selectUser);
-  const theme = useAppTheme();
-  const isDark = theme === 'dark';
-  
-  const tintColor = useThemeColor({
-    light: colors.light.tint,
-    dark: colors.dark.tint
-  }, 'background');
-  // Text color for tint backgrounds: white in light mode (on black), black in dark mode (on white)
-  const tintTextColor = useThemeColor({
-    light: colors.light.white,
-    dark: colors.dark.black
-  }, 'white');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const cardBg = useThemeColor({
-    light: colors.light.background,
-    dark: colors.dark.background
-  }, 'background');
-  const borderColor = accentColor;
-  const textColor = useThemeColor({
-    light: colors.light.text,
-    dark: colors.dark.text
-  }, 'text');
-  const secondaryText = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
-
-  const handlePress = () => {
-    dispatch(actions.markConversationAsRead(item.id));
-    router.push(`/(tabs)/(messaging)/${item.id}`);
-  };
-
-  const sender = item.participants.find(p => p.id !== user?.id) as User;
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={[styles.conversationItem, { backgroundColor: cardBg, borderColor }]}>
-      <View style={[styles.leftAccent, { backgroundColor: borderColor }]} />
-      <View style={styles.content}>
-        <View style={styles.topRow}>
-          <View style={styles.avatarContainer}>
-            {sender.avatar ? (
-              <Image source={{ uri: sender.avatar }} style={styles.avatar} />
-            ) : (
-              <ThemedView style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: tintColor }]}>
-                <ThemedText style={[styles.avatarText, { color: tintTextColor }]}>
-                  {sender.name.charAt(0).toUpperCase()}
-                </ThemedText>
-              </ThemedView>
-            )}
-          </View>
-          <View style={styles.messageContent}>
-            <View style={styles.messageHeader}>
-              <ThemedText style={[styles.senderName, { color: textColor }]}>
-                {sender.name}
-              </ThemedText>
-              {item.unreadCount > 0 && (
-                <ThemedView style={[styles.unreadBadge, { backgroundColor: tintColor }]}>
-                  <ThemedText style={[styles.unreadCount, { color: tintTextColor }]}>{item.unreadCount}</ThemedText>
-                </ThemedView>
-              )}
-            </View>
-            <View style={styles.messagePreview}>
-              <ThemedText 
-                numberOfLines={1} 
-                style={[
-                  styles.lastMessage, 
-                  { color: secondaryText },
-                  item.unreadCount > 0 && styles.unreadMessage
-                ]}>
-                {item.messages.length > 0 ? item.messages[item.messages.length - 1].content || 'No messages yet' : 'No messages yet'}
-              </ThemedText>
-              {item.messages.length > 0 && (
-                <ThemedText style={[styles.timestamp, { color: secondaryText }]}>
-                  {format(new Date(item.messages[item.messages.length - 1].timestamp), 'h:mm a')}
-                </ThemedText>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-};
+import ConversationItem from '@/components/messaging/ConversationItem';
+import ConversationItemSkeleton from '@/components/messaging/ConversationItemSkeleton';
+import { useFocusEffect } from 'expo-router';
 
 export default function MessagingScreen() {
   const dispatch = useDispatch();
-  const messages = useSelector(selectMessages);
+  const conversations = useSelector(selectConversations);
   const isLoading = useSelector(selectIsLoading);
+  const isRefreshing = useSelector(selectIsRefreshing);
   const theme = useAppTheme();
   const isDark = theme === 'dark';
 
-  useEffect(() => {
-    dispatch(actions.fetchMessages());
-  }, [dispatch]);
+  useFocusEffect(() => {
+    dispatch(actions.fetchConversations());
+  });
 
   const backgroundColor = useThemeColor({
     light: colors.light.background,
@@ -129,15 +38,6 @@ export default function MessagingScreen() {
     dark: colors.dark.secondary
   }, 'text');
 
-  const renderHeader = () => {
-    return (
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <ThemedText style={[styles.label, { color: labelColor }]}>MESSAGES</ThemedText>
-      </View>
-    );
-  };
-
   const renderEmptyList = () => {
     return (
       <EmptyList
@@ -147,18 +47,52 @@ export default function MessagingScreen() {
     );
   };
 
+  // Generate skeleton data array when loading on initial load
+  const skeletonData = useMemo(() => {
+    if (isLoading) {
+      return Array(3).fill(null).map((_, i) => ({ id: `skeleton-${i}`, isSkeleton: true }));
+    }
+    return [];
+  }, [isLoading]);
+
+  // Determine which data to show
+  const listData = isLoading ? skeletonData : conversations;
+
+  const renderItem = ({ item }: { item: Conversation | { id: string; isSkeleton: boolean } }) => {
+    if ('isSkeleton' in item && item.isSkeleton) {
+      return <ConversationItemSkeleton />;
+    }
+    return <ConversationItem item={item as Conversation} />;
+  };
+
+  // Render skeleton as header when refreshing (only if there are conversations)
+  const renderListHeader = () => {
+    if (isRefreshing && conversations.length > 0) {
+      return <ConversationItemSkeleton />;
+    }
+    return null;
+  };
+
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.headerSection}>
+        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+        <ThemedText style={[styles.label, { color: labelColor }]}>MESSAGES</ThemedText>
+      </View>
       <FlashList
-        data={messages}
-        renderItem={({ item }) => <ConversationItem item={item as Conversation} />}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmptyList}
+        data={listData}
+        renderItem={renderItem}
+        keyExtractor={(item) => {
+          if ('isSkeleton' in item && item.isSkeleton) {
+            return item.id;
+          }
+          return (item as Conversation).id;
+        }}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={isLoading || isRefreshing ? null : renderEmptyList}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        refreshing={isLoading}
-        onRefresh={() => dispatch(actions.fetchMessages())}
+        onRefresh={() => dispatch(actions.refreshConversations())}
       />
     </ThemedSafeAreaView>
   );
@@ -170,6 +104,7 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     paddingBottom: heightPixel(20),
+    paddingHorizontal: widthPixel(16),
   },
   accentBar: {
     width: widthPixel(40),
@@ -190,86 +125,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: heightPixel(200),
-  },
-  conversationItem: {
-    width: '100%',
-    flexDirection: 'row',
-    marginBottom: heightPixel(16),
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    overflow: 'hidden',
-  },
-  leftAccent: {
-    width: widthPixel(4),
-  },
-  content: {
-    flex: 1,
-    padding: widthPixel(16),
-  },
-  topRow: {
-    flexDirection: 'row',
-    gap: widthPixel(12),
-  },
-  avatarContainer: {
-    width: widthPixel(50),
-    height: heightPixel(50),
-  },
-  avatar: {
-    width: widthPixel(50),
-    height: heightPixel(50),
-    borderRadius: 0,
-  },
-  avatarPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 0,
-  },
-  avatarText: {
-    fontSize: fontPixel(20),
-    fontFamily: 'Bold',
-  },
-  messageContent: {
-    flex: 1,
-  },
-  messageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: heightPixel(8),
-  },
-  senderName: {
-    fontSize: fontPixel(15),
-    fontFamily: 'Bold',
-    letterSpacing: 0.5,
-    flex: 1,
-  },
-  messagePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: widthPixel(8),
-  },
-  lastMessage: {
-    fontSize: fontPixel(15),
-    fontFamily: 'Regular',
-    flex: 1,
-  },
-  unreadMessage: {
-    fontFamily: 'SemiBold',
-  },
-  timestamp: {
-    fontSize: fontPixel(12),
-    fontFamily: 'Regular',
-  },
-  unreadBadge: {
-    borderRadius: 0,
-    minWidth: widthPixel(20),
-    height: heightPixel(20),
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: widthPixel(6),
-  },
-  unreadCount: {
-    fontSize: fontPixel(11),
-    fontFamily: 'Bold',
-  },
+  }
 });
