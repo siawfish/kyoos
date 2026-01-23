@@ -1,7 +1,6 @@
 import BackButton from '@/components/ui/BackButton';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -12,61 +11,34 @@ import { selectConversations, selectCurrentConversationMessages, selectTypingUse
 import { actions } from '@/redux/messaging/slice';
 import { Message } from '@/redux/messaging/types';
 import { useMessaging } from '@/hooks/useMessaging';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import AttachmentBottomSheet from '@/components/messaging/AttachmentBottomSheet';
+import MessageBubble from '@/components/messaging/MessageBubble';
+import MessageInput from '@/components/messaging/MessageInput';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { BlurView } from 'expo-blur';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { Link, router, useLocalSearchParams } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import {
-  Dimensions,
   Image,
-  ImageStyle,
+  Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
-  ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
-  ViewStyle
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
-const VideoPlayer = ({ 
-  uri, 
-  contentFit = "cover", 
-  showControls = false, 
-  autoPlay = false,
-  style
-}: { 
-  uri: string; 
-  contentFit?: "contain" | "cover"; 
-  showControls?: boolean; 
-  autoPlay?: boolean;
-  style?: ViewStyle;
-}) => {
-  const player = useVideoPlayer(uri, (player) => {
-    player.muted = !showControls;
-    if (autoPlay) {
-      player.play();
-    }
-  });
-
-  return (
-    <VideoView 
-      player={player} 
-      contentFit={contentFit}
-      nativeControls={showControls}
-      style={style}
-    />
-  );
-};
+function getVideoMimeType(mime: string | undefined): MimeType {
+  const m = mime?.toLowerCase();
+  if (m === 'video/mp4') return MimeType.MP4;
+  if (m === 'video/quicktime' || m === 'video/x-quicktime' || m === 'video/mov') return MimeType.MOV;
+  if (m === 'video/x-m4v') return MimeType.M4V;
+  if (m === 'video/webm') return MimeType.WEBM;
+  return MimeType.MP4;
+}
 
 export default function ConversationScreen() {
   const appTheme = useAppTheme();
@@ -74,32 +46,25 @@ export default function ConversationScreen() {
   const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
   const whiteColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
   const primaryColor = useThemeColor({ light: colors.light.tint, dark: colors.dark.tint }, 'tint');
-  const greyColor = useThemeColor({ light: colors.light.misc, dark: colors.dark.misc }, 'misc');
-  const dangerColor = useThemeColor({ light: colors.light.danger, dark: colors.dark.danger }, 'danger');
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
-  const inputBackgroundColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
-  
-  const conversations = useSelector(selectConversations);
-  const conversationMessages = useSelector(selectCurrentConversationMessages);
+
+  const conversations = useAppSelector(selectConversations);
+  const conversationMessages = useAppSelector(selectCurrentConversationMessages);
   const [inputText, setInputText] = useState('');
   const [attachments, setAttachments] = useState<Media[]>([]);
   const [isAttachmentSheetOpen, setIsAttachmentSheetOpen] = useState(false);
   const scrollViewRef = useRef<any>(null);
-  const attachmentSheetRef = useRef<BottomSheet>(null);
-  const dispatch = useDispatch();
-  const screenWidth = Dimensions.get('window').width;
+  const prevMessageCountRef = useRef(0);
+  const shouldAutoScrollRef = useRef(true);
+  const isPickerActiveRef = useRef(false);
+  const dispatch = useAppDispatch();
   const { id } = useLocalSearchParams();
-  const user = useSelector(selectUser);
+  const user = useAppSelector(selectUser);
   const conversation = conversations.find(m => m.id === id);
   const otherParticipant = user?.id === conversation?.clientId ? conversation?.worker : conversation?.client;
-  const typingUsers = useSelector(selectTypingUsersInConversation(id as string));
+  const typingUsers = useAppSelector(selectTypingUsersInConversation(id as string));
   const { sendTypingIndicator, stopTypingIndicator } = useMessaging(id as string);
 
   // Fetch messages for this conversation
@@ -109,16 +74,65 @@ export default function ConversationScreen() {
     }
   }, [id, dispatch]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    if (scrollViewRef.current && conversationMessages.length > 0) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+    const currentCount = conversationMessages.length;
+    const prevCount = prevMessageCountRef.current;
+    
+    // Check if a new message was added
+    if (currentCount > prevCount && currentCount > 0) {
+      // Check if the new message is from the current user (they just sent a message)
+      const lastMessage = conversationMessages[currentCount - 1];
+      const isOwnNewMessage = lastMessage?.senderId === user?.id;
+      
+      // Always scroll for own messages, or if auto-scroll is enabled
+      if (isOwnNewMessage || shouldAutoScrollRef.current) {
+        // Use requestAnimationFrame for smoother scrolling
+        requestAnimationFrame(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        });
+      }
     }
-  }, [conversationMessages]);
+    
+    // Update previous count
+    prevMessageCountRef.current = currentCount;
+  }, [conversationMessages, user?.id]);
 
-  const snapPoints = useMemo(() => ['40%'], []);
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (conversationMessages.length > 0 && prevMessageCountRef.current === 0) {
+      // Initial load - scroll to bottom without animation
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      });
+    }
+  }, [conversationMessages.length]);
+
+  // Scroll to bottom when keyboard opens
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        // Delay to allow keyboard animation to progress
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, Platform.OS === 'ios' ? 50 : 150);
+      }
+    );
+
+    // Also handle keyboard did show for a second scroll (ensures content is visible)
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      // Final scroll after keyboard is fully visible
+      requestAnimationFrame(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      });
+    });
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const handleAttachmentSheetOpen = useCallback(() => {
     setIsAttachmentSheetOpen(true);
@@ -128,13 +142,19 @@ export default function ConversationScreen() {
     setIsAttachmentSheetOpen(false);
   }, []);
 
-  const handleSheetChanges = useCallback((index: number) => {
-    if (index === -1) {
-      handleAttachmentSheetClose();
-    }
-  }, [handleAttachmentSheetClose]);
+  const MAX_ATTACHMENTS = 5;
 
   const pickDocument = async () => {
+    // Check attachment limit
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      alert(`You can only attach up to ${MAX_ATTACHMENTS} items at a time.`);
+      return;
+    }
+    
+    // Prevent multiple picker calls
+    if (isPickerActiveRef.current) return;
+    isPickerActiveRef.current = true;
+    
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['application/pdf'],
@@ -149,28 +169,77 @@ export default function ConversationScreen() {
       }
     } catch (err) {
       console.error('Error picking document:', err);
+    } finally {
+      isPickerActiveRef.current = false;
     }
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      quality: 1,
-    });
+    // Check attachment limit
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      alert(`You can only attach up to ${MAX_ATTACHMENTS} items at a time.`);
+      return;
+    }
+    
+    // Prevent multiple picker calls
+    if (isPickerActiveRef.current) return;
+    isPickerActiveRef.current = true;
+    
+    try {
+      // Request permission first
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need media library permissions to select images and videos!');
+        isPickerActiveRef.current = false;
+        return;
+      }
 
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      const type = asset.type === 'video' ? MimeType.MP4 : MimeType.JPEG;
-      setAttachments([...attachments, { type, uri: asset.uri, id: asset.fileName as string }]);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: false,
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_ATTACHMENTS - attachments.length,
+        quality: 1,
+        videoMaxDuration: 60,
+      });
+
+      if (!result.canceled && result.assets?.length) {
+        setAttachments((prev) => {
+          const remaining = MAX_ATTACHMENTS - prev.length;
+          const toAdd = result.assets!.slice(0, remaining).map((asset, i) => {
+            const isVideo = asset.type === 'video';
+            const type = isVideo
+              ? getVideoMimeType(asset.mimeType)
+              : ((asset.mimeType as MimeType) || MimeType.JPEG);
+            const id = asset.fileName || asset.uri || (isVideo ? `video_${Date.now()}_${i}.mp4` : `image_${Date.now()}_${i}.jpg`);
+            return { type, uri: asset.uri, id };
+          });
+          return [...prev, ...toAdd];
+        });
+      }
+    } catch (err) {
+      console.error('Error picking image:', err);
+    } finally {
+      isPickerActiveRef.current = false;
     }
   };
 
   const takePhoto = async () => {
+    // Check attachment limit
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      alert(`You can only attach up to ${MAX_ATTACHMENTS} items at a time.`);
+      return;
+    }
+    
+    // Prevent multiple picker calls
+    if (isPickerActiveRef.current) return;
+    isPickerActiveRef.current = true;
+    
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
         alert('Sorry, we need camera permissions to take photos!');
+        isPickerActiveRef.current = false;
         return;
       }
 
@@ -187,170 +256,73 @@ export default function ConversationScreen() {
       }
     } catch (err) {
       console.error('Error taking photo:', err);
+    } finally {
+      isPickerActiveRef.current = false;
     }
   };
 
+  // Generate a unique temporary ID for optimistic messages
+  const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
   const sendMessage = () => {
     if (inputText.trim() === '' && attachments.length === 0) return;
+    if (!user) return;
+
+    // Stop typing indicator when sending
+    if (id) {
+      stopTypingIndicator(id as string);
+    }
+
+    const tempId = generateTempId();
 
     dispatch(actions.sendMessage({
       conversationId: id as string,
       message: {
         content: inputText,
         attachments: attachments,
-      }
+      },
+      tempId,
+      senderId: user.id,
+      sender: {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar || '',
+      },
     }));
+    
+    // Clear local state (form is also cleared in reducer)
     setInputText('');
     setAttachments([]);
-    
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
   };
 
-  const renderMediaGrid = (messageAttachments: Message['attachments']) => {
-    if (!messageAttachments) return null;
+  // Retry sending a failed message
+  const retryFailedMessage = (message: Message) => {
+    if (!message.tempId) return;
     
-    const itemsPerRow = messageAttachments.length === 1 ? 1 : 
-                       messageAttachments.length === 2 ? 2 : 
-                       messageAttachments.length === 3 ? 3 : 2;
-                       
-    const containerWidth = Math.min(screenWidth * 0.6, 250);
-    const spacing = widthPixel(2);
-    const itemWidth = (containerWidth - (spacing * (itemsPerRow - 1))) / itemsPerRow;
-    const rows = Math.ceil(messageAttachments.length / itemsPerRow);
+    const newTempId = generateTempId();
     
-    return (
-      <View style={{ 
-        width: containerWidth, 
-        gap: spacing,
-        alignSelf: 'flex-start',
-      }}>
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <View 
-            key={rowIndex} 
-            style={{ 
-              flexDirection: 'row', 
-              gap: spacing,
-              justifyContent: 'flex-start',
-            }}
-          >
-            {messageAttachments.slice(rowIndex * itemsPerRow, (rowIndex + 1) * itemsPerRow).map((attachment, index) => (
-              <View 
-                key={index} 
-                style={{ 
-                  width: itemWidth, 
-                  height: attachment.type === MimeType.PDF ? heightPixel(60) : itemWidth,
-                }}
-              >
-                {renderAttachmentPreview(attachment, true, itemWidth)}
-              </View>
-            ))}
-          </View>
-        ))}
-      </View>
-    );
+    dispatch(actions.retryMessage({
+      tempId: message.tempId,
+      newTempId,
+      conversationId: message.conversationId,
+      content: message.content,
+      media: message.media,
+    }));
   };
 
-  const renderAttachmentPreview = (
-    attachment: Media, 
-    isInMessage: boolean = false,
-    forcedWidth?: number
-  ) => {
-    const containerStyle: ViewStyle = isInMessage ? {
-      width: forcedWidth,
-      height: attachment.type === MimeType.PDF ? 'auto' : forcedWidth,
-      borderRadius: 0,
-      overflow: 'hidden',
-      backgroundColor: inputBackgroundColor,
-      borderWidth: 0.5,
-      borderColor: borderColor,
-    } : {
-      width: widthPixel(60),
-      height: heightPixel(60),
-      borderRadius: 0,
-      overflow: 'hidden',
-      borderWidth: 0.5,
-      borderColor: borderColor,
-    };
+  // Remove a failed message
+  const removeFailedMessage = (message: Message) => {
+    if (!message.tempId) return;
+    dispatch(actions.removeFailedMessage(message.tempId));
+  };
 
-    const mediaStyle = isInMessage ? {
-      width: '100%',
-      height: '100%',
-      borderRadius: 0,
-    } : {
-      width: '100%',
-      height: '100%',
-    };
-
-    switch (attachment.type) {
-      case MimeType.JPEG:
-      case MimeType.JPG:
-      case MimeType.PNG:
-        return (
-          <View style={containerStyle}>
-            <Image
-              source={{ uri: attachment.uri }}
-              style={mediaStyle as ImageStyle}
-              resizeMode="cover"
-            />
-          </View>
-        );
-      case MimeType.MP4:
-      case MimeType.MOV:
-        return (
-          <View style={containerStyle}>
-            <VideoPlayer
-              uri={attachment.uri}
-              contentFit={isInMessage ? "contain" : "cover"}
-              showControls={isInMessage}
-              autoPlay={false}
-              style={mediaStyle as ViewStyle}
-            />
-            {!isInMessage && (
-              <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.2)',
-              }}>
-                <Ionicons name="play-circle" size={24} color="#fff" />
-              </View>
-            )}
-          </View>
-        );
-      case MimeType.PDF:
-        return (
-          <View style={[
-            containerStyle,
-            {
-              backgroundColor: inputBackgroundColor,
-              paddingHorizontal: isInMessage ? widthPixel(12) : widthPixel(4),
-              paddingVertical: isInMessage ? heightPixel(12) : heightPixel(4),
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: isInMessage ? 'flex-start' : 'center',
-            } as ViewStyle
-          ]}>
-            <Ionicons 
-              name="document-text" 
-              size={isInMessage ? 24 : 20} 
-              color={dangerColor}
-            />
-            {isInMessage && (
-              <ThemedText style={{ marginLeft: widthPixel(8), flex: 1 }} numberOfLines={1}>
-                {attachment.id || 'PDF Document'}
-              </ThemedText>
-            )}
-          </View>
-        );
-      default:
-        return null;
-    }
+  const handleBookingPress = () => {
+    router.push({
+      pathname: '/(tabs)/(bookings)/[id]',
+      params: {
+        id: conversation?.bookingId as string,
+      },
+    });
   };
 
   return (
@@ -360,7 +332,7 @@ export default function ConversationScreen() {
         <View style={styles.header}>
           <BackButton onPress={() => router.back()} iconName="arrow-left" />
           <View style={styles.headerRight}>
-            {otherParticipant?.avatar ? (
+            {/* {otherParticipant?.avatar ? (
               <Image source={{ uri: otherParticipant.avatar }} style={styles.headerAvatar} />
             ) : (
               <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
@@ -368,12 +340,10 @@ export default function ConversationScreen() {
                   {otherParticipant?.name?.charAt(0).toUpperCase() || '?'}
                 </ThemedText>
               </View>
-            )}
-            <Link href="/(tabs)/(bookings)/bookings" asChild>
-              <TouchableOpacity>
-                <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
-              </TouchableOpacity>
-            </Link>
+            )} */}
+            <TouchableOpacity onPress={handleBookingPress}>
+              <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -381,262 +351,63 @@ export default function ConversationScreen() {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 0}
+        keyboardVerticalOffset={0}
       >
         <FlashList
           ref={scrollViewRef}
           data={conversationMessages}
           contentContainerStyle={styles.listContainer}
           keyboardShouldPersistTaps="handled"
-          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
-          renderItem={({ item: message }) => {
-            const isOwnMessage = message.senderId === user?.id;
-            return (
-              <View
-                style={[
-                  styles.messageWrapper,
-                  isOwnMessage ? styles.messageWrapperRight : styles.messageWrapperLeft
-                ]}
-              >
-                <View
-                  style={[
-                    styles.messageBubble,
-                    { 
-                      backgroundColor: isOwnMessage ? primaryColor : whiteColor,
-                      borderColor: borderColor,
-                    }
-                  ]}
-                >
-                  {message.content && (
-                    <ThemedText
-                      style={[
-                        styles.messageText,
-                        { color: isOwnMessage ? whiteColor : textColor }
-                      ]}
-                    >
-                      {message.content}
-                    </ThemedText>
-                  )}
-                  
-                  {message.attachments && message.attachments.length > 0 && (
-                    <View style={styles.attachmentsContainer}>
-                      {renderMediaGrid(message.attachments)}
-                    </View>
-                  )}
-                </View>
-              </View>
-            );
+          onScroll={(event: any) => {
+            // Check if user is near the bottom (within 100 pixels)
+            const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+            const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
+            shouldAutoScrollRef.current = isNearBottom;
           }}
+          renderItem={({ item }) => (
+            <MessageBubble
+              message={item}
+              currentUserId={user?.id}
+              onRetry={retryFailedMessage}
+              onRemoveFailed={removeFailedMessage}
+            />
+          )}
         />
 
-        <ThemedView 
-          lightColor={colors.light.white}
-          darkColor={colors.dark.black}
-          style={[
-            styles.inputContainer,
-            { borderTopColor: borderColor }
-          ]}
-        >
-          {attachments.length > 0 && (
-            <ScrollView
-              horizontal
-              style={styles.attachmentsPreview}
-              contentContainerStyle={styles.attachmentsPreviewContent}
-            >
-              {attachments.map((attachment, index) => (
-                <View 
-                  key={index} 
-                  style={styles.attachmentPreviewItem}
-                >
-                  {renderAttachmentPreview(attachment, false)}
-                  <TouchableOpacity
-                    style={[styles.attachmentCloseButton, { backgroundColor: dangerColor }]}
-                    onPress={() => {
-                      setAttachments(attachments.filter((_, i) => i !== index));
-                    }}
-                  >
-                    <Ionicons name="close" size={fontPixel(14)} color={isDark ? colors.dark.black : colors.light.white} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          )}
-
-          <View style={styles.inputRow}>
-            <TouchableOpacity onPress={handleAttachmentSheetOpen}>
-              <Ionicons name="attach-outline" size={fontPixel(24)} color={primaryColor} />
-            </TouchableOpacity>
-            
-            <View
-              style={[
-                styles.textInputContainer,
-                { 
-                  borderColor: borderColor,
-                  backgroundColor: inputBackgroundColor,
-                }
-              ]}
-            >
-              <TextInput
-                value={inputText}
-                onChangeText={setInputText}
-                placeholder="Message"
-                placeholderTextColor={subTextColor}
-                style={[
-                  styles.textInput,
-                  { color: textColor }
-                ]}
-                multiline
-                scrollEnabled
-                selectionColor={primaryColor}
-                cursorColor={primaryColor}
-              />
+        {/* Typing Indicator */}
+        {typingUsers && typingUsers.length > 0 && (
+          <View style={[styles.typingIndicator, { backgroundColor }]}>
+            <View style={styles.typingDots}>
+              <View style={[styles.typingDot, { backgroundColor: subTextColor }]} />
+              <View style={[styles.typingDot, styles.typingDotMiddle, { backgroundColor: subTextColor }]} />
+              <View style={[styles.typingDot, { backgroundColor: subTextColor }]} />
             </View>
-
-            <TouchableOpacity
-              onPress={sendMessage}
-              disabled={inputText.trim() === '' && attachments.length === 0}
-              style={[
-                styles.sendButton,
-                {
-                  backgroundColor: isDark ? colors.dark.white : colors.light.black,
-                  borderColor: isDark ? colors.dark.white : colors.light.black,
-                  opacity: inputText.trim() === '' && attachments.length === 0 
-                    ? 0.5 
-                    : 1,
-                }
-              ]}
-            >
-              <Ionicons
-                name="send"
-                size={fontPixel(24)}
-                color={inputText.trim() === '' && attachments.length === 0 
-                  ? greyColor 
-                  : (isDark ? colors.dark.black : colors.light.white)}
-              />
-            </TouchableOpacity>
+            <ThemedText style={[styles.typingText, { color: subTextColor }]}>
+              {otherParticipant?.name || 'Someone'} is typing...
+            </ThemedText>
           </View>
-        </ThemedView>
+        )}
+
+        <MessageInput
+          inputText={inputText}
+          onInputChange={setInputText}
+          attachments={attachments}
+          onRemoveAttachment={(index: number) => setAttachments(attachments.filter((_, i) => i !== index))}
+          onAttachmentSheetOpen={handleAttachmentSheetOpen}
+          onSend={sendMessage}
+          onTypingStart={id ? () => sendTypingIndicator(id as string) : undefined}
+          onTypingStop={id ? () => stopTypingIndicator(id as string) : undefined}
+          maxAttachments={MAX_ATTACHMENTS}
+        />
       </KeyboardAvoidingView>
 
-      {isAttachmentSheetOpen && (
-        <Modal
-          visible={isAttachmentSheetOpen}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={handleAttachmentSheetClose}
-        >
-          <View style={styles.modalOverlay}>
-            <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-            <TouchableWithoutFeedback onPress={handleAttachmentSheetClose}>
-              <View style={StyleSheet.absoluteFill} />
-            </TouchableWithoutFeedback>
-            <BottomSheet
-              ref={attachmentSheetRef}
-              index={0}
-              snapPoints={snapPoints}
-              onChange={handleSheetChanges}
-              onClose={handleAttachmentSheetClose}
-              enablePanDownToClose={true}
-              enableDynamicSizing={false}
-              backgroundStyle={{
-                backgroundColor,
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                borderTopWidth: 0.5,
-                borderColor,
-              }}
-            >
-              <BottomSheetView style={[styles.attachmentSheetContent, { backgroundColor }]}>
-                <View style={styles.attachmentSheetHeader}>
-                  <View style={styles.attachmentSheetHeaderLeft}>
-                    <View style={[styles.attachmentSheetAccentBar, { backgroundColor: borderColor }]} />
-                    <ThemedText style={[styles.attachmentSheetLabel, { color: labelColor }]}>ATTACHMENT OPTIONS</ThemedText>
-                    <ThemedText 
-                      style={[styles.attachmentSheetTitle, { color: textColor }]} 
-                      lightColor={colors.light.text} 
-                      darkColor={colors.dark.text}
-                    >
-                      Attachment Options
-                    </ThemedText>
-                  </View>
-                  <BackButton iconName="x" onPress={handleAttachmentSheetClose} containerStyle={styles.attachmentSheetCloseButton} />
-                </View>
-
-                <View style={styles.attachmentOptionsContainer}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.attachmentOptionButton, 
-                      { 
-                        borderColor,
-                        backgroundColor,
-                      }
-                    ]}
-                    onPress={() => {
-                      handleAttachmentSheetClose();
-                      pickImage();
-                    }}
-                  >
-                    <Ionicons name="image-outline" size={fontPixel(18)} color={textColor} />
-                    <ThemedText 
-                      style={[styles.attachmentOptionText, { color: textColor }]} 
-                      lightColor={colors.light.text} 
-                      darkColor={colors.dark.text}
-                    >
-                      SELECT FROM GALLERY
-                    </ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={[
-                      styles.attachmentOptionButton, 
-                      { 
-                        borderColor,
-                        backgroundColor,
-                      }
-                    ]}
-                    onPress={() => {
-                      handleAttachmentSheetClose();
-                      pickDocument();
-                    }}
-                  >
-                    <Ionicons name="document-text-outline" size={fontPixel(18)} color={textColor} />
-                    <ThemedText 
-                      style={[styles.attachmentOptionText, { color: textColor }]} 
-                      lightColor={colors.light.text} 
-                      darkColor={colors.dark.text}
-                    >
-                      SELECT DOCUMENT
-                    </ThemedText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={[
-                      styles.attachmentOptionButton, 
-                      { 
-                        borderColor,
-                        backgroundColor,
-                      }
-                    ]}
-                    onPress={() => {
-                      handleAttachmentSheetClose();
-                      takePhoto();
-                    }}
-                  >
-                    <Ionicons name="camera-outline" size={fontPixel(18)} color={textColor} />
-                    <ThemedText 
-                      style={[styles.attachmentOptionText, { color: textColor }]} 
-                      lightColor={colors.light.text} 
-                      darkColor={colors.dark.text}
-                    >
-                      TAKE A PHOTO
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
-              </BottomSheetView>
-            </BottomSheet>
-          </View>
-        </Modal>
-      )}
+      <AttachmentBottomSheet
+        visible={isAttachmentSheetOpen}
+        onClose={handleAttachmentSheetClose}
+        onSelectGallery={pickImage}
+        onSelectDocument={pickDocument}
+        onTakePhoto={takePhoto}
+      />
     </ThemedSafeAreaView>
   );
 }
@@ -652,7 +423,7 @@ const styles = StyleSheet.create({
   accentBar: {
     width: widthPixel(40),
     height: heightPixel(4),
-    marginBottom: heightPixel(20),
+    marginBottom: heightPixel(10),
   },
   header: {
     flexDirection: 'row',
@@ -685,146 +456,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(100),
   },
-  messageWrapper: {
-    width: '100%',
-    marginBottom: heightPixel(12),
-  },
-  messageWrapperLeft: {
-    alignItems: 'flex-start',
-  },
-  messageWrapperRight: {
-    alignItems: 'flex-end',
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    paddingHorizontal: widthPixel(16),
-    paddingVertical: heightPixel(12),
-    borderWidth: 0.5,
-    borderRadius: 0,
-  },
-  messageText: {
-    fontSize: fontPixel(15),
-    fontFamily: 'Regular',
-    lineHeight: fontPixel(22),
-  },
-  attachmentsContainer: {
-    marginTop: heightPixel(8),
-  },
-  inputContainer: {
-    paddingVertical: heightPixel(16),
-    paddingHorizontal: widthPixel(16),
-    borderTopWidth: 0.5,
-    paddingBottom: Platform.OS === 'ios' ? heightPixel(16) : heightPixel(16),
-  },
-  attachmentsPreview: {
-    marginBottom: heightPixel(8),
-    paddingTop: heightPixel(8),
-  },
-  attachmentsPreviewContent: {
-    gap: widthPixel(8),
-    paddingHorizontal: widthPixel(4),
-  },
-  attachmentPreviewItem: {
-    width: widthPixel(60),
-    height: heightPixel(60),
-    position: 'relative',
-  },
-  attachmentCloseButton: {
-    position: 'absolute',
-    top: -heightPixel(8),
-    right: -widthPixel(8),
-    borderRadius: 0,
-    width: widthPixel(20),
-    height: heightPixel(20),
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  inputRow: {
+  typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: widthPixel(8),
-  },
-  textInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 0,
-    borderWidth: 0.5,
     paddingHorizontal: widthPixel(16),
     paddingVertical: heightPixel(8),
-    minHeight: heightPixel(40),
-    maxHeight: heightPixel(100),
   },
-  textInput: {
-    flex: 1,
-    fontSize: fontPixel(15),
+  typingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: widthPixel(8),
+  },
+  typingDot: {
+    width: widthPixel(6),
+    height: widthPixel(6),
+    borderRadius: widthPixel(3),
+    marginHorizontal: widthPixel(2),
+    opacity: 0.6,
+  },
+  typingDotMiddle: {
+    opacity: 0.8,
+  },
+  typingText: {
+    fontSize: fontPixel(13),
     fontFamily: 'Regular',
-  },
-  sendButton: {
-    width: widthPixel(40),
-    height: widthPixel(40),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderRadius: 0,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  attachmentSheetContent: {
-    flex: 1,
-    paddingTop: heightPixel(20),
-    paddingBottom: heightPixel(20),
-    overflow: 'hidden',
-  },
-  attachmentSheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(24),
-  },
-  attachmentSheetHeaderLeft: {
-    flex: 1,
-  },
-  attachmentSheetAccentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(16),
-  },
-  attachmentSheetLabel: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-    marginBottom: heightPixel(8),
-  },
-  attachmentSheetTitle: {
-    fontSize: fontPixel(24),
-    fontFamily: 'Bold',
-    letterSpacing: -0.5,
-    lineHeight: fontPixel(28),
-  },
-  attachmentSheetCloseButton: {
-    marginTop: heightPixel(8),
-  },
-  attachmentOptionsContainer: {
-    paddingHorizontal: widthPixel(16),
-    gap: heightPixel(12),
-  },
-  attachmentOptionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: widthPixel(12),
-    paddingVertical: heightPixel(16),
-    paddingHorizontal: widthPixel(16),
-    borderWidth: 0.5,
-    borderRadius: 0,
-  },
-  attachmentOptionText: {
-    fontSize: fontPixel(14),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1,
+    fontStyle: 'italic',
   },
 });

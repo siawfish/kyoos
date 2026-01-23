@@ -84,7 +84,8 @@ export enum PermissionType {
 }
 export interface Media {
     id?: string;
-    url: string;
+    uri?: string;  // Local file path (before upload)
+    url?: string;  // Remote URL (after upload)
     width?: number;
     height?: number;
     type?: MimeType;
@@ -139,6 +140,7 @@ export enum AssetModule {
     PROFILE = 'PROFILE',
     BOOKING = 'BOOKING',
     DOCUMENTS = 'DOCUMENTS',
+    MESSAGES = 'MESSAGES',
 }
 export interface User {
     id: string;

@@ -30,18 +30,14 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
         { light: colors.light.text, dark: colors.dark.text },
         'text'
     );
-    const dangerColor = useThemeColor(
-        { light: colors.light.danger, dark: colors.dark.danger },
-        'text'
-    );
     const borderColor = isDark ? colors.dark.white : colors.light.black;
 
     // Memoize URL type checks to prevent unnecessary recalculations
     const { isLocalFile, isRemoteUrl, isFirebaseStorage } = useMemo(() => {
         const url = document.url;
-        const local = url.startsWith('file://');
-        const remote = url.startsWith('http://') || url.startsWith('https://');
-        const firebase = remote && url.includes('firebasestorage.googleapis.com');
+        const local = url?.startsWith('file://');
+        const remote = url?.startsWith('http://') || url?.startsWith('https://');
+        const firebase = remote && url?.includes('firebasestorage.googleapis.com');
         return {
             isLocalFile: local,
             isRemoteUrl: remote,
@@ -66,7 +62,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
 
         try {
             // Create a unique filename based on URL hash
-            const urlHash = document.url.split('/').pop()?.split('?')[0] || 'pdf';
+            const urlHash = document.url?.split('/').pop()?.split('?')[0] || 'pdf';
             const filename = `${urlHash}.pdf`;
             
             // Get cache directory - try different ways to access it
@@ -110,7 +106,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
 
             // Download the file
             const downloadResult = await FileSystem.downloadAsync(
-                document.url,
+                document.url as string,
                 localUri,
                 {
                     headers: {},
@@ -145,10 +141,10 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
         const url = document.url;
         const shouldDownload = isPDF && isRemoteUrl && isFirebaseStorage && !localPdfUri && !isDownloading;
         const attemptsSet = downloadAttemptsRef.current;
-        const hasAttempted = attemptsSet.has(url);
+        const hasAttempted = attemptsSet.has(url as string);
         
         if (shouldDownload && !hasAttempted) {
-            attemptsSet.add(url);
+            attemptsSet.add(url as string);
             downloadPdfToLocal();
         }
     }, [isActive, thumbnail, document.url, isPDF, isRemoteUrl, isFirebaseStorage, localPdfUri, isDownloading, downloadPdfToLocal]);
@@ -189,7 +185,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
         } else if (isLocalFile) {
             console.log('[DocumentViewer] Using local PDF source:', document.url);
             return { uri: document.url };
-        } else if (document.url.startsWith('data:')) {
+        } else if (document.url?.startsWith('data:')) {
             console.log('[DocumentViewer] Using base64 PDF source');
             return { uri: document.url };
         }
@@ -278,7 +274,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                     [{ text: 'OK' }]
                 );
             } else if (isRemoteUrl) {
-                await WebBrowser.openBrowserAsync(document.url, {
+                await WebBrowser.openBrowserAsync(document.url as string, {
                     presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
                 });
             } else {
@@ -305,7 +301,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                 <Ionicons
                     name="document-text"
                     size={64}
-                    color={dangerColor}
+                    color={textColor}
                 />
                 <ThemedText
                     style={[styles.documentText, { color: textColor }]}
@@ -322,7 +318,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
     if (isDownloading) {
         return (
             <View style={[styles.container, { backgroundColor }]}>
-                <ActivityIndicator size="large" color={dangerColor} />
+                <ActivityIndicator size="small" color={textColor} />
                 <ThemedText
                     style={[styles.loadingText, { color: textColor }]}
                     lightColor={colors.light.text}
@@ -341,7 +337,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                 <Ionicons
                     name="document-text"
                     size={64}
-                    color={dangerColor}
+                    color={textColor}
                 />
                 <ThemedText
                     style={[styles.documentText, { color: textColor }]}
@@ -398,7 +394,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                     <Ionicons
                         name="document-text"
                         size={32}
-                        color={dangerColor}
+                        color={textColor}
                     />
                 </View>
             );
@@ -410,7 +406,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                 <Ionicons
                     name="document-text"
                     size={64}
-                    color={dangerColor}
+                    color={textColor}
                 />
                 <ThemedText
                     style={[styles.documentText, { color: textColor }]}
@@ -479,7 +475,7 @@ const DocumentViewer = ({ document, isActive = true, thumbnail = false }: Docume
                 enableAnnotationRendering={!thumbnail}
                 renderActivityIndicator={() => (
                     <View style={[styles.loadingContainer, { backgroundColor }]}>
-                        <ActivityIndicator size={thumbnail ? "small" : "large"} color={dangerColor} />
+                        <ActivityIndicator size="small" color={textColor} />
                         {!thumbnail && (
                             <ThemedText
                                 style={[styles.loadingText, { color: textColor }]}

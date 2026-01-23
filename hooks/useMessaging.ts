@@ -1,14 +1,17 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import socketService from '@/services/socket';
 import { actions } from '@/redux/messaging/slice';
 import { Message } from '@/redux/messaging/types';
+import { selectUser } from '@/redux/app/selector';
 
 /**
  * Custom hook to manage Socket.io messaging events
  */
 export const useMessaging = (conversationId?: string) => {
     const dispatch = useDispatch();
+    const user = useSelector(selectUser);
+    const [isConnected, setIsConnected] = useState(socketService.isConnected());
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const stopTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -17,10 +20,14 @@ export const useMessaging = (conversationId?: string) => {
      */
     const connect = useCallback(async () => {
         try {
-            await socketService.connect();
-            console.log('Socket connected for messaging');
+            const socket = await socketService.connect();
+            if (socket) {
+                setIsConnected(true);
+                console.log('Socket connected for messaging');
+            }
         } catch (error) {
             console.error('Failed to connect socket:', error);
+            setIsConnected(false);
         }
     }, []);
 
@@ -29,6 +36,7 @@ export const useMessaging = (conversationId?: string) => {
      */
     const disconnect = useCallback(() => {
         socketService.disconnect();
+        setIsConnected(false);
     }, []);
 
     /**
@@ -96,16 +104,49 @@ export const useMessaging = (conversationId?: string) => {
     }, []);
 
     /**
-     * Setup Socket.io event listeners
+     * Track socket connection state changes
      */
     useEffect(() => {
+        const socket = socketService.getSocket();
+        if (!socket) return;
+
+        const handleConnect = () => {
+            console.log('Socket connected');
+            setIsConnected(true);
+        };
+
+        const handleDisconnect = () => {
+            console.log('Socket disconnected');
+            setIsConnected(false);
+        };
+
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+
+        // Check initial connection state
+        setIsConnected(socket.connected);
+
+        return () => {
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+        };
+    }, []);
+
+    /**
+     * Setup Socket.io event listeners
+     * Re-runs when connection state changes to ensure listeners are registered
+     */
+    useEffect(() => {
+        // Only set up listeners when connected
+        if (!isConnected) return;
+
         const socket = socketService.getSocket();
         if (!socket) return;
 
         // Message events
         const handleMessageNew = (message: Message) => {
             console.log('New message received:', message);
-            dispatch(actions.messageReceived(message));
+            dispatch(actions.messageReceived({ ...message, currentUserId: user?.id }));
         };
 
         const handleMessageEdited = (data: {
@@ -182,7 +223,7 @@ export const useMessaging = (conversationId?: string) => {
             socket.off('typing:stop', handleTypingStop);
             socket.off('error', handleError);
         };
-    }, [dispatch]);
+    }, [dispatch, user?.id, isConnected]);
 
     /**
      * Auto-join conversation when conversationId changes
@@ -219,6 +260,6 @@ export const useMessaging = (conversationId?: string) => {
         stopTypingIndicator,
         editMessage,
         deleteMessage,
-        isConnected: socketService.isConnected(),
+        isConnected,
     };
 };

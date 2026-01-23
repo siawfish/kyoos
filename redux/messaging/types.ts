@@ -1,9 +1,11 @@
 import { BookingStatuses, Media } from "@/redux/app/types";
 
 export enum MessageStatus {
+  PENDING = "PENDING",   // For optimistic messages being sent
   SENT = "SENT",
   DELIVERED = "DELIVERED",
   READ = "READ",
+  FAILED = "FAILED",     // For messages that failed to send
 }
 
 export interface Asset {
@@ -14,6 +16,7 @@ export interface Asset {
 
 export interface Message {
   id: string;
+  tempId?: string;        // Temporary ID for optimistic messages
   conversationId: string;
   senderId: string;
   content?: string;
@@ -69,6 +72,18 @@ export interface MessageForm {
   content: string;
   attachments: Media[];
   isLoading?: boolean;
+}
+
+export interface SendMessagePayload {
+  conversationId: string;
+  message: MessageForm;
+  tempId: string;
+  senderId: string;
+  sender: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
 }
 
 export interface MessagingState {

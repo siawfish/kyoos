@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Dimensions,
     Image,
     Modal,
@@ -35,6 +36,45 @@ interface MediaViewerProps {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+const ImageWithLoader = ({
+    uri,
+    onScroll,
+}: {
+    uri: string;
+    onScroll: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}) => {
+    const [loading, setLoading] = useState(true);
+    const loaderColor = useThemeColor(
+        { light: colors.light.white, dark: colors.dark.white },
+        "text"
+    );
+
+    return (
+        <View style={styles.imageWithLoaderWrapper}>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                maximumZoomScale={3}
+                minimumZoomScale={1}
+                onScroll={onScroll}
+            >
+                <Image
+                    source={{ uri }}
+                    style={styles.image}
+                    resizeMode="contain"
+                    onLoadStart={() => setLoading(true)}
+                    onLoadEnd={() => setLoading(false)}
+                    onError={() => setLoading(false)}
+                />
+            </ScrollView>
+            {loading && (
+                <View style={styles.loaderOverlay}>
+                    <ActivityIndicator size="small" color={loaderColor} />
+                </View>
+            )}
+        </View>
+    );
+};
+
 const MediaViewer = ({
     visible,
     media,
@@ -46,8 +86,8 @@ const MediaViewer = ({
     const colorScheme = useAppTheme();
     const isDark = colorScheme === "dark";
     const backgroundColor = useThemeColor(
-        { light: colors.light.background, dark: colors.dark.background },
-        "background"
+        { light: colors.light.black, dark: colors.dark.black },
+        "black"
     );
     const textColor = useThemeColor(
         { light: colors.light.text, dark: colors.dark.text },
@@ -91,18 +131,7 @@ const MediaViewer = ({
             // Fallback to image if type is not specified
             return (
                 <View key={itemKey} style={styles.mediaItem}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        maximumZoomScale={3}
-                        minimumZoomScale={1}
-                        onScroll={handleClose}
-                    >
-                        <Image
-                            source={{ uri: item.url }}
-                            style={styles.image}
-                            resizeMode="contain"
-                        />
-                    </ScrollView>
+                    <ImageWithLoader uri={item.url ?? ""} onScroll={handleClose} />
                 </View>
             );
         }
@@ -110,18 +139,7 @@ const MediaViewer = ({
         if (isImage(item.type)) {
             return (
                 <View key={itemKey} style={styles.mediaItem}>
-                    <ScrollView
-                        contentContainerStyle={styles.scrollContent}
-                        maximumZoomScale={3}
-                        minimumZoomScale={1}
-                        onScroll={handleClose}
-                    >
-                        <Image
-                            source={{ uri: item.url }}
-                            style={styles.image}
-                            resizeMode="contain"
-                        />
-                    </ScrollView>
+                    <ImageWithLoader uri={item.url ?? ""} onScroll={handleClose} />
                 </View>
             );
         }
@@ -129,7 +147,7 @@ const MediaViewer = ({
         if (isVideo(item.type)) {
             return (
                 <View key={itemKey} style={styles.mediaItem}>
-                    <VideoViewer uri={item.url} isActive={currentIndex === index} />
+                    <VideoViewer uri={item.url as string} isActive={currentIndex === index} />
                 </View>
             );
         }
@@ -145,18 +163,7 @@ const MediaViewer = ({
         // Fallback to image
         return (
             <View key={itemKey} style={styles.mediaItem}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    maximumZoomScale={3}
-                    minimumZoomScale={1}
-                    onScroll={handleClose}
-                >
-                    <Image
-                        source={{ uri: item.url }}
-                        style={styles.image}
-                        resizeMode="contain"
-                    />
-                </ScrollView>
+                <ImageWithLoader uri={item.url ?? ""} onScroll={handleClose} />
             </View>
         );
     };
@@ -279,6 +286,15 @@ const styles = StyleSheet.create({
     mediaItem: {
         width: SCREEN_WIDTH,
         height: SCREEN_HEIGHT,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    imageWithLoaderWrapper: {
+        flex: 1,
+        width: "100%",
+    },
+    loaderOverlay: {
+        ...StyleSheet.absoluteFillObject,
         justifyContent: "center",
         alignItems: "center",
     },

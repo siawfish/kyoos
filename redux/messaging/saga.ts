@@ -1,8 +1,9 @@
 import { actions } from '@/redux/messaging/slice';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { Conversation, MessageForm, Message } from './types';
+import { Conversation, Message, Asset, SendMessagePayload } from './types';
 import { request } from '@/services/api';
+import { uploadAttachments } from '@/services/upload';
 import socketService from '@/services/socket';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
@@ -69,30 +70,66 @@ function* fetchConversationMessagesSaga(action: PayloadAction<string>) {
 
 /**
  * Send a new message
+ * The optimistic message is already added to state by the reducer
+ * This saga handles the actual sending in the background
  */
 function* sendMessageSaga(
-  action: PayloadAction<{ conversationId: string; message: MessageForm }>
+  action: PayloadAction<SendMessagePayload>
 ) {
+  const { conversationId, message, tempId } = action.payload;
+  
   try {
-    const { conversationId, message } = action.payload;
+    let media: Asset[] = [];
 
-    // Convert media attachments to Asset format if needed
-    const media = message.attachments.map((attachment) => ({
-      id: attachment.id || '',
-      type: attachment.type || 'image',
-      url: attachment.url,
-    }));
+    // Upload attachments if any exist
+    if (message.attachments && message.attachments.length > 0) {
+      const uploadResult: { data?: Asset[]; error?: string } = yield call(
+        uploadAttachments,
+        message.attachments
+      );
+
+      if (uploadResult.error) {
+        throw new Error(uploadResult.error);
+      }
+
+      media = uploadResult.data || [];
+    }
 
     // Send via Socket.io for real-time delivery
+    // The server will broadcast the message back with a real ID
     socketService.sendMessage(conversationId, message.content, media);
 
-    yield put(actions.sendMessageSuccess());
+    // Mark as sent (status will be updated when server confirms via socket)
+    yield put(actions.sendMessageSuccess({ tempId }));
   } catch (error) {
-    yield put(
-      actions.sendMessageFailure(
-        error instanceof Error ? error.message : 'Failed to send message'
-      )
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+    
+    yield put(actions.sendMessageFailure({ tempId, error: errorMessage }));
+    
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to send message',
+      text2: 'Tap the message to retry',
+    });
+  }
+}
+
+/**
+ * Retry sending a failed message
+ */
+function* retryMessageSaga(
+  action: PayloadAction<{ tempId: string; newTempId: string; conversationId: string; content?: string; media?: Asset[] }>
+) {
+  const { tempId, newTempId, conversationId, content, media } = action.payload;
+  
+  try {
+    // Send via Socket.io
+    socketService.sendMessage(conversationId, content, media || []);
+
+    yield put(actions.sendMessageSuccess({ tempId: newTempId }));
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+    yield put(actions.sendMessageFailure({ tempId: newTempId, error: errorMessage }));
   }
 }
 
@@ -195,6 +232,7 @@ export function* messagingSaga() {
     fetchConversationMessagesSaga
   );
   yield takeLatest(actions.sendMessage.type, sendMessageSaga);
+  yield takeLatest(actions.retryMessage.type, retryMessageSaga);
   yield takeLatest(actions.markConversationAsRead.type, markConversationAsReadSaga);
   yield takeLatest(
     actions.fetchOrCreateConversationByBooking.type,
