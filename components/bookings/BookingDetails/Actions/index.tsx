@@ -31,27 +31,27 @@ const Actions = ({
   }, 'black');
 
   const action = () => {
-    if (booking?.status === BookingStatuses.PENDING) {
-      return [
-        {
-          label: 'DELETE BOOKING',
-          icon: <Ionicons name="trash" size={fontPixel(16)} color={colors.light.white} />,
-          style: styles.cancelBtn,
-          labelStyle: styles.cancelLabel,
-          onPress: onDelete,
-        }
-      ]
-    }
+    // if (booking?.status === BookingStatuses.PENDING) {
+    //   return [
+    //     {
+    //       label: 'DELETE BOOKING',
+    //       icon: <Ionicons name="trash" size={fontPixel(16)} color={colors.light.white} />,
+    //       style: styles.cancelBtn,
+    //       labelStyle: styles.cancelLabel,
+    //       onPress: onDelete,
+    //     }
+    //   ]
+    // }
 
     if (booking?.status === BookingStatuses.CANCELLED) {
       return [
-        {
-          label: 'DELETE BOOKING',
-          icon: <Ionicons name="trash" size={fontPixel(16)} color={colors.light.white} />,
-          style: styles.cancelBtn,
-          labelStyle: styles.cancelLabel,
-          onPress: onDelete,
-        }
+        // {
+        //   label: 'DELETE BOOKING',
+        //   icon: <Ionicons name="trash" size={fontPixel(16)} color={colors.light.white} />,
+        //   style: styles.cancelBtn,
+        //   labelStyle: styles.cancelLabel,
+        //   onPress: onDelete,
+        // }
       ]
     }
 
@@ -96,6 +96,7 @@ const Actions = ({
       }
     ];
   };
+  if(action().length === 0) return null;
   return (
     <View style={styles.action}>
       {

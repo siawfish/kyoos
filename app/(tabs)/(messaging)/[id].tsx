@@ -6,7 +6,7 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
-import { Media, MimeType } from '@/redux/app/types';
+import { BookingStatuses, Media, MimeType } from '@/redux/app/types';
 import { selectConversations, selectCurrentConversationMessages, selectTypingUsersInConversation } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
 import { Message } from '@/redux/messaging/types';
@@ -30,6 +30,7 @@ import {
   View,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { isPast } from 'date-fns';
 
 function getVideoMimeType(mime: string | undefined): MimeType {
   const m = mime?.toLowerCase();
@@ -49,7 +50,6 @@ export default function ConversationScreen() {
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-
   const conversations = useAppSelector(selectConversations);
   const conversationMessages = useAppSelector(selectCurrentConversationMessages);
   const [inputText, setInputText] = useState('');
@@ -66,6 +66,9 @@ export default function ConversationScreen() {
   const otherParticipant = user?.id === conversation?.clientId ? conversation?.worker : conversation?.client;
   const typingUsers = useAppSelector(selectTypingUsersInConversation(id as string));
   const { sendTypingIndicator, stopTypingIndicator } = useMessaging(id as string);
+  const bookingTime = new Date(conversation?.booking?.date!).setTime(new Date(conversation?.booking?.startTime!).getTime());
+
+  const isPassed = isPast(bookingTime);
 
   // Fetch messages for this conversation
   useEffect(() => {
@@ -325,6 +328,8 @@ export default function ConversationScreen() {
     });
   };
 
+  const isDisabled = isPassed || (conversation?.booking?.status === BookingStatuses.COMPLETED || conversation?.booking?.status === BookingStatuses.CANCELLED || conversation?.booking?.status === BookingStatuses.DECLINED);
+
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
       <View style={styles.headerSection}>
@@ -398,6 +403,7 @@ export default function ConversationScreen() {
           onTypingStart={id ? () => sendTypingIndicator(id as string) : undefined}
           onTypingStop={id ? () => stopTypingIndicator(id as string) : undefined}
           maxAttachments={MAX_ATTACHMENTS}
+          disabled={isDisabled}
         />
       </KeyboardAvoidingView>
 

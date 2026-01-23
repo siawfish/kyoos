@@ -98,7 +98,6 @@ export enum BookingStatuses {
     ONGOING = "ONGOING",
     CANCELLED = "CANCELLED",
     COMPLETED = "COMPLETED",
-    PAUSED = "PAUSED",
 }
 
 export interface StatusColors {

@@ -1,30 +1,12 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { BookingStatuses } from '@/redux/app/types';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
 
-export const getStatusColor = (status: BookingStatuses, isDark: boolean): string => {
-    switch (status) {
-        case BookingStatuses.ONGOING:
-            return isDark ? colors.dark.white : colors.light.black;
-        case BookingStatuses.COMPLETED:
-            return colors.light.green;
-        case BookingStatuses.CANCELLED:
-        case BookingStatuses.DECLINED:
-            return colors.light.danger;
-        case BookingStatuses.PENDING:
-        case BookingStatuses.ACCEPTED:
-        default:
-            return isDark ? colors.dark.secondary : colors.light.secondary;
-    }
-};
-
 type BadgeSize = 'small' | 'medium' | 'large';
 
-interface BookingStatusBadgeProps {
-    status: BookingStatuses;
+interface IsPassedBookingBadgeProps {
     size?: BadgeSize;
 }
 
@@ -62,18 +44,15 @@ const sizeStyles: Record<BadgeSize, { container: ViewStyle; text: TextStyle }> =
 };
 
 const BookingStatusBadge = ({
-    status,
     size = 'medium',
-}: BookingStatusBadgeProps) => {
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-    const statusColor = getStatusColor(status, isDark);
+}: IsPassedBookingBadgeProps) => {
+    const dangerColor = useThemeColor({ light: colors.light.danger, dark: colors.dark.danger }, 'danger');
     const sizeStyle = sizeStyles[size];
 
     return (
-        <View style={[styles.container, sizeStyle.container, { borderColor: statusColor }]}>
-            <Text style={[styles.text, sizeStyle.text, { color: statusColor }]}>
-                {status}
+        <View style={[styles.container, sizeStyle.container, { borderColor: dangerColor }]}>
+            <Text style={[styles.text, sizeStyle.text, { color: dangerColor }]}>
+                IS PASSED
             </Text>
         </View>
     );

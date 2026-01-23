@@ -16,6 +16,8 @@ import React, { useState } from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
 import OverlayLoader from '@/components/ui/OverlayLoader'
+import { isPast } from 'date-fns'
+import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
 
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
@@ -49,7 +51,7 @@ const BookingCard = ({
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const statusColor = getStatusColor(booking.status, isDark);
-
+    const isPassed = isPast(new Date(booking.date));
     const handleChatWorker = () => {
         dispatch(messagingActions.fetchOrCreateConversationByBooking(booking.id));
     };
@@ -127,16 +129,22 @@ const BookingCard = ({
         const isOngoing = booking.status === BookingStatuses.ONGOING;
         const isCompleted = booking.status === BookingStatuses.COMPLETED;
         if (isPending) {
+            if(isPassed) {
+                return [
+                    { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
+                    { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
+                ];
+            }
             return [
                 { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
                 { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
-                { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
+                { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
             ];
         }
 
         if (isCancelled) {
             return [
-                { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
+                // { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
             ];
         }
 
@@ -177,23 +185,27 @@ const BookingCard = ({
             <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
             <View style={styles.content}>
                 <View style={styles.topRow}>
-                    <BookingStatusBadge status={booking.status} size="small" />
+                    {isPassed ? <IsPassedBookingBadge size="small" /> : <BookingStatusBadge status={booking.status} size="small" />}
                     <View style={styles.topRowRight}>
                         <Text style={[styles.time, { color: textColor }]}>
                             {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
                         </Text>
-                        <TouchableOpacity
-                            onPress={(e) => {
-                                e.stopPropagation();
-                            }}
-                            activeOpacity={1}
-                        >
-                            <OptionsComponent 
-                                options={getBookingOptions()} 
-                                title="Booking Actions"
-                                snapPoints={renderSnapPoints()}
-                            />
-                        </TouchableOpacity>
+                        {
+                            getBookingOptions().length > 0 && (
+                                <TouchableOpacity
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                    activeOpacity={1}
+                                >
+                                    <OptionsComponent 
+                                        options={getBookingOptions()} 
+                                        title="Booking Actions"
+                                        snapPoints={renderSnapPoints()}
+                                    />
+                                </TouchableOpacity>
+                            )
+                        }
                     </View>
                 </View>
                 

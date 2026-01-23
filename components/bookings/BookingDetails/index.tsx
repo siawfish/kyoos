@@ -9,6 +9,8 @@ import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import Status from './Status'
+import { isPast } from 'date-fns'
+import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -19,6 +21,7 @@ const BookingDetails = ({
 }:BookingDetailsProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
+    const isPassed = isPast(new Date(booking.date));
 
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
@@ -54,7 +57,7 @@ const BookingDetails = ({
 
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
-                <Status status={booking?.status} />
+                {isPassed ? <IsPassedBookingBadge size="small" /> : <Status status={booking?.status} />}
                 <View>
                     <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>

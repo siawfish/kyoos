@@ -61,6 +61,7 @@ export interface MessageInputProps {
   onTypingStop?: () => void;
   maxAttachments?: number;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 const DEFAULT_MAX_ATTACHMENTS = 5;
@@ -76,6 +77,7 @@ function MessageInput({
   onTypingStop,
   maxAttachments = DEFAULT_MAX_ATTACHMENTS,
   placeholder = 'Message',
+  disabled = false,
 }: MessageInputProps) {
   const appTheme = useAppTheme();
   const isDark = appTheme === 'dark';
@@ -192,7 +194,7 @@ function MessageInput({
       <ThemedView
         lightColor={colors.light.white}
         darkColor={colors.dark.black}
-        style={[styles.inputContainer, { borderTopColor: borderColor }]}
+        style={[styles.inputContainer, { borderTopColor: borderColor, opacity: disabled ? 0.6 : 1 }]}
       >
         {attachments.length > 0 && (
           <ScrollView
@@ -206,8 +208,9 @@ function MessageInput({
                   {renderAttachmentPreview(attachment)}
                 </Pressable>
                 <TouchableOpacity
-                  style={[styles.attachmentCloseButton, { backgroundColor: dangerColor }]}
+                  style={[styles.attachmentCloseButton, { backgroundColor: dangerColor, opacity: disabled ? 0.5 : 1 }]}
                   onPress={() => onRemoveAttachment(index)}
+                  disabled={disabled}
                 >
                   <Ionicons
                     name="close"
@@ -223,8 +226,8 @@ function MessageInput({
         <View style={styles.inputRow}>
           <TouchableOpacity
             onPress={onAttachmentSheetOpen}
-            disabled={atAttachmentLimit}
-            style={{ opacity: atAttachmentLimit ? 0.4 : 1 }}
+            disabled={atAttachmentLimit || disabled}
+            style={{ opacity: (atAttachmentLimit || disabled) ? 0.4 : 1 }}
           >
             <Ionicons name="attach-outline" size={fontPixel(24)} color={primaryColor} />
           </TouchableOpacity>
@@ -252,25 +255,26 @@ function MessageInput({
               scrollEnabled
               selectionColor={primaryColor}
               cursorColor={primaryColor}
+              editable={!disabled}
             />
           </View>
 
           <TouchableOpacity
             onPress={onSend}
-            disabled={!canSend}
+            disabled={!canSend || disabled}
             style={[
               styles.sendButton,
               {
                 backgroundColor: isDark ? colors.dark.white : colors.light.black,
                 borderColor: isDark ? colors.dark.white : colors.light.black,
-                opacity: canSend ? 1 : 0.5,
+                opacity: (canSend && !disabled) ? 1 : 0.5,
               },
             ]}
           >
             <Ionicons
               name="send"
               size={fontPixel(24)}
-              color={canSend ? (isDark ? colors.dark.black : colors.light.white) : greyColor}
+              color={(canSend && !disabled) ? (isDark ? colors.dark.black : colors.light.white) : greyColor}
             />
           </TouchableOpacity>
         </View>

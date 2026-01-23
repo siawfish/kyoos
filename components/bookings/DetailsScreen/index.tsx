@@ -288,14 +288,14 @@ const Details = () => {
         )}
         {showReportConfirm && (
             <ConfirmActionSheet 
-                isOpen={showReportConfirm} 
-                isOpenChange={setShowReportConfirm} 
-                onConfirm={handleConfirmReport} 
-                title="Report Booking?" 
-                icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
-                confirmText="Yes, Report Booking"
-                cancelText="Cancel"
+              isOpen={showReportConfirm} 
+              isOpenChange={setShowReportConfirm} 
+              onConfirm={handleConfirmReport} 
+              title="Report Booking?" 
+              icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+              description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
+              confirmText="Yes, Report Booking"
+              cancelText="Cancel"
             />
         )}
     </ThemedSafeAreaView>
