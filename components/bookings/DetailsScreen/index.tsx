@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
+import { StyleSheet, Image, ActivityIndicator, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
@@ -15,6 +15,7 @@ import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings
 import { actions } from "@/redux/bookings/slice";
 import { Booking } from "@/redux/booking/types";
 import { BookingStatuses } from "@/redux/app/types";
+import EmptyList from "@/components/ui/EmptyList";
 
 const Details = () => {
   const dispatch = useDispatch();
@@ -45,15 +46,7 @@ const Details = () => {
     }
     dispatch(actions.fetchBookingSuccess(stateBooking));
   }, [dispatch, stateBooking, id]);
-
-  const textColor = useThemeColor({
-    light: colors.light.text,
-    dark: colors.dark.text
-  }, 'text');
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
+  
   const accentColor = isDark ? colors.dark.white : colors.light.black;
   const backgroundColor = useThemeColor({
     light: colors.light.background,
@@ -185,20 +178,10 @@ const Details = () => {
     return (
       <ThemedSafeAreaView style={styles.container}>
         <Header onReschedule={determineRescheduleAction()} onBack={handleBack} />
-        <View style={styles.notFoundContainer}>
-          <View style={[styles.notFoundCard, { borderColor: accentColor, backgroundColor }]}>
-            <View style={[styles.notFoundAccent, { backgroundColor: accentColor }]} />
-            <View style={styles.notFoundContent}>
-              <Text style={[styles.notFoundLabel, { color: labelColor }]}>NOT FOUND</Text>
-              <Text style={[styles.notFoundTitle, { color: textColor }]}>
-                Booking not found
-              </Text>
-              <Text style={[styles.notFoundText, { color: labelColor }]}>
-                The booking you&apos;re looking for doesn&apos;t exist or has been removed.
-              </Text>
-            </View>
-          </View>
-        </View>
+        <EmptyList
+          containerStyle={styles.notFoundContainer}
+          message="The booking you're looking for doesn't exist or has been removed."
+        />
       </ThemedSafeAreaView>
     );
   }
@@ -327,7 +310,7 @@ const styles = StyleSheet.create({
   },
   notFoundContainer: {
     flex: 1,
-    paddingHorizontal: widthPixel(16),
+    paddingHorizontal: widthPixel(60),
     paddingTop: heightPixel(20),
   },
   notFoundCard: {

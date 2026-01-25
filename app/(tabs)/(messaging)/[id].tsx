@@ -18,10 +18,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState, useEffect } from 'react';
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -45,8 +44,6 @@ export default function ConversationScreen() {
   const appTheme = useAppTheme();
   const isDark = appTheme === 'dark';
   const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
-  const whiteColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
-  const primaryColor = useThemeColor({ light: colors.light.tint, dark: colors.dark.tint }, 'tint');
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
   const accentColor = isDark ? colors.dark.white : colors.light.black;

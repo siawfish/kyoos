@@ -12,7 +12,7 @@ import React, { useCallback, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 
-interface RescheduleProps {
+interface CalendarProps {
     readonly onClose?: () => void;
     readonly isOpen: boolean;
 }
@@ -54,10 +54,10 @@ const CustomDay = ({ date, state, onPress, selectedDate, isDark = false }: Custo
     );
 };
 
-const Reschedule = ({
+const CustomCalendar = ({
   onClose,
   isOpen,
-}:RescheduleProps) => {
+}:CalendarProps) => {
   const theme = useAppTheme();
   const isDark = theme === 'dark';
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -253,4 +253,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Reschedule;
+export default CustomCalendar;
