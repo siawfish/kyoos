@@ -50,10 +50,6 @@ export function getStatusColors(status: BookingStatuses): StatusColors {
       color: "#0000FF", // Blue
       backgroundColor: "#E0F7FA" // Light cyan
     },
-    PAUSED: {
-      color: "#FFD700", // Gold
-      backgroundColor: "#FFF9E3" // Light yellow
-    },
     ONGOING: {
       color: "#800080", // Purple
       backgroundColor: "#F3E5F5" // Light purple
