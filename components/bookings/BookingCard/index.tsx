@@ -1,5 +1,4 @@
 import { Options as OptionsComponent } from '@/components/portfolio/Options'
-import BookingStatusBadge, { getStatusColor } from '@/components/ui/BookingStatusBadge'
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet'
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
@@ -16,8 +15,9 @@ import React, { useState } from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
 import OverlayLoader from '@/components/ui/OverlayLoader'
-import { isPast } from 'date-fns'
 import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
+import { useBookingStatus } from '@/hooks/useBookingStatus'
+import Status from '../BookingDetails/Status'
 
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
@@ -43,6 +43,7 @@ const BookingCard = ({
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
     const [showRebookConfirm, setShowRebookConfirm] = useState(false);
     const [showReportConfirm, setShowReportConfirm] = useState(false);
+    const { isPassed, statusColor } = useBookingStatus(booking);
     
     if (!booking) return null;
 
@@ -50,8 +51,6 @@ const BookingCard = ({
     const borderColor = isDark ? colors.dark.secondary : colors.light.black;
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
-    const statusColor = getStatusColor(booking.status, isDark);
-    const isPassed = isPast(new Date(booking.date));
     const handleChatWorker = () => {
         dispatch(messagingActions.fetchOrCreateConversationByBooking(booking.id));
     };
@@ -73,10 +72,6 @@ const BookingCard = ({
 
     const handleCancel = () => {
         setShowCancelConfirm(true);
-    };
-
-    const handleDelete = () => {
-        setShowDeleteConfirm(true);
     };
 
     const handleConfirmCancel = () => {
@@ -128,6 +123,7 @@ const BookingCard = ({
         const isCancelled = booking.status === BookingStatuses.CANCELLED;
         const isOngoing = booking.status === BookingStatuses.ONGOING;
         const isCompleted = booking.status === BookingStatuses.COMPLETED;
+        const isDeclined = booking.status === BookingStatuses.DECLINED;
         if (isPending) {
             if(isPassed) {
                 return [
@@ -142,7 +138,7 @@ const BookingCard = ({
             ];
         }
 
-        if (isCancelled) {
+        if (isCancelled || isDeclined) {
             return [
                 // { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
             ];
@@ -185,7 +181,7 @@ const BookingCard = ({
             <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
             <View style={styles.content}>
                 <View style={styles.topRow}>
-                    {isPassed ? <IsPassedBookingBadge size="small" /> : <BookingStatusBadge status={booking.status} size="small" />}
+                    {isPassed ? <IsPassedBookingBadge size="small" /> : <Status booking={booking} />}
                     <View style={styles.topRowRight}>
                         <Text style={[styles.time, { color: textColor }]}>
                             {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
@@ -219,7 +215,7 @@ const BookingCard = ({
                             WORKER
                         </Text>
                         <Text style={[styles.detailValue, { color: textColor }]} numberOfLines={1}>
-                            {booking.worker.name}
+                            {booking?.worker?.name}
                         </Text>
                     </View>
                     <View style={[styles.divider, { backgroundColor: labelColor }]} />
@@ -228,7 +224,7 @@ const BookingCard = ({
                             DURATION
                         </Text>
                         <Text style={[styles.detailValue, { color: textColor }]}>
-                            {convertFromMillisecondsToHours(booking.estimatedDuration)} hours
+                            {convertFromMillisecondsToHours(booking?.estimatedDuration!)} hours
                         </Text>
                     </View>
                 </View>
@@ -244,7 +240,7 @@ const BookingCard = ({
                 onConfirm={confirmReschedule} 
                 title="Reschedule Booking?" 
                 icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to reschedule this booking with ${booking.worker.name}?`}
+                description={`Are you sure you want to reschedule this booking with ${booking?.worker?.name}?`}
                 confirmText="Yes, Reschedule Booking"
                 cancelText="Cancel"
             />
@@ -256,7 +252,7 @@ const BookingCard = ({
                 onConfirm={handleConfirmCancel} 
                 title="Cancel Booking?" 
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking?.worker?.name} will also be notified.`}
                 confirmText="Yes, Cancel Booking"
                 cancelText="Cancel"
             />
@@ -292,7 +288,7 @@ const BookingCard = ({
                 onConfirm={handleConfirmRebook} 
                 title="Rebook Booking?" 
                 icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to book another session with ${booking.worker.name}?`}
+                description={`Are you sure you want to book another session with ${booking?.worker?.name}?`}
                 confirmText="Yes, Rebook Booking"
                 cancelText="Cancel"
             />
@@ -304,7 +300,7 @@ const BookingCard = ({
                 onConfirm={handleConfirmReport} 
                 title="Report Booking?" 
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
+                description={`Are you sure you want to report this booking with ${booking?.worker?.name}?`}
                 confirmText="Yes, Report Booking"
                 cancelText="Cancel"
             />

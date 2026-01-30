@@ -1,15 +1,15 @@
-import BookingStatusBadge from '@/components/ui/BookingStatusBadge';
-import { BookingStatuses } from '@/redux/app/types';
+import BookingStatusBadge from '@/components/ui/Status';
+import { Booking } from '@/redux/booking/types';
 import React from 'react';
 
 interface StatusProps {
-    status?: BookingStatuses;
+    booking: Booking;
 }
 
 const Status = ({
-    status = BookingStatuses.PENDING
+    booking,
 }: StatusProps) => {
-    return <BookingStatusBadge status={status} size="large" />;
+    return <BookingStatusBadge booking={booking} size="large" />;
 };
 
 export default Status;

@@ -4,11 +4,12 @@ import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import BookingStatusBadge, { getStatusColor } from '@/components/ui/BookingStatusBadge';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { Booking } from '@/redux/booking/types';
+import Status from '@/components/bookings/BookingDetails/Status';
+import { useBookingStatus } from '@/hooks/useBookingStatus';
 
 interface BookingPreviewCardProps {
     booking: Booking | null;
@@ -39,8 +40,8 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
         light: colors.light.grey,
         dark: colors.dark.grey,
     }, 'grey');
+    const { statusColor } = useBookingStatus(booking!);
 
-    const isDark = blurTint === 'dark';
 
     if (!booking) {
         return (
@@ -55,12 +56,13 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
         );
     }
 
-    const statusColor = getStatusColor(booking.status, isDark);
     const startTime = booking.startTime;
 
     const handlePress = () => {
         router.push(`/(tabs)/(bookings)/${booking.id}`);
     };
+
+    if(!booking) return null;
 
     return (
         <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.container, { backgroundColor }]}>
@@ -72,7 +74,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                 <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
                 <View style={styles.content}>
                     <View style={styles.topRow}>
-                        <BookingStatusBadge status={booking.status} size="small" />
+                        <Status booking={booking!} />
                         <ThemedText style={[styles.time, { color: textColor }]}>
                             {startTime}
                         </ThemedText>
@@ -85,10 +87,10 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
                     <View style={styles.detailsRow}>
                         <View style={styles.detailItem}>
                             <ThemedText style={[styles.detailLabel, { color: secondaryColor }]}>
-                                CLIENT
+                                WORKER
                             </ThemedText>
                             <ThemedText style={[styles.detailValue, { color: textColor }]} numberOfLines={1}>
-                                {booking.worker.name}
+                                {booking.worker?.name}
                             </ThemedText>
                         </View>
                         <View style={[styles.divider, { backgroundColor: secondaryColor }]} />

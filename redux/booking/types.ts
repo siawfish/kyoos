@@ -48,24 +48,24 @@ export interface GetAvailableTimesResponse {
 
 export interface Booking {
     id: string;
-    searchId: string;
-    estimatedDuration: number;
-    estimatedPrice: number;
-    requiredSkills: Skill[];
-    requiredTools: string[];
+    searchId?: string;
+    estimatedDuration?: number;
+    estimatedPrice?: number;
+    requiredSkills?: Skill[];
+    requiredTools?: string[];
     status: BookingStatuses;
-    workerId: string;
-    worker: Worker;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
-    location: Location;
+    workerId?: string;
+    worker?: Worker;
+    userId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    location?: Location;
     description: string;
     date: string;
     startTime: string;
-    estimatedEndTime: string;
-    media: Media[];
-    serviceType: ServiceLocationType;
+    estimatedEndTime?: string;
+    media?: Media[];
+    serviceType?: ServiceLocationType;
 }
 
 

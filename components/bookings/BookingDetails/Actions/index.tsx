@@ -43,7 +43,7 @@ const Actions = ({
     //   ]
     // }
 
-    if (booking?.status === BookingStatuses.CANCELLED) {
+    if (booking?.status === BookingStatuses.CANCELLED || booking?.status === BookingStatuses.DECLINED) {
       return [
         // {
         //   label: 'DELETE BOOKING',

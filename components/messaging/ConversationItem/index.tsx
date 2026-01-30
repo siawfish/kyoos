@@ -9,19 +9,20 @@ import { router } from "expo-router";
 import { Pressable, View, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ui/Themed/ThemedView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import BookingStatusBadge from "@/components/ui/BookingStatusBadge";
-import { format, isPast } from "date-fns";
+import { format } from "date-fns";
 import { Image } from "expo-image";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { formatDate, formatTime } from "@/constants/helpers";
 import IsPassedBookingBadge from "@/components/ui/IsPassedBookingBadge";
+import { useBookingStatus } from "@/hooks/useBookingStatus";
+import Status from "@/components/ui/Status";
 
 const ConversationItem = ({ item } : { item: Conversation }) => {
     const dispatch = useAppDispatch();
     const user = useAppSelector(selectUser);
     const theme = useAppTheme();
     const isDark = theme === 'dark';
-    const isPassed = isPast(new Date(item.booking?.date));
+    const { isPassed } = useBookingStatus(item.booking);
     const tintColor = useThemeColor({
       light: colors.light.tint,
       dark: colors.dark.tint
@@ -113,7 +114,7 @@ const ConversationItem = ({ item } : { item: Conversation }) => {
                     <ThemedText style={[styles.bookingDateTime, { color: secondaryText }]}>
                       {formatDate(new Date(item.booking.date))}, {formatTime(item.booking.startTime)}
                     </ThemedText>
-                    {isPassed ? <IsPassedBookingBadge size="medium" /> : <BookingStatusBadge status={item.booking.status} size="medium" />}
+                    {isPassed ? <IsPassedBookingBadge size="medium" /> : <Status booking={item.booking} />}
                   </View>
                 </View>
               )}

@@ -155,15 +155,6 @@ const Details = () => {
         label: 'RESCHEDULE',
       };
     }
-    if(booking?.status === BookingStatuses.DECLINED) {
-      return {
-        onPress: handleReschedule,
-        label: 'RESCHEDULE',
-      };
-    }
-    if(booking?.status === BookingStatuses.CANCELLED) {
-      return undefined;
-    }
     if(booking?.status === BookingStatuses.COMPLETED) {
       return {
         onPress: handleRebook,
@@ -216,7 +207,7 @@ const Details = () => {
                 onConfirm={confirmReschedule} 
                 title="Reschedule Booking?" 
                 icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to reschedule this booking with ${booking.worker.name}?`}
+                description={`Are you sure you want to reschedule this booking with ${booking?.worker?.name}?`}
                 confirmText="Yes, Reschedule Booking"
                 cancelText="Cancel"
             />
@@ -228,7 +219,7 @@ const Details = () => {
                 onConfirm={handleConfirmCancel} 
                 title="Cancel Booking?" 
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking.worker.name} will also be notified.`}
+                description={`Are you sure you want to cancel this booking? This action cannot be reversed. ${booking?.worker?.name} will also be notified.`}
                 confirmText="Yes, Cancel Booking"
                 cancelText="Cancel"
             />
@@ -264,7 +255,7 @@ const Details = () => {
                 onConfirm={handleConfirmRebook} 
                 title="Rebook Booking?" 
                 icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
-                description={`Are you sure you want to book another session with ${booking.worker.name}?`}
+                description={`Are you sure you want to book another session with ${booking?.worker?.name}?`}
                 confirmText="Yes, Rebook Booking"
                 cancelText="Cancel"
             />
@@ -276,7 +267,7 @@ const Details = () => {
               onConfirm={handleConfirmReport} 
               title="Report Booking?" 
               icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-              description={`Are you sure you want to report this booking with ${booking.worker.name}?`}
+              description={`Are you sure you want to report this booking with ${booking?.worker?.name}?`}
               confirmText="Yes, Report Booking"
               cancelText="Cancel"
             />

@@ -1,7 +1,7 @@
 import { BookingStatuses, MimeType, PermissionType, StatusColors } from '@/redux/app/types';
 import { Location as LocationType } from '@/redux/auth/types';
 import { Worker } from '@/redux/search/types';
-import { format, formatRelative, isToday, isTomorrow } from 'date-fns';
+import { format, formatRelative, isBefore, isToday, isTomorrow, isWithinInterval } from 'date-fns';
 import * as Location from 'expo-location';
 import numeral from 'numeral';
 
@@ -12,6 +12,15 @@ export const timeToString = (time: number) => {
 
 export const formatRelativeDate = (date: string) => {
   return formatRelative(new Date(date), new Date())?.split(' at')[0];
+}
+
+export const isWithinTheTimeRange = (startDateTime: string, endDateTime: string) => {
+  if (!startDateTime || !endDateTime) return false;
+  if(isNaN(new Date(startDateTime).getTime()) || isNaN(new Date(endDateTime).getTime())) return false;
+  if (isBefore(new Date(startDateTime), new Date(endDateTime))) return false;
+  const start = new Date(startDateTime);
+  const end = new Date(endDateTime);
+  return isWithinInterval(new Date(), { start: start, end: end });
 }
 
 export const formatDate = (date: Date) => {

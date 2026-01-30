@@ -9,8 +9,8 @@ import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import Status from './Status'
-import { isPast } from 'date-fns'
 import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
+import { useBookingStatus } from '@/hooks/useBookingStatus'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -21,13 +21,15 @@ const BookingDetails = ({
 }:BookingDetailsProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
-    const isPassed = isPast(new Date(booking.date));
+    const { isPassed } = useBookingStatus(booking);
 
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const accentColor = isDark ? colors.dark.white : colors.light.black;
     const cardBg = isDark ? colors.dark.background : colors.light.background;
     const borderColor = isDark ? colors.dark.white : colors.light.black;
+
+    if (!booking) return null;
 
     return (
         <ScrollView 
@@ -57,7 +59,7 @@ const BookingDetails = ({
 
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
-                {isPassed ? <IsPassedBookingBadge size="small" /> : <Status status={booking?.status} />}
+                {isPassed ? <IsPassedBookingBadge size="small" /> : <Status booking={booking} />}
                 <View>
                     <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>
@@ -91,7 +93,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>DURATION</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {convertFromMillisecondsToHours(booking?.estimatedDuration)} hours
+                                {convertFromMillisecondsToHours(booking?.estimatedDuration!)} hours
                             </Text>
                         </View>
                     </View>
@@ -105,7 +107,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>REQUIRED TOOLS</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {booking.requiredTools.join(', ') || 'None specified'}
+                                {booking.requiredTools?.join(', ') || 'None specified'}
                             </Text>
                         </View>
                     </View>
@@ -113,19 +115,19 @@ const BookingDetails = ({
             </View>
 
             {/* Description & Media */}
-            {(booking.description || booking.media?.length > 0) && (
+            {(booking.description || booking.media?.length! > 0) && (
                 <View style={styles.descriptionSection}>
                     <Text style={[styles.sectionLabel, { color: labelColor }]}>DESCRIPTION</Text>
                     <Text style={[styles.descriptionText, { color: textColor }]}>
                         {booking.description}
                     </Text>
-                    {booking.media?.length > 0 && (
+                    {booking?.media?.length! > 0 && (
                         <ScrollView 
                             horizontal 
                             showsHorizontalScrollIndicator={false}
                             style={styles.mediaContainer}
                         >
-                            {booking.media.map((item, index) => (
+                            {booking?.media?.map((item, index) => (
                                 <View key={index} style={styles.mediaItem}>
                                     <Image
                                         source={{ uri: item.url }}

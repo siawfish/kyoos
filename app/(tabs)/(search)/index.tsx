@@ -258,24 +258,27 @@ export default function HomeScreen() {
                         </View>
                     </View>
                 </BlurView>
-                
-                {/* Animated Booking Card */}
-                <Animated.View style={[
-                    styles.bookingCardContainer,
-                    {
-                        height: bookingCardHeight.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, heightPixel(180)],
-                        }),
-                        opacity: bookingCardOpacity,
-                        marginTop: bookingCardHeight.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, heightPixel(2)],
-                        }),
-                    },
-                ]}>
-                    <BookingPreviewCard booking={activeBooking} />
-                </Animated.View>
+
+                {/* {
+                    activeBooking && (
+                        <Animated.View style={[
+                            styles.bookingCardContainer,
+                            {
+                                height: bookingCardHeight.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, heightPixel(180)],
+                                }),
+                                opacity: bookingCardOpacity,
+                                marginTop: bookingCardHeight.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, heightPixel(2)],
+                                }),
+                            },
+                        ]}>
+                            <BookingPreviewCard booking={activeBooking} />
+                        </Animated.View>
+                    )
+                } */}
             </View>
 
             {/* Floating Search Bar */}
