@@ -3,11 +3,17 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
+      }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
+      },
       "ios": {
         "simulator": true
       }
@@ -19,9 +25,15 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
+      },
       "ios": {
         "buildConfiguration": "Release"
       }
     }
+  },
+  "cli": {
+    "appVersionSource": "remote"
   }
 }
