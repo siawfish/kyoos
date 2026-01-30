@@ -8,14 +8,15 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Booking } from '@/redux/booking/types';
-import { selectBookings, selectBookingsForSelectedDate, selectCurrentWeekStart, selectIsLoading, selectSelectedDate } from '@/redux/bookings/selector';
+import { selectBookings, selectBookingsForSelectedDate, selectCurrentWeekStart, selectIsLoading, selectIsRefreshing, selectSelectedDate } from '@/redux/bookings/selector';
 import { actions } from '@/redux/bookings/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { format, startOfWeek } from 'date-fns';
-import React, { useEffect, useMemo } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { AgendaEntry } from 'react-native-calendars';
+import EmptyList from '@/components/ui/EmptyList';
 interface BookingAgendaEntry extends AgendaEntry {
   booking?: Booking;
 }
@@ -25,6 +26,7 @@ export default function BookingsScreen() {
   const bookings = useAppSelector(selectBookings);
   const bookingsForSelectedDate = useAppSelector(selectBookingsForSelectedDate);
   const isLoading = useAppSelector(selectIsLoading);
+  const isRefreshing = useAppSelector(selectIsRefreshing);
   const selectedDateString = useAppSelector(selectSelectedDate);
   const currentWeekStart = useAppSelector(selectCurrentWeekStart);
 
@@ -59,9 +61,6 @@ export default function BookingsScreen() {
     dark: colors.dark.secondary
   }, 'text');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = isDark ? colors.dark.secondary : colors.light.black;
-
-  const cardBg = isDark ? 'transparent' : colors.light.background;
 
   // Calculate booking counts per day for the calendar indicators
   const bookingCounts = useMemo(() => {
@@ -78,7 +77,7 @@ export default function BookingsScreen() {
 
   // Convert filtered bookings to agenda items (for selected day display)
   const agendaItems: BookingAgendaEntry[] = bookingsForSelectedDate.map((booking: Booking) => ({
-    name: `${booking.description} with ${booking.worker.name}`,
+    name: `${booking.description} with ${booking?.worker?.name}`,
     height: 80,
     day: booking.date,
     booking
@@ -99,6 +98,10 @@ export default function BookingsScreen() {
     dispatch(actions.setSelectedDate(date.toISOString()));
   };
 
+  const onRefresh = useCallback(() => {
+    dispatch(actions.refreshBookings());
+  }, [dispatch]);
+
   const renderItem = ({ item, index }: { item: BookingAgendaEntry | { id: string; isSkeleton: boolean }; index: number }) => {
     if ('isSkeleton' in item && item.isSkeleton) {
       return <BookingCardSkeleton />;
@@ -116,21 +119,18 @@ export default function BookingsScreen() {
   };
 
   const renderEmptyList = () => {
-    if (isLoading) return null;
+    if (isLoading || isRefreshing) return null;
     return (
-      <View style={styles.emptyContainer}>
-        <View style={[styles.emptyCard, { borderColor, backgroundColor: cardBg }]}>
-          <View style={[styles.emptyAccent, { backgroundColor: borderColor }]} />
-          <View style={styles.emptyInner}>
-            <Image source={require('@/assets/images/empty-list.png')} style={styles.emptyImage} />
-            <Text style={[styles.emptyTitle, { color: textColor }]}>
-              No bookings
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: subtitleColor }]}>
-              No bookings scheduled for this day
-            </Text>
-          </View>
-        </View>
+      <EmptyList containerStyle={styles.emptyContainer} message="No bookings scheduled for this day" />
+    );
+  };
+
+  const renderListHeader = () => {
+    if (!isRefreshing) return null;
+    return (
+      <View>
+        <BookingCardSkeleton />
+        <View style={styles.itemSeparator} />
       </View>
     );
   };
@@ -168,8 +168,12 @@ export default function BookingsScreen() {
           const agendaItem = item as BookingAgendaEntry;
           return agendaItem.booking?.id || String(agendaItem.day);
         }}
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyList}
         ItemSeparatorComponent={renderItemSeparator}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={onRefresh} />
+        }
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       />
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    paddingTop: heightPixel(20),
+    paddingTop: heightPixel(100),
   },
   itemSeparator: {
     height: heightPixel(12),

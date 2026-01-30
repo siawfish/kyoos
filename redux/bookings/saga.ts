@@ -67,15 +67,15 @@ export function* rescheduleBooking(action: PayloadAction<string>) {
   if (!booking) return;
   yield put(bookingActions.updateBooking({
     summary: {
-      estimatedDuration: booking.estimatedDuration,
-      requiredSkills: booking.requiredSkills,
-      requiredTools: booking.requiredTools,
-      estimatedPrice: booking.estimatedPrice.toString(),
+      estimatedDuration: booking.estimatedDuration!,
+      requiredSkills: booking.requiredSkills!,
+      requiredTools: booking.requiredTools!,
+      estimatedPrice: booking.estimatedPrice!.toString(),
       reasoning: '',
     },
     artisan: booking.worker,
     description: booking.description,
-    requiredSkills: booking.requiredSkills.map(skill => skill.name),
+    requiredSkills: booking.requiredSkills!.map(skill => skill.name),
     appointmentDateTime: {
       date: {
         value: booking.date,
@@ -113,15 +113,15 @@ function* rebookBooking(action: PayloadAction<string>) {
   if (!booking) return;
   yield put(bookingActions.updateBooking({
     summary: {
-      estimatedDuration: booking.estimatedDuration,
-      requiredSkills: booking.requiredSkills,
-      requiredTools: booking.requiredTools,
-      estimatedPrice: booking.estimatedPrice.toString(),
+      estimatedDuration: booking.estimatedDuration!,
+      requiredSkills: booking.requiredSkills!,
+      requiredTools: booking.requiredTools!,
+      estimatedPrice: booking.estimatedPrice!.toString(),
       reasoning: '',
     },
     artisan: booking.worker,
     description: booking.description,
-    requiredSkills: booking.requiredSkills.map(skill => skill.name),
+    requiredSkills: booking.requiredSkills!.map(skill => skill.name),
     appointmentDateTime: {
       date: {
         value: booking.date,
@@ -267,6 +267,7 @@ function* reportBooking(action: PayloadAction<string>) {
 
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchBookings, fetchBookings);
+  yield takeLatest(actions.refreshBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);
   yield takeLatest(actions.setCurrentWeekStart, fetchBookings);
   yield takeLatest(actions.cancelBooking, cancelBooking);

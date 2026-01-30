@@ -8,6 +8,7 @@ export interface BookingsState {
     selectedDate: string;
     currentWeekStart: string;
     isUpdatingBooking: boolean;
+    isRefreshing: boolean;
 }
 
 export interface Service {

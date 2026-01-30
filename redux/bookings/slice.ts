@@ -11,6 +11,7 @@ export const initialState: BookingsState = {
   selectedDate: new Date().toISOString(),
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
   isUpdatingBooking: false,
+  isRefreshing: false,
 };
 
 interface RehydrateAction {
@@ -28,6 +29,9 @@ const bookingsSlice = createSlice({
     fetchBookings: (state) => {
       state.isLoading = true;
     },
+    refreshBookings: (state) => {
+      state.isRefreshing = true;
+    },
     setSelectedDate: (state, action: PayloadAction<string>) => {
       state.selectedDate = action.payload;
     },
@@ -38,9 +42,11 @@ const bookingsSlice = createSlice({
     fetchBookingsSuccess: (state, action: PayloadAction<Booking[]>) => {
       state.bookings = action.payload;
       state.isLoading = false;
+      state.isRefreshing = false;
     },
     fetchBookingsFailure: (state) => {
       state.isLoading = false;
+      state.isRefreshing = false;
     },
     rescheduleBooking: (state, action: PayloadAction<string>) => {},
     fetchBooking: (state, action: PayloadAction<string>) => {
@@ -85,6 +91,7 @@ const bookingsSlice = createSlice({
           // Reset loading states on rehydrate to prevent stuck loading
           isLoading: false,
           isUpdatingBooking: false,
+          isRefreshing: false,
         };
       }
       return state;

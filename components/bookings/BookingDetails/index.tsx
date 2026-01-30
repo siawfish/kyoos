@@ -8,9 +8,7 @@ import numeral from 'numeral'
 import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
-import Status from './Status'
-import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
-import { useBookingStatus } from '@/hooks/useBookingStatus'
+import BookingStatus from './Status'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -21,7 +19,6 @@ const BookingDetails = ({
 }:BookingDetailsProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
-    const { isPassed } = useBookingStatus(booking);
 
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
@@ -59,7 +56,7 @@ const BookingDetails = ({
 
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
-                {isPassed ? <IsPassedBookingBadge size="small" /> : <Status booking={booking} />}
+                <BookingStatus booking={booking} />
                 <View>
                     <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>

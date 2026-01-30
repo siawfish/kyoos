@@ -48,3 +48,8 @@ export const selectIsUpdatingBooking = createSelector(
   [selectBookingsDomain],
   (bookingsState) => bookingsState.isUpdatingBooking
 );
+
+export const selectIsRefreshing = createSelector(
+  [selectBookingsDomain],
+  (bookingsState) => bookingsState.isRefreshing
+);

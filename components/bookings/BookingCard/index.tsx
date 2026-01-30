@@ -15,9 +15,8 @@ import React, { useState } from 'react'
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { AgendaEntry } from 'react-native-calendars'
 import OverlayLoader from '@/components/ui/OverlayLoader'
-import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge'
 import { useBookingStatus } from '@/hooks/useBookingStatus'
-import Status from '../BookingDetails/Status'
+import BookingStatus from '../BookingDetails/Status'
 
 interface BookingAgendaEntry extends AgendaEntry {
     booking?: Booking;
@@ -181,7 +180,7 @@ const BookingCard = ({
             <View style={[styles.leftAccent, { backgroundColor: statusColor }]} />
             <View style={styles.content}>
                 <View style={styles.topRow}>
-                    {isPassed ? <IsPassedBookingBadge size="small" /> : <Status booking={booking} />}
+                    <BookingStatus booking={booking} />
                     <View style={styles.topRowRight}>
                         <Text style={[styles.time, { color: textColor }]}>
                             {`${formatDate(new Date(booking.date))} • ${formatTime(booking.startTime)}`}
