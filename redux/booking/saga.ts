@@ -14,6 +14,7 @@ import { actions as bookingsActions } from '../bookings/slice';
 import { selectAllWorkers, selectMedia, selectSearch, selectSearchReferenceId, selectSummary } from '../search/selector';
 import { selectArtisan, selectBookingId, selectSearchHistoryId, selectServiceDate, selectServiceLocation, selectServiceLocationType, selectServiceTime } from './selector';
 import { Booking, GetAvailableTimesResponse, ServiceLocationType } from './types';
+import { selectBooking } from '../bookings/selector';
 
 export function* confirmBooking(action: PayloadAction<RelativePathString>) {
     const callbackRoute = action.payload || '/(tabs)/(search)/(booking)/booking';
@@ -145,6 +146,11 @@ export function* submitUpdateBooking(action: PayloadAction<string>) {
     if (serviceLocationType) {
         booking.serviceType = serviceLocationType;
     }
+    const existingBooking: Booking = yield select(selectBooking);
+    const startTime = formatStartTime(date?.value, time?.value);
+    if (existingBooking && existingBooking.date === date?.value && existingBooking.startTime === time?.value) {
+      throw new Error('Selected date and time are the same as the existing booking');
+    }
     const response: ApiResponse<Booking> = yield call(request, {
       method: 'PATCH',
       url: `/api/users/bookings/${bookingId}`,
@@ -176,3 +182,4 @@ export function* bookingSaga() {
   yield takeLatest(actions.reverseGeocodeServiceLocation, reverseGeocodeServiceLocation);
   yield takeLatest(actions.submitUpdateBooking, submitUpdateBooking);
 }
+

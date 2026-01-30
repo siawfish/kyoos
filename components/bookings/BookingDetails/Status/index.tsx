@@ -1,21 +1,27 @@
-import Status from '@/components/ui/Status';
+import { AuxStatus } from '@/redux/bookings/types';
 import { Booking } from '@/redux/booking/types';
-import IsPassedBookingBadge from '@/components/ui/IsPassedBookingBadge';
 import React from 'react';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
+import Status from '@/components/ui/Status';
+import AuxStatuses from '@/components/ui/AuxStatuses';
 
 interface StatusProps {
     booking: Booking;
 }
 
 const BookingStatus = ({
-    booking,
-}: StatusProps) => {
-    const { isPassed } = useBookingStatus(booking);
+    booking
+}:StatusProps) => {
+    const { isPassed, isDue } = useBookingStatus(booking!);
     if(isPassed) {
-        return <IsPassedBookingBadge size="small" />
+        return <AuxStatuses size="small" type={AuxStatus.PASSED} />
     }
-    return <Status booking={booking} />;
+    if(isDue) {
+        return <AuxStatuses size="small" type={AuxStatus.DUE} />
+    }
+    return (
+        <Status booking={booking} />
+    )
 };
 
 export default BookingStatus;

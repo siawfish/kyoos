@@ -1,13 +1,14 @@
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { AuxStatus } from '@/redux/bookings/types';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 type BadgeSize = 'small' | 'medium' | 'large';
-
-interface IsPassedBookingBadgeProps {
+interface AuxStatusesProps {
     size?: BadgeSize;
+    type?: AuxStatus;
 }
 
 const sizeStyles: Record<BadgeSize, { container: ViewStyle; text: TextStyle }> = {
@@ -43,22 +44,24 @@ const sizeStyles: Record<BadgeSize, { container: ViewStyle; text: TextStyle }> =
     },
 };
 
-const BookingStatusBadge = ({
+const AuxStatuses = ({
     size = 'medium',
-}: IsPassedBookingBadgeProps) => {
+    type = AuxStatus.PASSED,
+}: AuxStatusesProps) => {
     const dangerColor = useThemeColor({ light: colors.light.danger, dark: colors.dark.danger }, 'danger');
+    const dueColor = useThemeColor({ light: colors.light.orange, dark: colors.dark.orange }, 'orange');
     const sizeStyle = sizeStyles[size];
 
     return (
-        <View style={[styles.container, sizeStyle.container, { borderColor: dangerColor }]}>
-            <Text style={[styles.text, sizeStyle.text, { color: dangerColor }]}>
-                IS PASSED
+        <View style={[styles.container, sizeStyle.container, { borderColor: type === AuxStatus.PASSED ? dangerColor : dueColor }]}>
+            <Text style={[styles.text, sizeStyle.text, { color: type === AuxStatus.PASSED ? dangerColor : dueColor }]}>
+                {type}
             </Text>
         </View>
     );
 };
 
-export default BookingStatusBadge;
+export default AuxStatuses;
 
 const styles = StyleSheet.create({
     container: {

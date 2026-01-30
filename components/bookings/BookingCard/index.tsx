@@ -125,10 +125,7 @@ const BookingCard = ({
         const isDeclined = booking.status === BookingStatuses.DECLINED;
         if (isPending) {
             if(isPassed) {
-                return [
-                    { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: handleReschedule },
-                    { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
-                ];
+                return [];
             }
             return [
                 { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
@@ -138,9 +135,7 @@ const BookingCard = ({
         }
 
         if (isCancelled || isDeclined) {
-            return [
-                // { label: 'Delete', icon: OptionIcons.DELETE, onPress: handleDelete, isDanger: true },
-            ];
+            return [];
         }
 
         if (isOngoing) {

@@ -62,8 +62,9 @@ export const useBookingStatus = (booking: Booking | undefined) => {
     const statusStyle = getStatusStyle(booking.status, isDark);
     const bookingTime = new Date(booking.date!).setTime(new Date(booking.startTime!).getTime());
     const bookingEndTime = new Date(booking.date!).setTime(new Date(booking.estimatedEndTime!).getTime());
-    const isPassed = isPast(bookingEndTime);
+    const isPassed = booking.status === BookingStatuses.PENDING ? isPast(bookingTime) : isPast(bookingEndTime);
     const withinTheTimeRange = isWithinTheTimeRange(new Date(bookingTime).toISOString(), new Date(bookingEndTime).toISOString());
+    const isDue = withinTheTimeRange && booking.status === BookingStatuses.ACCEPTED;
     const canChat = !isPassed && booking.status !== BookingStatuses.COMPLETED && booking.status !== BookingStatuses.CANCELLED && booking.status !== BookingStatuses.DECLINED;
 
     return {
@@ -72,5 +73,6 @@ export const useBookingStatus = (booking: Booking | undefined) => {
         isPassed,
         withinTheTimeRange,
         canChat,
+        isDue, 
     }
 }

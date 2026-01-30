@@ -13,16 +13,13 @@ import { format } from "date-fns";
 import { Image } from "expo-image";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { formatDate, formatTime } from "@/constants/helpers";
-import IsPassedBookingBadge from "@/components/ui/IsPassedBookingBadge";
-import { useBookingStatus } from "@/hooks/useBookingStatus";
-import Status from "@/components/ui/Status";
+import Status from "@/components/bookings/BookingDetails/Status";
 
 const ConversationItem = ({ item } : { item: Conversation }) => {
     const dispatch = useAppDispatch();
     const user = useAppSelector(selectUser);
     const theme = useAppTheme();
     const isDark = theme === 'dark';
-    const { isPassed } = useBookingStatus(item.booking);
     const tintColor = useThemeColor({
       light: colors.light.tint,
       dark: colors.dark.tint
@@ -114,7 +111,7 @@ const ConversationItem = ({ item } : { item: Conversation }) => {
                     <ThemedText style={[styles.bookingDateTime, { color: secondaryText }]}>
                       {formatDate(new Date(item.booking.date))}, {formatTime(item.booking.startTime)}
                     </ThemedText>
-                    {isPassed ? <IsPassedBookingBadge size="medium" /> : <Status booking={item.booking} />}
+                    <Status booking={item.booking} />
                   </View>
                 </View>
               )}

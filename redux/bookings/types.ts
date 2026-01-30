@@ -11,6 +11,11 @@ export interface BookingsState {
     isRefreshing: boolean;
 }
 
+export enum AuxStatus {
+    PASSED = 'PASSED',
+    DUE = 'DUE',
+}
+
 export interface Service {
     summary: {
         estimatedDuration: string;
