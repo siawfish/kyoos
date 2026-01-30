@@ -8,6 +8,15 @@ module.exports = {
     scheme: "kyoos",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
+    updates: {
+      enabled: true,
+      checkAutomatically: "ON_LOAD",
+      fallbackToCacheTimeout: 0,
+      url: "https://u.expo.dev/fd6682b0-2099-4f1d-b51b-0d585ecba1a4",
+    },
+    runtimeVersion: {
+      policy: "appVersion",
+    },
     ios: {
       supportsTablet: true,
       infoPlist: {

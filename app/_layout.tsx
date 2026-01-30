@@ -1,8 +1,12 @@
 import Main from '@/components/navigation/Main';
 import { createToastConfig } from '@/components/ui/Toast';
+import UpdateBanner from '@/components/ui/UpdateBanner';
+import UpdateOverlay from '@/components/ui/UpdateOverlay';
+import UpdateReadyModal from '@/components/ui/UpdateReadyModal';
 import { heightPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useExpoUpdates } from '@/hooks/use-expo-updates';
 import { persistor, store } from '@/store';
 import { PortalProvider } from '@gorhom/portal';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -55,11 +59,28 @@ const DarkNavigationTheme = {
 // Wrapper component that uses theme hook inside Provider
 function ThemedApp() {
   const theme = useAppTheme();
+  const {
+    isUpdateAvailable,
+    isDownloading,
+    downloadProgress,
+    isUpdateReady,
+    downloadUpdate,
+    applyUpdate,
+    dismissUpdate,
+  } = useExpoUpdates();
 
   return (
     <ThemeProvider value={theme === 'dark' ? DarkNavigationTheme : LightNavigationTheme}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <PortalProvider>
+          {/* Update Banner - shown when update is available */}
+          {isUpdateAvailable && !isDownloading && (
+            <UpdateBanner onUpdate={downloadUpdate} onDismiss={dismissUpdate} />
+          )}
+          {/* Update Overlay - shown during download */}
+          {isDownloading && <UpdateOverlay progress={downloadProgress} />}
+          {/* Update Ready Modal - shown when download completes */}
+          {isUpdateReady && <UpdateReadyModal onRestart={applyUpdate} />}
           <Main />
           <Toast 
             config={createToastConfig(theme)} 
