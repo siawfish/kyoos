@@ -146,9 +146,44 @@ export function* confirmLogin() {
     }
 }
 
+export function* resendOtp() {
+    try {
+        yield delay(500);
+        const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
+        const referenceId: string = yield select(selectReferenceId);
+        const response: ApiResponse<LoginResponse> = yield call(request, {
+            method: 'POST',
+            url: `/api/users/auth/resendOTP`,
+            data: {
+                phoneNumber: phoneNumber.value,
+                referenceId: referenceId,
+            },
+        });
+        if (response.error || !response.data) {
+            throw new Error(response.message || response.error || 'An error occurred while resending OTP');
+        }
+        Toast.show({
+            type: 'success',
+            text1: 'OTP resent successfully',
+            text2: 'Please check your phone for the new OTP',
+        });
+    } catch (error:any) {
+        const errorMessage = error?.error || error?.message || 'An error occurred while resending OTP';
+        Toast.show({
+            type: 'error',
+            text1: 'Resend OTP failed',
+            text2: errorMessage,
+        });
+    }
+    finally {
+        yield put(actions.setLoginFormIsResending(false));
+    }
+}
+
 export function* authSaga() {
     yield takeLatest(actions.initiateLogin, login);
     yield takeLatest(actions.submitRegisterForm, register);
     yield takeLatest(actions.verifyPhoneNumber, verifyPhoneNumber);
     yield takeLatest(actions.confirmLogin, confirmLogin);
+    yield takeLatest(actions.resendOtp, resendOtp);
 }

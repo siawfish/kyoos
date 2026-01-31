@@ -7,12 +7,13 @@ export interface AuthState {
   credentials: Credentials;
 }
 
-export type LoginFormFields = Exclude<keyof ContainerState['loginForm'], 'isLoading'>;
+export type LoginFormFields = Exclude<keyof ContainerState['loginForm'], 'isLoading' | 'isResending'>;
 export type RegisterFormFields = Exclude<keyof ContainerState['registerForm'], 'isLoading' | 'location'>;
 export interface LoginForm {
   phoneNumber: FormElement;
   otp: FormElement;
   isLoading: boolean;
+  isResending: boolean;
 }
 
 export interface RegisterForm {

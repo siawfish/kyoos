@@ -1,9 +1,10 @@
 import OtpField from '@/components/auth/Otp'
+import ResendOtp from '@/components/auth/ResendOtp'
 import Button from '@/components/ui/Button'
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
-import { selectLoginFormIsLoading, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId } from '@/redux/auth/selector'
+import { selectLoginFormIsLoading, selectLoginFormIsResending, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Link, Redirect } from 'expo-router'
@@ -19,7 +20,7 @@ const Otp = () => {
     const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
     const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
-
+    const isResending = useAppSelector(selectLoginFormIsResending);
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
     const accentColor = isDark ? colors.dark.white : colors.light.black;
@@ -64,6 +65,10 @@ const Otp = () => {
                         onTextChange={(text: string) => {
                             dispatch(actions.setLoginFormValue({key: 'otp', value: text}));
                         }}
+                    />
+                    <ResendOtp
+                        onResend={() => dispatch(actions.resendOtp())}
+                        isLoading={isResending}
                     />
                     <Button 
                         label='Verify'

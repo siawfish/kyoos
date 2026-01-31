@@ -84,3 +84,8 @@ export const selectRegisterFormLocationIsLoading = createSelector(
     [selectRegisterFormLocation],
     (location) => location?.isLoading,
 );
+
+export const selectLoginFormIsResending = createSelector(
+    [selectDomain],
+    (auth) => auth?.loginForm.isResending,
+);

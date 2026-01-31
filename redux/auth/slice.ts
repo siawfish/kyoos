@@ -23,6 +23,7 @@ export const initialState: AuthState = {
       error: '',
     },
     isLoading: false,
+    isResending: false,
   },
   referenceId: '',
   registerForm: {
@@ -113,6 +114,12 @@ const authSlice = createSlice({
     },
     verifyOtp: (state) => {
       state.loginForm.isLoading = true;
+    },
+    resendOtp: (state) => {
+      state.loginForm.isResending = true;
+    },
+    setLoginFormIsResending: (state, action: PayloadAction<boolean>) => {
+      state.loginForm.isResending = action.payload;
     },
     submitRegisterForm: (state) => {
       state.registerForm.isLoading = true;
