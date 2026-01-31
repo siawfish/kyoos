@@ -2,7 +2,7 @@
  * Gets the repositories of the game from Game
  */
 
-import {delay, put, select, takeLatest, call} from 'redux-saga/effects';
+import {put, select, takeLatest, call} from 'redux-saga/effects';
 import { actions } from './slice';
 import { selectCredentials, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId, selectRegisterForm } from './selector';
 import { KeyValue, User } from '@/redux/app/types';
@@ -16,9 +16,10 @@ import { setItemToStorage } from '@/services/asyncStorage';
 
 export function* register() {
     try {
-        yield delay(500);
         const registerForm: RegisterForm = yield select(selectRegisterForm);
+        const referenceId: string = yield select(selectReferenceId);
         const data = {
+            referenceId,
             name: registerForm.name.value,
             email: registerForm.email.value,
             avatar: registerForm.avatar.value,
@@ -59,7 +60,6 @@ export function* register() {
 }
 export function* login() {
     try {
-        yield delay(500);
         const otp: KeyValue<'otp'> = yield select(selectLoginFormOtp);
         const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
         const referenceId: string = yield select(selectReferenceId);
@@ -102,7 +102,6 @@ export function* login() {
 
 export function* verifyPhoneNumber() {
     try {
-        yield delay(500);
         const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
         const response: ApiResponse<VerifyPhoneNumberResponse> = yield call(request, {
             method: 'GET',
@@ -126,7 +125,6 @@ export function* verifyPhoneNumber() {
 
 export function* confirmLogin() {
     try {
-        yield delay(500);
         const credentials:Credentials = yield select(selectCredentials);
         if (!credentials.token || !credentials.user) {
             throw new Error('No credentials found');
@@ -148,7 +146,6 @@ export function* confirmLogin() {
 
 export function* resendOtp() {
     try {
-        yield delay(500);
         const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
         const referenceId: string = yield select(selectReferenceId);
         const response: ApiResponse<LoginResponse> = yield call(request, {
