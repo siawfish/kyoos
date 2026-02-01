@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
-import { Credentials, LoginResponse, RegisterForm, VerifyPhoneNumberResponse } from '@/redux/auth/types';
+import { Credentials, LoginResponse, RegisterForm, RegisterResponse, VerifyPhoneNumberResponse } from '@/redux/auth/types';
 import { setItemToStorage } from '@/services/asyncStorage';
 
 export function* register() {
@@ -35,7 +35,7 @@ export function* register() {
                 status: true
             },
         }
-        const response: ApiResponse<Credentials> = yield call(request, {
+        const response: ApiResponse<RegisterResponse> = yield call(request, {
             method: 'POST',
             url: `/api/users/auth/register`,
             data,
@@ -44,9 +44,10 @@ export function* register() {
             throw new Error(response.message || response.error || 'An error occurred while registering');
         }
         yield put(actions.setCredentials({
-            token: response.data.token,
+            token: response.data.accessToken,
             user: response.data.user as User
         }));
+        yield call(setItemToStorage, 'refreshToken', response.data.refreshToken);
         router.replace('/(auth)/success');
     } catch (error:any) {
         Toast.show({
@@ -75,10 +76,11 @@ export function* login() {
         if (response.error || !response.data) {
             throw new Error(response.message || response.error || 'An error occurred while verifying OTP');
         }
-        if (response.data.token && response.data.user) {
-            yield put(appActions.setIsAuthenticated(response.data.token));
+        if (response.data.accessToken && response.data.user) {
+            yield put(appActions.setIsAuthenticated(response.data.accessToken));
             yield put(appActions.setUser(response.data.user));
-            yield call(setItemToStorage, 'token', response.data.token);
+            yield call(setItemToStorage, 'token', response.data.accessToken);
+            yield call(setItemToStorage, 'refreshToken', response.data.refreshToken!);
             yield put(actions.resetAuthState());
             return;
         }

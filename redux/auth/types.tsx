@@ -45,6 +45,12 @@ export interface Credentials {
   token: string;
   user: User | null;
 }
+
+export interface RegisterResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
 export interface Location {
   lat: number;
   lng: number;
@@ -57,7 +63,8 @@ export interface VerifyPhoneNumberResponse {
 }
 
 export interface LoginResponse {
-  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
   user?: User;
   phoneNumber: string;
 }

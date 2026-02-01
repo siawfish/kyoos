@@ -5,19 +5,22 @@ import Toast from 'react-native-toast-message';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { removeItemFromStorage } from '@/services/asyncStorage';
+import { getItemFromStorage, removeItemFromStorage } from '@/services/asyncStorage';
 import { Asset, User, Theme, StoreName } from './types';
 import { Location } from '@/redux/auth/types';
 import { selectUserLocation } from './selector';
 
 export function* logout() {
     try {
+        const refreshToken: string | null = yield call(getItemFromStorage, 'refreshToken');
         yield call(request, {
-            method: 'GET',
+            method: 'POST',
             url: '/api/users/auth/signOut',
+            data: refreshToken ? { refreshToken } : undefined,
         });
         yield put(actions.resetAppState());
         yield call(removeItemFromStorage, 'token');
+        yield call(removeItemFromStorage, 'refreshToken');
         Toast.show({
             type: 'success',
             text1: 'Logout successful',
@@ -30,7 +33,7 @@ export function* logout() {
             text1: 'Logout failed',
             text2: errorMessage,
         });
-    } 
+    }
 }
 
 export function* getUser() {
