@@ -2,12 +2,15 @@
   "expo": {
     "name": "kyoos",
     "slug": "kyoos",
-    "version": "1.0.2",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kyoos",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -21,9 +24,9 @@
         "dark": "./assets/images/icon-dark.png",
         "light": "./assets/images/icon-light.png",
         "tinted": "./assets/images/icon-tinted.png"
-      },
-      "buildNumber": "1.0.2",
-      "versionCode": 3,
+      },   
+      "buildNumber": "1.0.6",
+      "versionCode": 7,
       "config": {
         "googleMapsApiKey": "EXPO_PUBLIC_GOOGLE_API_KEY"
       }
@@ -40,8 +43,8 @@
         "android.permission.CAMERA"
       ],
       "package": "com.divsandviews.kyoos",
-      "buildNumber": "1.0.2",
-      "versionCode": 3,
+      "buildNumber": "1.0.6",
+      "versionCode": 7,
       "config": {
         "googleMaps": {
           "apiKey": "EXPO_PUBLIC_GOOGLE_API_KEY"
