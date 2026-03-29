@@ -33,9 +33,6 @@ module.exports = {
       },
       buildNumber: "1.0.0",
       versionCode: 1,
-      config: {
-        googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
-      },
     },
     android: {
       adaptiveIcon: {
@@ -51,17 +48,16 @@ module.exports = {
       package: "com.divsandviews.kyoos",
       buildNumber: "1.0.0",
       versionCode: 1,
-      config: {
-        googleMaps: {
-          apiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
-        },
-      },
     },
     web: {
       output: "static",
       favicon: "./assets/images/icon.png",
     },
     plugins: [
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser",
       "expo-router",
       [
         "expo-splash-screen",
@@ -81,6 +77,13 @@ module.exports = {
       "expo-speech-recognition",
       "expo-video",
       "@react-native-community/datetimepicker",
+      [
+        "react-native-maps",
+        {
+          iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
+          androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
+        },
+      ],
       "react-native-vision-camera",
       "expo-notifications",
       "expo-location"
