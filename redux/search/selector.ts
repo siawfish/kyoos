@@ -105,6 +105,11 @@ export const selectDescriptionModalVisible = createSelector(
     (search) => search?.descriptionModalVisible || false,
 );
 
+export const selectAiSearchBookingWorker = createSelector(
+    [selectDomain],
+    (search) => search?.aiSearchBookingWorker ?? null,
+);
+
 // Agent conversation selectors
 export const selectAgentConversation = createSelector(
     [selectDomain],

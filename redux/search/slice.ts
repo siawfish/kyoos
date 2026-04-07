@@ -29,6 +29,7 @@ export const initialState: SearchState = {
   searchModalVisible: false,
   selectedArtisan: null,
   descriptionModalVisible: false,
+  aiSearchBookingWorker: null,
   // Agent conversation initial state
   agentConversationVisible: false,
   agentConversation: {
@@ -94,6 +95,9 @@ const searchSlice = createSlice({
     setDescriptionModalVisible: (state, action: PayloadAction<boolean>) => {
       state.descriptionModalVisible = action.payload;
     },
+    setAiSearchBookingWorker: (state, action: PayloadAction<Worker | null>) => {
+      state.aiSearchBookingWorker = action.payload;
+    },
     saveUserLocation: (state) => {
       state.isUpdatingLocation = true;
     },
@@ -125,13 +129,11 @@ const searchSlice = createSlice({
       state.agentConversation.isLoading = false;
       state.agentConversation.error = null;
       
-      // The unified AISearchModal handles all states (loading, question, error) internally
-      // Only close the modals when conversation is completed with results
       if (action.payload.status === ConversationStatus.COMPLETED && action.payload.results) {
-        // Close both search and description modals when conversation completes
         state.searchModalVisible = false;
         state.descriptionModalVisible = false;
         state.agentConversationVisible = false;
+        state.aiSearchBookingWorker = null;
       }
       
       // Update legacy state if we have results

@@ -107,7 +107,12 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
             {
                 clickable ? (
                     <Link href={`/(tabs)/(search)/(artisan)/(portfolio)/${portfolio.id}`} asChild>
-                        <Pressable style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
+                        <Pressable
+                            style={StyleSheet.flatten([
+                                styles.container,
+                                { backgroundColor: cardBg, borderColor },
+                            ])}
+                        >
                             {portfolioContent()}
                         </Pressable>
                     </Link>

@@ -1,16 +1,66 @@
 import api from './axios';
-import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig, isAxiosError } from 'axios';
+import { actions as appActions } from '@/redux/app/slice';
 import { ApiResponse } from './types';
 import { getItemFromStorage, setItemToStorage, removeItemFromStorage } from './asyncStorage';
 
 const baseURL = process.env.EXPO_PUBLIC_API_URL;
 
+function toApiErrorShape(err: unknown): { error?: string; message?: string } {
+  if (isAxiosError(err)) {
+    return {
+      error: err.response?.data?.error,
+      message: err.response?.data?.message ?? err.message,
+    };
+  }
+  if (err instanceof Error) {
+    return { message: err.message };
+  }
+  return { message: 'Request failed' };
+}
+
+function getAuthorizationHeader(config: InternalAxiosRequestConfig): string | undefined {
+  const headers = config.headers;
+  if (!headers) return undefined;
+  if (typeof (headers as { get?: (name: string) => unknown }).get === 'function') {
+    const h = headers as { get: (name: string) => unknown };
+    const v = h.get('Authorization') ?? h.get('authorization');
+    return typeof v === 'string' ? v : undefined;
+  }
+  const record = headers as Record<string, unknown>;
+  const v = record.Authorization ?? record.authorization;
+  return typeof v === 'string' ? v : undefined;
+}
+
+function requestHadBearer(config: InternalAxiosRequestConfig): boolean {
+  const auth = getAuthorizationHeader(config);
+  return typeof auth === 'string' && auth.startsWith('Bearer ');
+}
+
+async function dispatchSessionRefreshed(accessToken: string) {
+  try {
+    const { store } = await import('@/store');
+    store.dispatch(appActions.setIsAuthenticated(accessToken));
+  } catch {
+    // Store may not be initialized yet
+  }
+}
+
+async function dispatchSessionCleared() {
+  try {
+    const { store } = await import('@/store');
+    store.dispatch(appActions.resetAppState());
+  } catch {
+    // Store may not be initialized yet
+  }
+}
+
 // Refresh token queue management
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (token: string) => void;
   reject: (error: unknown) => void;
-}> = [];
+}[] = [];
 
 const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
@@ -43,16 +93,28 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const errorResponse = {
+      error: error?.response?.data?.error,
+      message: error?.response?.data?.message,
+    };
 
-    // Handle 401 errors with token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+
+    const shouldTryRefresh =
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      requestHadBearer(originalRequest);
+
+    if (shouldTryRefresh) {
       if (isRefreshing) {
-        // Queue request while refresh is in progress
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
+            if (!originalRequest.headers) {
+              originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
+            }
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return api(originalRequest);
           })
@@ -77,24 +139,26 @@ api.interceptors.response.use(
         await setItemToStorage('token', accessToken);
         await setItemToStorage('refreshToken', newRefreshToken);
 
+        await dispatchSessionRefreshed(accessToken);
+
         processQueue(null, accessToken);
+        if (!originalRequest.headers) {
+          originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
+        }
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        // Clear tokens on refresh failure
+        const rejection = toApiErrorShape(refreshError);
+        processQueue(rejection, null);
         await removeItemFromStorage('token');
         await removeItemFromStorage('refreshToken');
-        return Promise.reject(refreshError);
+        await dispatchSessionCleared();
+        return Promise.reject(rejection);
       } finally {
         isRefreshing = false;
       }
     }
 
-    const errorResponse = {
-      error: error?.response?.data?.error,
-      message: error?.response?.data?.message,
-    };
     return Promise.reject(errorResponse);
   }
 );

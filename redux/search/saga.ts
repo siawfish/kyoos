@@ -55,17 +55,17 @@ export function* resetState() {
  */
 function* handleAgentComplete(data: AgentResponse) {
     const selectedArtisan: string | null = yield select(selectSelectedArtisan);
-    
+
     if (selectedArtisan && data.results) {
-        // If there's a selected artisan, go to booking
         yield put(actions.setDescriptionModalVisible(false));
+        yield put(actions.setAiSearchBookingWorker(null));
         yield put(bookingActions.initializeBooking(selectedArtisan));
         yield put(actions.setSelectedArtisan(null));
-        router.push('/(tabs)/(search)/(booking)/booking');
+        router.replace('/(tabs)/(search)/(booking)/booking');
     } else {
-        // Otherwise go to results
-        router.push('/(tabs)/(search)/results');
+        router.replace('/(tabs)/(search)/results');
     }
+    yield put(actions.resetAgentConversation());
 }
 
 /**
@@ -160,6 +160,8 @@ export function* continueAgentConversation(action: PayloadAction<{
         // If conversation completed, handle navigation
         if (data.status === ConversationStatus.COMPLETED && data.results) {
             yield* handleAgentComplete(data);
+        } else if (data.status === ConversationStatus.IN_PROGRESS && data.message?.question) {
+            console.log('[Agent] Follow-up question after continue');
         }
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred';

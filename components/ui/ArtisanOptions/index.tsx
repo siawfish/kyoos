@@ -1,4 +1,3 @@
-import AISearchModal from "@/components/home/AISearchModal";
 import BackButton from "@/components/ui/BackButton";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
@@ -6,7 +5,7 @@ import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { actions as bookingActions } from "@/redux/booking/slice";
-import { selectDescriptionModalVisible, selectSearchReferenceId } from "@/redux/search/selector";
+import { selectSearchReferenceId } from "@/redux/search/selector";
 import { actions } from "@/redux/search/slice";
 import { Worker } from "@/redux/search/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -52,7 +51,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     
     const router = useRouter();
     const searchReferenceId = useAppSelector(selectSearchReferenceId);
-    const descriptionModalVisible = useAppSelector(selectDescriptionModalVisible);
     const dispatch = useAppDispatch();
     const snapPoints = useMemo(() => ['30%'], []);
     const withChildrenSnapPoints = useMemo(() => ['65%'], []);
@@ -67,7 +65,15 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     const handleBookNow = () => {
         // Check if searchReferenceId is empty - if so, show description modal
         if (searchReferenceId === '') {
-            dispatch(actions.setDescriptionModalVisible(true));
+            if (artisan) {
+                dispatch(actions.setSelectedArtisan(artisan.id));
+                dispatch(actions.setAiSearchBookingWorker(artisan));
+            }
+            onClose();
+            router.push({
+                pathname: '/(tabs)/(search)/ai-search',
+                params: { mode: 'booking' },
+            });
         } else {
             // If searchReferenceId exists, navigate directly to booking screen
             onClose();
@@ -186,14 +192,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     </BottomSheetView>
                 </BottomSheet>
             </View>
-
-            {/* Booking Description Modal - uses unified AISearchModal in booking mode */}
-            <AISearchModal 
-                visible={descriptionModalVisible}
-                onClose={() => dispatch(actions.setDescriptionModalVisible(false))}
-                mode="booking"
-                artisan={artisan}
-            />
         </Modal>
     );
 };

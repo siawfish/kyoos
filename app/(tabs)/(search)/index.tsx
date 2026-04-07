@@ -1,4 +1,3 @@
-import AISearchModal from '@/components/home/AISearchModal';
 import BookingPreviewCard from '@/components/home/BookingPreviewCard';
 import SearchInputTrigger from '@/components/home/SearchInputTrigger';
 import ArtisanCard from '@/components/search/ArtisanCard';
@@ -15,7 +14,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUserLocation } from '@/redux/app/selector';
 import { BookingStatuses } from '@/redux/app/types';
 import { selectBookings } from '@/redux/bookings/selector';
-import { selectIsInitializing, selectNearestWorkers, selectSearchModalVisible, selectSelectedArtisan, selectTotalNearbyWorkers } from '@/redux/search/selector';
+import { selectIsInitializing, selectNearestWorkers, selectSelectedArtisan, selectTotalNearbyWorkers } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
@@ -28,7 +27,6 @@ import type MapView from 'react-native-maps';
 import { Marker } from 'react-native-maps';
 
 export default function HomeScreen() {
-    const searchModalVisible = useAppSelector(selectSearchModalVisible);
     const selectedArtisan = useAppSelector(selectSelectedArtisan);
     const [showBookingCard, setShowBookingCard] = useState(false);
     const mapRef = useRef<MapView>(null);
@@ -291,7 +289,7 @@ export default function HomeScreen() {
                   }),
                 },
             ]}>
-                <SearchInputTrigger onPress={() => dispatch(actions.setSearchModalVisible(true))} />
+                <SearchInputTrigger onPress={() => router.push('/(tabs)/(search)/ai-search')} />
             </Animated.View>
 
             {/* Floating Stats/Info */}
@@ -305,12 +303,6 @@ export default function HomeScreen() {
                     </ThemedText>
                 </BlurView>
             </View>
-
-            {/* AI Search Modal - handles search input, questions, loading, and errors */}
-            <AISearchModal 
-              visible={searchModalVisible}
-              onClose={() => dispatch(actions.setSearchModalVisible(false))}
-            />
 
             {/* Artisan Options Bottom Sheet */}
             <ArtisanOptions

@@ -1,4 +1,3 @@
-import AISearchModal from "@/components/home/AISearchModal";
 import ArtisanCard from "@/components/search/ArtisanCard";
 import ArtisanOptions from "@/components/ui/ArtisanOptions";
 import BackButton from "@/components/ui/BackButton";
@@ -154,7 +153,6 @@ export default function Results() {
     const [showCards, setShowCards] = useState(true);
     const dispatch = useAppDispatch();
     const [selectedArtisan, setSelectedArtisan] = useState<string | null>(null);
-    const [searchModalVisible, setSearchModalVisible] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
     // Animation values
@@ -579,7 +577,7 @@ export default function Results() {
                 <Button
                     label="Modify Search"
                     icon={<Feather name="edit" size={20} color={colors.light.white} />}
-                    onPress={() => setSearchModalVisible(true)}
+                    onPress={() => router.push('/(tabs)/(search)/ai-search')}
                     style={styles.backButton}
                     darkBackgroundColor={colors.light.tint}
                     lightBackgroundColor={colors.light.black}
@@ -603,10 +601,6 @@ export default function Results() {
                     )
                 }
             </ArtisanOptions>
-            <AISearchModal 
-                visible={searchModalVisible}
-                onClose={() => setSearchModalVisible(false)}
-            />
             <ConfirmActionSheet
                 isOpen={showCancelConfirm}
                 isOpenChange={setShowCancelConfirm}

@@ -1,7 +1,7 @@
 import User from '@/components/portfolio/User';
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
-import InputField from '@/components/ui/TextInput';
+import SmartTextArea from '@/components/ui/SmartTextArea';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import Thumbnails from '@/components/ui/Thumbnails';
@@ -29,12 +29,9 @@ const Comment = () => {
     const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
 
-    const inputBackgroundColor = useThemeColor(
-      {
-        light: colors.light.white,
-        dark: colors.dark.black,
-      },
-      "background"
+    const borderColor = useThemeColor(
+        { light: colors.light.grey, dark: colors.dark.grey },
+        'grey'
     );
     const backgroundColor = useThemeColor({
         light: colors.light.background,
@@ -140,14 +137,21 @@ const Comment = () => {
                     </ThemedText>
                 </View>
 
-                <InputField
+                <SmartTextArea
                     placeholder="Write your comment here..."
-                    multiline
                     value={commentForm.comment}
                     onChangeText={(text) => dispatch(actions.setCommentFormValue(text))}
                     autoFocus
-                    style={[styles.input, { backgroundColor: inputBackgroundColor }]}
                     editable={!isLoading}
+                    density="searchSimple"
+                    minHeight={heightPixel(120)}
+                    maxHeight={heightPixel(220)}
+                    borderColor={borderColor}
+                    tintColor={tintColor}
+                    textColor={textColor}
+                    placeholderTextColor={`${labelColor}80`}
+                    selectionColor={tintColor}
+                    containerStyle={styles.smartTextArea}
                 />
             </ScrollView>
         </ThemedSafeAreaView>
@@ -250,8 +254,7 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(14),
     fontFamily: 'Bold',
   },
-  input: {
-    minHeight: heightPixel(120),
-    textAlignVertical: 'top',
-  }
+  smartTextArea: {
+    marginHorizontal: widthPixel(20),
+  },
 })

@@ -24,6 +24,8 @@ export interface SearchState {
     searchModalVisible: boolean;
     selectedArtisan: string | null;
     descriptionModalVisible: boolean;
+    /** Full worker for booking-mode AI search screen (set before navigate; cleared on unmount/success) */
+    aiSearchBookingWorker: Worker | null;
     // Agent conversation state
     agentConversationVisible: boolean;
     agentConversation: {

@@ -295,7 +295,7 @@ export default function Searching({
         {/* <View style={styles.header}>
           <View style={styles.headerLeft}>
             <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-              AI SEARCH
+              SMART SEARCH
             </ThemedText>
             <View style={[styles.aiBadge, { backgroundColor: tintColor + '15', borderColor: tintColor + '30' }]}>
               <Feather name="cpu" size={10} color={tintColor} />
@@ -394,7 +394,6 @@ export default function Searching({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     // paddingHorizontal: widthPixel(24),
   },

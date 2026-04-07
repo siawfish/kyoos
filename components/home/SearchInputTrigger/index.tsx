@@ -43,7 +43,7 @@ const SearchInputTrigger = ({
         dark: colors.dark.tint,
     }, 'tint');
 
-    // Subtle pulse animation for AI indicator
+    // Subtle pulse on the accent icon
     useEffect(() => {
         const pulse = Animated.loop(
             Animated.sequence([
@@ -85,11 +85,10 @@ const SearchInputTrigger = ({
                             </ThemedText>
                         </View>
                     </View>
-                    <View style={[styles.aiTag, { borderColor: tintColor }]}>
+                    <View style={[styles.accentTag, { borderColor: tintColor }]}>
                         <Animated.View style={{ opacity: pulseAnim }}>
                             <Feather name="zap" size={12} color={tintColor} />
                         </Animated.View>
-                        <ThemedText style={[styles.aiText, { color: tintColor }]}>AI</ThemedText>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -146,18 +145,12 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(14),
         fontFamily: 'Medium',
     },
-    aiTag: {
-        flexDirection: 'row',
+    accentTag: {
         alignItems: 'center',
-        gap: widthPixel(4),
+        justifyContent: 'center',
         paddingHorizontal: widthPixel(10),
         paddingVertical: heightPixel(6),
         borderWidth: 1,
-    },
-    aiText: {
-        fontSize: fontPixel(11),
-        fontFamily: 'Bold',
-        letterSpacing: 1,
     },
 });
 
