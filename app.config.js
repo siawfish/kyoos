@@ -24,6 +24,7 @@ module.exports = {
         NSMicrophoneUsageDescription: "Allow $(PRODUCT_NAME) to use the microphone.",
         NSCameraUsageDescription: "Allow $(PRODUCT_NAME) to access your camera",
         ITSAppUsesNonExemptEncryption: false,
+        LSApplicationQueriesSchemes: ["tel"],
       },
       bundleIdentifier: "com.divsandviews.kyoos",
       icon: {

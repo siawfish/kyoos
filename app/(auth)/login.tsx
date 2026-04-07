@@ -68,7 +68,7 @@ export default function Login() {
               Enter your{'\n'}phone number
             </ThemedText>
             <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
-              You will receive a 6 digit code to verify your account
+              You will receive a 4-digit code to verify your account
             </ThemedText>
           </View>
           <PhoneInput 

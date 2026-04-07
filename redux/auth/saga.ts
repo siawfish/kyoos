@@ -4,7 +4,7 @@
 
 import {put, select, takeLatest, call} from 'redux-saga/effects';
 import { actions } from './slice';
-import { selectCredentials, selectLoginFormOtp, selectLoginFormPhoneNumber, selectReferenceId, selectRegisterForm } from './selector';
+import { selectCredentials, selectLoginFormOtp, selectLoginFormPhoneNumber, selectOtpPrefix, selectReferenceId, selectRegisterForm } from './selector';
 import { KeyValue, User } from '@/redux/app/types';
 import { actions as appActions } from '@/redux/app/slice';
 import { router } from 'expo-router';
@@ -12,6 +12,8 @@ import Toast from 'react-native-toast-message';
 import { ApiResponse } from '@/services/types';
 import { request } from '@/services/api';
 import { Credentials, LoginResponse, RegisterForm, RegisterResponse, VerifyPhoneNumberResponse } from '@/redux/auth/types';
+
+type ResendOtpResponse = Pick<VerifyPhoneNumberResponse, 'referenceId' | 'phoneNumber' | 'prefix'>;
 import { setItemToStorage } from '@/services/asyncStorage';
 
 export function* register() {
@@ -64,6 +66,7 @@ export function* login() {
         const otp: KeyValue<'otp'> = yield select(selectLoginFormOtp);
         const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
         const referenceId: string = yield select(selectReferenceId);
+        const prefix: string = yield select(selectOtpPrefix);
         const response: ApiResponse<LoginResponse> = yield call(request, {
             method: 'POST',
             url: `/api/users/auth/verifyOTP`,
@@ -71,6 +74,7 @@ export function* login() {
                 phoneNumber: phoneNumber.value,
                 otp: otp.value,
                 referenceId: referenceId,
+                prefix: prefix,
             },
         });
         if (response.error || !response.data) {
@@ -112,7 +116,12 @@ export function* verifyPhoneNumber() {
         if (response.error || !response.data) {
             throw new Error(response.message || response.error || 'An error occurred while verifying phone number');
         }
-        yield put(actions.verifyPhoneNumberSuccess(response.data.referenceId));
+        yield put(
+            actions.verifyPhoneNumberSuccess({
+                referenceId: response.data.referenceId,
+                prefix: response.data.prefix,
+            })
+        );
         router.replace('/(auth)/otp');
     } catch (error:any) {
         const errorMessage = error?.error || error?.message || 'An error occurred while verifying phone number';
@@ -150,7 +159,7 @@ export function* resendOtp() {
     try {
         const phoneNumber: KeyValue<'phoneNumber'> = yield select(selectLoginFormPhoneNumber);
         const referenceId: string = yield select(selectReferenceId);
-        const response: ApiResponse<LoginResponse> = yield call(request, {
+        const response: ApiResponse<ResendOtpResponse> = yield call(request, {
             method: 'POST',
             url: `/api/users/auth/resendOTP`,
             data: {
@@ -161,6 +170,12 @@ export function* resendOtp() {
         if (response.error || !response.data) {
             throw new Error(response.message || response.error || 'An error occurred while resending OTP');
         }
+        yield put(
+            actions.verifyPhoneNumberSuccess({
+                referenceId: response.data.referenceId,
+                prefix: response.data.prefix,
+            })
+        );
         Toast.show({
             type: 'success',
             text1: 'OTP resent successfully',
