@@ -49,6 +49,7 @@ module.exports = {
       package: "com.divsandviews.kyoos",
       buildNumber: "1.0.0",
       versionCode: 1,
+      googleServicesFile: "./google-services.json",
     },
     web: {
       output: "static",
