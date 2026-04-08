@@ -70,7 +70,10 @@ const appSlice = createSlice({
     },
     registerPushToken: (state, action: PayloadAction<string>) => {
       if (state.user) {
-        state.user.settings.notifications.pushToken = [...state.user.settings.notifications.pushToken, action.payload];
+        const { pushToken } = state.user.settings.notifications;
+        if (!pushToken.includes(action.payload)) {
+          state.user.settings.notifications.pushToken = [...pushToken, action.payload];
+        }
       }
     },
     updateNotificationsCompleted: (state) => {
