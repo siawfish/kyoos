@@ -1,6 +1,14 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Conversation, Message, MessageForm, MessagingState, MessageStatus, SendMessagePayload, Asset } from './types';
 
+function sortConversationsByLatest(conversations: Conversation[]) {
+  conversations.sort((a, b) => {
+    const at = a.lastMessageAt || a.createdAt;
+    const bt = b.lastMessageAt || b.createdAt;
+    return bt.localeCompare(at);
+  });
+}
+
 const initialState: MessagingState = {
   conversations: [],
   currentConversationMessages: [],
@@ -86,6 +94,7 @@ const messagingSlice = createSlice({
       if (conversation) {
         conversation.lastMessage = message.content || 'Media';
         conversation.lastMessageAt = optimisticMessage.sentAt;
+        sortConversationsByLatest(state.conversations);
       }
       
       // Clear form
@@ -240,6 +249,7 @@ const messagingSlice = createSlice({
         if (isFromOtherUser && !isViewingConversation) {
           conversation.unreadCount = (conversation.unreadCount || 0) + 1;
         }
+        sortConversationsByLatest(state.conversations);
       }
     },
     
