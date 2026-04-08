@@ -7,28 +7,19 @@ import { StyleSheet, View } from 'react-native';
 import { selectBooking, selectIsUpdatingBooking } from '@/redux/bookings/selector';
 import { useAppSelector } from '@/store/hooks';
 import { BookingStatuses } from '@/redux/app/types';
-import { useThemeColor } from '@/hooks/use-theme-color';
-
-
 interface ActionsProps {
   readonly onCancel?: () => void;
-  readonly onComplete?: () => void;
   readonly onReport?: () => void;
   readonly onDelete?: () => void;
 }
 
 const Actions = ({
     onCancel,
-    onComplete,
     onReport,
     onDelete,
 }:ActionsProps) => {
   const booking = useAppSelector(selectBooking);
   const isUpdatingBooking = useAppSelector(selectIsUpdatingBooking);
-  const iconColor = useThemeColor({
-    light: colors.light.white,
-    dark: colors.dark.black
-  }, 'black');
 
   const action = () => {
     if (booking?.status === BookingStatuses.CANCELLED || booking?.status === BookingStatuses.DECLINED) {
@@ -38,19 +29,12 @@ const Actions = ({
     if (booking?.status === BookingStatuses.ONGOING) {
       return [
         {
-          label: '',
+          label: 'CANCEL BOOKING',
           icon: <Ionicons name="close" size={fontPixel(16)} color={colors.light.white} />,
-          style: styles.smallBtn,
+          style: styles.cancelBtn,
           labelStyle: styles.cancelLabel,
           onPress: onCancel,
         },
-        {
-          label: 'COMPLETE BOOKING',
-          icon: <Ionicons name="checkmark" size={fontPixel(16)} color={iconColor} />,
-          style: styles.bookingBtn,
-          labelStyle: styles.bookingLabel,
-          onPress: onComplete,
-        }
       ]
     }
 
@@ -112,25 +96,8 @@ const styles = StyleSheet.create({
       paddingHorizontal: widthPixel(16),
       flex: 1,
     },
-    smallBtn: {
-      width: widthPixel(80),
-      backgroundColor: colors.light.danger,
-      borderRadius: 0,
-      marginHorizontal: 0,
-    },
     cancelLabel: {
       color: colors.light.white,
-      fontSize: fontPixel(12),
-      fontFamily: 'SemiBold',
-      letterSpacing: 1.5,
-    },
-    bookingBtn: {
-      marginHorizontal: 0,
-      flex: 1,
-      borderRadius: 0,
-    },
-    bookingLabel: {
-      // color: colors.light.white,
       fontSize: fontPixel(12),
       fontFamily: 'SemiBold',
       letterSpacing: 1.5,

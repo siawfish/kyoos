@@ -66,9 +66,6 @@ const bookingsSlice = createSlice({
     cancelBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },
-    completeBooking: (state, action: PayloadAction<string>) => {
-      state.isUpdatingBooking = true;
-    },
     reportBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },

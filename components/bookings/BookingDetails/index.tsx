@@ -3,6 +3,7 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/booking/types'
+import { BookingStatuses } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
@@ -27,6 +28,11 @@ const BookingDetails = ({
     const borderColor = isDark ? colors.dark.white : colors.light.black;
 
     if (!booking) return null;
+
+    const isCompleted = booking.status === BookingStatuses.COMPLETED;
+    const hasFinal = isCompleted && booking.finalPrice != null;
+    const priceAmount = hasFinal ? booking.finalPrice : booking.estimatedPrice;
+    const priceLabel = hasFinal ? 'FINAL' : 'ESTIMATED';
 
     return (
         <ScrollView 
@@ -58,9 +64,9 @@ const BookingDetails = ({
             <View style={styles.statusRow}>
                 <BookingStatus booking={booking} />
                 <View>
-                    <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
+                    <Text style={[styles.feeLabel, { color: labelColor }]}>{priceLabel}</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>
-                        GHS {numeral(booking?.estimatedPrice).format('0,0.00') || '0.00'}
+                        GHS {numeral(priceAmount ?? 0).format('0,0.00')}
                     </Text>
                   </View>
                 </View>

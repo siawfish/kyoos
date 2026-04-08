@@ -209,34 +209,6 @@ function* deleteBooking(action: PayloadAction<string>) {
   }
 }
 
-function* completeBooking(action: PayloadAction<string>) {
-  try {
-    const response: ApiResponse<Booking> = yield call(request, {
-      method: 'POST',
-      url: `/api/users/bookings/${action.payload}/complete`,
-    })
-    if (response.error || !response.data) {
-      throw new Error(response.message || response.error || 'An error occurred while completing booking');
-    }
-    Toast.show({
-      type: 'success',
-      text1: 'Success',
-      text2: 'Booking has been marked as completed successfully',
-    });
-    yield put(actions.fetchBookings());
-    yield put(actions.fetchBooking(action.payload));
-  } catch (error:unknown) {
-    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while completing booking';
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: errorMessage,
-    });
-  } finally {
-    yield put(actions.setIsUpdatingBooking(false));
-  }
-}
-
 function* reportBooking(action: PayloadAction<string>) {
   try {
     const response: ApiResponse<Booking> = yield call(request, {
@@ -273,7 +245,6 @@ export function* bookingsSaga() {
   yield takeLatest(actions.cancelBooking, cancelBooking);
   yield takeLatest(actions.deleteBooking, deleteBooking);
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
-  yield takeLatest(actions.completeBooking, completeBooking);
   yield takeLatest(actions.reportBooking, reportBooking);
   yield takeLatest(actions.rebookBooking, rebookBooking);
 }

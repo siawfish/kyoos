@@ -88,6 +88,7 @@ module.exports = {
       ],
       "react-native-vision-camera",
       "expo-notifications",
+      "expo-task-manager",
       "expo-location"
     ],
     experiments: {

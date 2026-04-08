@@ -1,3 +1,4 @@
+import { useInAppNotificationActions } from "@/hooks/useInAppNotificationActions";
 import { selectHasSeenOnboarding, selectIsAuthenticated } from "@/redux/app/selector";
 import { useAppSelector } from "@/store/hooks";
 import { Stack } from "expo-router";
@@ -5,6 +6,7 @@ import { Stack } from "expo-router";
 export default function Main() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const hasSeenOnboarding = useAppSelector(selectHasSeenOnboarding);
+  useInAppNotificationActions();
   return (
     <Stack>
         <Stack.Protected guard={isAuthenticated}>

@@ -39,7 +39,6 @@ const BookingCard = ({
     const [showReschedule, setShowReschedule] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
     const [showRebookConfirm, setShowRebookConfirm] = useState(false);
     const [showReportConfirm, setShowReportConfirm] = useState(false);
     const { isPassed, statusColor } = useBookingStatus(booking);
@@ -81,15 +80,6 @@ const BookingCard = ({
     const handleConfirmDelete = () => {
         setShowDeleteConfirm(false);
         dispatch(actions.deleteBooking(booking.id));
-    };
-
-    const handleComplete = () => {
-        setShowCompleteConfirm(true);
-    };
-
-    const handleConfirmComplete = () => {
-        setShowCompleteConfirm(false);
-        dispatch(actions.completeBooking(booking.id));
     };
 
     const handleRebook = () => {
@@ -141,7 +131,6 @@ const BookingCard = ({
         if (isOngoing) {
             return [
                 { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: handleChatWorker },
-                { label: 'Complete Booking', icon: OptionIcons.COMPLETE, onPress: handleComplete, isSuccess: true },
                 { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: handleCancel, isDanger: true },
             ];
         }
@@ -260,18 +249,6 @@ const BookingCard = ({
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
                 description="Are you sure you want to delete this booking? This action cannot be reversed."
                 confirmText="Yes, Delete"
-                cancelText="Cancel"
-            />
-        )}
-        {showCompleteConfirm && (
-            <ConfirmActionSheet 
-                isOpen={showCompleteConfirm} 
-                isOpenChange={setShowCompleteConfirm} 
-                onConfirm={handleConfirmComplete} 
-                title="Complete Booking?" 
-                icon={<Image source={require('@/assets/images/success.png')} style={styles.dangerIcon} />}
-                description="Can you confirm that the booking has been completed?"
-                confirmText="Yes, Complete Booking"
                 cancelText="Cancel"
             />
         )}

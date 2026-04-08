@@ -64,6 +64,9 @@ export interface Booking {
     date: string;
     startTime: string;
     estimatedEndTime?: string;
+    actualStartTime?: string;
+    actualEndTime?: string;
+    finalPrice?: number;
     media?: Media[];
     serviceType?: ServiceLocationType;
 }

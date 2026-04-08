@@ -29,7 +29,6 @@ const Details = () => {
   const [showReschedule, setShowReschedule] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [showRebookConfirm, setShowRebookConfirm] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
 
@@ -104,16 +103,6 @@ const Details = () => {
     if(!booking) return;
     setShowDeleteConfirm(false);
     dispatch(actions.deleteBooking(booking.id));
-  };
-
-  const handleComplete = () => {
-    setShowCompleteConfirm(true);
-  };
-
-  const handleConfirmComplete = () => {
-    if(!booking) return;
-    setShowCompleteConfirm(false);
-    dispatch(actions.completeBooking(booking.id));
   };
 
   const handleRebook = () => {
@@ -195,7 +184,6 @@ const Details = () => {
       ]}>
         <Actions 
           onCancel={handleCancel} 
-          onComplete={handleComplete} 
           onReport={handleReport} 
           onDelete={handleDelete} 
         />
@@ -233,18 +221,6 @@ const Details = () => {
                 icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
                 description="Are you sure you want to delete this booking? This action cannot be reversed."
                 confirmText="Yes, Delete"
-                cancelText="Cancel"
-            />
-        )}
-        {showCompleteConfirm && (
-            <ConfirmActionSheet 
-                isOpen={showCompleteConfirm} 
-                isOpenChange={setShowCompleteConfirm} 
-                onConfirm={handleConfirmComplete} 
-                title="Complete Booking?" 
-                icon={<Image source={require('@/assets/images/success.png')} style={styles.dangerIcon} />}
-                description="Can you confirm that the booking has been completed?"
-                confirmText="Yes, Complete Booking"
                 cancelText="Cancel"
             />
         )}

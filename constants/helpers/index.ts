@@ -16,11 +16,12 @@ export const formatRelativeDate = (date: string) => {
 
 export const isWithinTheTimeRange = (startDateTime: string, endDateTime: string) => {
   if (!startDateTime || !endDateTime) return false;
-  if(isNaN(new Date(startDateTime).getTime()) || isNaN(new Date(endDateTime).getTime())) return false;
-  if (isBefore(new Date(startDateTime), new Date(endDateTime))) return false;
   const start = new Date(startDateTime);
   const end = new Date(endDateTime);
-  return isWithinInterval(new Date(), { start: start, end: end });
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+  // Require a valid forward interval; an inverted check rejects every normal booking window.
+  if (!isBefore(start, end)) return false;
+  return isWithinInterval(new Date(), { start, end });
 }
 
 export const formatDate = (date: Date) => {
