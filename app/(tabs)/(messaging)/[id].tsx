@@ -68,6 +68,14 @@ export default function ConversationScreen() {
 
   const { canChat } = useBookingStatus(conversation?.booking);
 
+  useEffect(() => {
+    if (!id || typeof id !== 'string') return;
+    const inList = conversations.some((c) => c.id === id);
+    if (!inList) {
+      dispatch(actions.fetchConversations());
+    }
+  }, [id, conversations, dispatch]);
+
   // Fetch messages for this conversation
   useEffect(() => {
     if (id) {

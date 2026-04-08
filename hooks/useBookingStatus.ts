@@ -56,6 +56,8 @@ export const useBookingStatus = (booking: Booking | undefined) => {
         statusColor: colors.light.secondary,
         isPassed: false,
         withinTheTimeRange: false,
+        canChat: true,
+        isDue: false,
     }
     const isDark = colorScheme === 'dark';
     const statusColor = getStatusColor(booking.status, isDark);
