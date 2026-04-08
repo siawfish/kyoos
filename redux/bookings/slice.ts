@@ -1,6 +1,6 @@
 import { Booking } from '@/redux/booking/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { startOfWeek } from 'date-fns';
+import { isSameDay, startOfWeek } from 'date-fns';
 import { REHYDRATE } from 'redux-persist';
 import { BookingsState } from './types';
 
@@ -85,14 +85,22 @@ const bookingsSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
       if (action.payload?.bookings) {
-        return {
+        const merged = {
           ...state,
           ...action.payload.bookings,
-          // Reset loading states on rehydrate to prevent stuck loading
           isLoading: false,
           isUpdatingBooking: false,
           isRefreshing: false,
         };
+        const now = new Date();
+        if (!isSameDay(new Date(merged.selectedDate), now)) {
+          return {
+            ...merged,
+            selectedDate: now.toISOString(),
+            currentWeekStart: startOfWeek(now, { weekStartsOn: 1 }).toISOString(),
+          };
+        }
+        return merged;
       }
       return state;
     });

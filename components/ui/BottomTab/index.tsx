@@ -47,6 +47,14 @@ const MenuItems = [
   }
 ];
 
+/** Stack root screen per tab — used to pop nested stacks when re-tapping the active tab. */
+const TAB_STACK_ROOT: Partial<Record<string, string>> = {
+  '(search)': 'index',
+  '(bookings)': 'bookings',
+  '(messaging)': 'messaging',
+  '(settings)': 'settings',
+};
+
 interface TabItemProps {
   focused: boolean;
   icon: string;
@@ -239,8 +247,21 @@ export default function BottomTab({ state, descriptors, navigation }: BottomTabB
               canPreventDefault: true,
             });
 
-            if (!isFocused && !event.defaultPrevented) {
+            if (event.defaultPrevented) {
+              return;
+            }
+
+            if (!isFocused) {
               navigation.navigate(route.name, route.params);
+              return;
+            }
+
+            const rootScreen = TAB_STACK_ROOT[route.name];
+            if (rootScreen) {
+              navigation.navigate(route.name, {
+                screen: rootScreen,
+                params: {},
+              });
             }
           };
 
