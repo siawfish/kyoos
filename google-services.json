@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "645383859263",
+    "project_id": "kyoos-aa8ff",
+    "storage_bucket": "kyoos-aa8ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645383859263:android:f0f7efb4a8dc380a491c8a",
+        "android_client_info": {
+          "package_name": "com.divsandviews.kyoos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjZk_cGKt1H4xwpczvaxwbcvSe4jMO7_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
