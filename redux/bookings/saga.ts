@@ -10,6 +10,22 @@ import { Booking } from '../booking/types';
 import { selectBookings, selectCurrentWeekStart } from './selector';
 import { actions } from './slice';
 
+function* fetchHomeActiveBooking() {
+  try {
+    const response: ApiResponse<Booking | null> = yield call(request, {
+      method: 'GET',
+      url: '/api/users/bookings/active',
+    });
+    if (response.error) {
+      yield put(actions.setHomeActiveBooking(null));
+      return;
+    }
+    yield put(actions.setHomeActiveBooking(response.data ?? null));
+  } catch {
+    yield put(actions.setHomeActiveBooking(null));
+  }
+}
+
 function* fetchBookings() {
   try {
     const currentWeekStart: string = yield select(selectCurrentWeekStart);
@@ -238,6 +254,7 @@ function* reportBooking(action: PayloadAction<string>) {
 }
 
 export function* bookingsSaga() {
+  yield takeLatest(actions.fetchHomeActiveBooking.type, fetchHomeActiveBooking);
   yield takeLatest(actions.fetchBookings, fetchBookings);
   yield takeLatest(actions.refreshBookings, fetchBookings);
   yield takeLatest(actions.fetchBooking, fetchBooking);

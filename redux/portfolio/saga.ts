@@ -2,10 +2,38 @@ import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import Toast from 'react-native-toast-message';
-import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectCommentForm, selectSelectedWorkerId } from './selector';
 import { actions } from './slice';
 import { Comment, CommentForm, Portfolio, PortfoliosResponse } from './types';
+
+export function* fetchHomePopularPortfolios(action: PayloadAction<{ page?: number } | undefined>) {
+  try {
+    const page = action.payload?.page ?? 1;
+    const response: ApiResponse<PortfoliosResponse> = yield call(request, {
+      method: 'GET',
+      url: '/api/users/portfolio/popular',
+      params: { page, limit: 10 },
+    });
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while fetching popular portfolios');
+    }
+    yield put(
+      actions.setHomePopular({
+        portfolios: response.data.portfolios,
+        pagination: response.data.pagination,
+      }),
+    );
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch popular portfolios';
+    yield put(actions.setHomePopularError());
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  }
+}
 
 export function* fetchPortfolios(action: PayloadAction<string>) {
   try {
@@ -182,9 +210,10 @@ export function* updateComment(action: PayloadAction<{
 }
 
 export function* portfolioSaga() {
+  yield takeLatest(actions.fetchHomePopular.type, fetchHomePopularPortfolios);
   yield takeLatest(actions.fetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.silentlyFetchPortfolios.type, fetchPortfolios);
-  yield takeLatest(actions.fetchComments, fetchComments);
+  yield takeLatest(actions.fetchComments.type, fetchComments);
   yield takeLatest(actions.submitComment, submitComment);
   yield takeLatest(actions.updateComment, updateComment);
   yield takeLatest(actions.likePortfolio, likePortfolio);

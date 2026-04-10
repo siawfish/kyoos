@@ -14,6 +14,17 @@ export const initialState: PortfolioState = {
     hasNext: false,
     hasPrev: false,
   },
+  homePopularPortfolios: [],
+  homePopularPagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false,
+  },
+  isLoadingHomePopular: false,
+  isAppendingHomePopular: false,
   comments: [],
   commentForm: {
     comment: '',
@@ -43,6 +54,28 @@ const portfolioSlice = createSlice({
     silentlyFetchPortfolios: (state, action: PayloadAction<string>) => {},
     setSelectedWorkerId: (state, action: PayloadAction<string>) => {
       state.selectedWorkerId = action.payload;
+    },
+    fetchHomePopular: (state, action: PayloadAction<{ page?: number } | undefined>) => {
+      const page = action.payload?.page ?? 1;
+      if (page <= 1) {
+        state.isLoadingHomePopular = true;
+      } else {
+        state.isAppendingHomePopular = true;
+      }
+    },
+    setHomePopular: (state, action: PayloadAction<{ portfolios: Portfolio[]; pagination: Pagination }>) => {
+      const { page } = action.payload.pagination;
+      state.homePopularPortfolios =
+        page <= 1
+          ? action.payload.portfolios
+          : [...state.homePopularPortfolios, ...action.payload.portfolios];
+      state.homePopularPagination = action.payload.pagination;
+      state.isLoadingHomePopular = false;
+      state.isAppendingHomePopular = false;
+    },
+    setHomePopularError: (state) => {
+      state.isLoadingHomePopular = false;
+      state.isAppendingHomePopular = false;
     },
     setPortfolios: (state, action: PayloadAction<{ portfolios: Portfolio[], pagination: Pagination }>) => {
       const pagination = action.payload.pagination;
@@ -95,7 +128,7 @@ const portfolioSlice = createSlice({
     setCommentFormValue: (state, action: PayloadAction<string>) => {
       state.commentForm.comment = action.payload;
     },
-    resetState: (state) => {
+    resetState: () => {
       return {
         ...initialState,
       };

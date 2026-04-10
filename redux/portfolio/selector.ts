@@ -53,3 +53,23 @@ export const selectSelectedWorkerId = createSelector(
   [selectDomain],
   (portfolio) => portfolio.selectedWorkerId
 );
+
+export const selectHomePopularPortfolios = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.homePopularPortfolios ?? initialState.homePopularPortfolios,
+);
+
+export const selectHomePopularPagination = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.homePopularPagination ?? initialState.homePopularPagination,
+);
+
+export const selectIsLoadingHomePopular = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.isLoadingHomePopular ?? false,
+);
+
+export const selectIsAppendingHomePopular = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.isAppendingHomePopular ?? false,
+);

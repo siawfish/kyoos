@@ -91,7 +91,7 @@ class SocketService {
             this.isConnecting = false;
             return this.socket;
         } catch (error) {
-            console.error('Failed to connect socket:', error);
+            console.warn('Failed to connect socket:', error);
             this.isConnecting = false;
             this.socket = null;
             return null;

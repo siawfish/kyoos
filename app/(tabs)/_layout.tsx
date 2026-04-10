@@ -15,15 +15,6 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { useMessaging } from '@/hooks/useMessaging';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 interface CustomTabBarProps extends BottomTabBarProps {
   showTabBar: boolean;
 }
@@ -36,11 +27,7 @@ const CustomTabBar = ({ showTabBar, ...props }: CustomTabBarProps) => {
 };
 
 const handleRegistrationError = (errorMessage: string) => {
-  Toast.show({
-    type: 'error',
-    text1: 'Error getting push token',
-    text2: errorMessage,
-  });
+  console.warn(errorMessage);
 };
 
 export default function Layout() {

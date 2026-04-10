@@ -7,6 +7,7 @@ import { BookingsState } from './types';
 export const initialState: BookingsState = {
   bookings: [],
   booking: null,
+  homeActiveBooking: null,
   isLoading: false,
   selectedDate: new Date().toISOString(),
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
@@ -48,6 +49,10 @@ const bookingsSlice = createSlice({
       state.isLoading = false;
       state.isRefreshing = false;
     },
+    fetchHomeActiveBooking: () => {},
+    setHomeActiveBooking: (state, action: PayloadAction<Booking | null>) => {
+      state.homeActiveBooking = action.payload;
+    },
     rescheduleBooking: (state, action: PayloadAction<string>) => {},
     fetchBooking: (state, action: PayloadAction<string>) => {
       state.isLoading = true;
@@ -77,6 +82,7 @@ const bookingsSlice = createSlice({
     },
     resetBookings: (state) => {
       state.bookings = [];
+      state.homeActiveBooking = null;
     },
   },
   extraReducers: (builder) => {

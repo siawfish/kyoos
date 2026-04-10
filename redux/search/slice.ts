@@ -61,6 +61,13 @@ const searchSlice = createSlice({
     onInitializeCompleted: (state) => {
       state.isInitializing = false;
     },
+    /** Like resetState but keeps isInitializing true — used by onInitialize saga after workers are cleared */
+    resetForInitialize: () => {
+      return {
+        ...initialState,
+        isInitializing: true,
+      };
+    },
     setNearestWorkers: (state, action: PayloadAction<{workers: Worker[], total: number}>) => {
       state.nearestWorkers = action.payload.workers;
       state.totalNearbyWorkers = action.payload.total;

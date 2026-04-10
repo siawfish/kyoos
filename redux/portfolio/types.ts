@@ -56,7 +56,12 @@ export interface PortfolioState {
   isLikingPortfolio: boolean;
   isLoading: boolean;
   error: string | null;
-  pagination: Pagination; 
+  pagination: Pagination;
+  /** Home screen explore feed (popular portfolios) — separate from artisan profile lists */
+  homePopularPortfolios: Portfolio[];
+  homePopularPagination: Pagination;
+  isLoadingHomePopular: boolean;
+  isAppendingHomePopular: boolean;
 }
 
 export interface CommentForm {

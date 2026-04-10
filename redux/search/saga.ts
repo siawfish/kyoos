@@ -16,7 +16,7 @@ import { selectUserLocation } from '../app/selector';
 export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>) {
     try {
         yield put(bookingActions.resetState());
-        yield put(actions.resetState());
+        yield put(actions.resetForInitialize());
         const { data, error, message } : ApiResponse<InitializeResponse> = yield call(request, {
             method: 'GET',
             url: '/api/users/search',

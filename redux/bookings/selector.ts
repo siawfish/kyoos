@@ -1,9 +1,15 @@
 import { RootState } from '@/store';
 import { createSelector } from '@reduxjs/toolkit';
 import { format } from 'date-fns';
+import { Booking } from '../booking/types';
 import { BookingsState } from './types';
 
 const selectBookingsDomain = (state: RootState) => state.bookings as BookingsState;
+
+export const selectHomeActiveBooking = createSelector(
+  [selectBookingsDomain],
+  (bookingsState): Booking | null => bookingsState.homeActiveBooking ?? null,
+);
 
 export const selectBookings = createSelector(
   [selectBookingsDomain],
