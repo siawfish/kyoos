@@ -19,22 +19,9 @@ function toApiErrorShape(err: unknown): { error?: string; message?: string } {
   return { message: 'Request failed' };
 }
 
-function getAuthorizationHeader(config: InternalAxiosRequestConfig): string | undefined {
-  const headers = config.headers;
-  if (!headers) return undefined;
-  if (typeof (headers as { get?: (name: string) => unknown }).get === 'function') {
-    const h = headers as { get: (name: string) => unknown };
-    const v = h.get('Authorization') ?? h.get('authorization');
-    return typeof v === 'string' ? v : undefined;
-  }
-  const record = headers as Record<string, unknown>;
-  const v = record.Authorization ?? record.authorization;
-  return typeof v === 'string' ? v : undefined;
-}
-
-function requestHadBearer(config: InternalAxiosRequestConfig): boolean {
-  const auth = getAuthorizationHeader(config);
-  return typeof auth === 'string' && auth.startsWith('Bearer ');
+function isRefreshEndpointRequest(config: InternalAxiosRequestConfig): boolean {
+  const url = config.url ?? '';
+  return url.includes('/auth/refresh');
 }
 
 async function dispatchSessionRefreshed(accessToken: string) {
@@ -100,66 +87,65 @@ api.interceptors.response.use(
 
     const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
 
-    const shouldTryRefresh =
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry &&
-      requestHadBearer(originalRequest);
-
-    if (shouldTryRefresh) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (!originalRequest.headers) {
-              originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
-            }
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = await getItemFromStorage('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await axios.post(`${baseURL}/api/users/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-
-        await setItemToStorage('token', accessToken);
-        await setItemToStorage('refreshToken', newRefreshToken);
-
-        await dispatchSessionRefreshed(accessToken);
-
-        processQueue(null, accessToken);
-        if (!originalRequest.headers) {
-          originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
-        }
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        const rejection = toApiErrorShape(refreshError);
-        processQueue(rejection, null);
-        await removeItemFromStorage('token');
-        await removeItemFromStorage('refreshToken');
-        await dispatchSessionCleared();
-        return Promise.reject(rejection);
-      } finally {
-        isRefreshing = false;
-      }
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(errorResponse);
     }
 
-    return Promise.reject(errorResponse);
+    if (originalRequest._retry || isRefreshEndpointRequest(originalRequest)) {
+      return Promise.reject(errorResponse);
+    }
+
+    const refreshToken = await getItemFromStorage('refreshToken');
+    if (!refreshToken) {
+      return Promise.reject(errorResponse);
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then((token) => {
+          originalRequest._retry = true;
+          if (!originalRequest.headers) {
+            originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
+          }
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        })
+        .catch((err) => Promise.reject(err));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const response = await axios.post(`${baseURL}/api/users/auth/refresh`, {
+        refreshToken,
+      });
+
+      const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+      await setItemToStorage('token', accessToken);
+      await setItemToStorage('refreshToken', newRefreshToken);
+
+      await dispatchSessionRefreshed(accessToken);
+
+      processQueue(null, accessToken);
+      if (!originalRequest.headers) {
+        originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
+      }
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      const rejection = toApiErrorShape(refreshError);
+      processQueue(rejection, null);
+      await removeItemFromStorage('token');
+      await removeItemFromStorage('refreshToken');
+      await dispatchSessionCleared();
+      return Promise.reject(rejection);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 
