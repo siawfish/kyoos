@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: widthPixel(16),
-      paddingVertical: heightPixel(12),
+      paddingVertical: heightPixel(16),
     },
     locationRow: {
       flex: 1,
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
       minWidth: 0,
     },
     feedMapToggle: {
-      padding: widthPixel(8),
+    //   padding: widthPixel(8),
       justifyContent: 'center',
       alignItems: 'center',
     },
