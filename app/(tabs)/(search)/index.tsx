@@ -10,8 +10,15 @@ import EmptyList from '@/components/ui/EmptyList';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import ThemedMapView from '@/components/ui/ThemedMapView';
+import UserMapLocationMarker from '@/components/ui/UserMapLocationMarker';
 import WorkerMapMarker from '@/components/ui/WorkerMapMarker';
 import { ACCRA_REGION } from '@/constants/helpers';
+import {
+    HOME_MAP_INITIAL_LATITUDE_DELTA,
+    HOME_MAP_INITIAL_LONGITUDE_DELTA,
+    MAP_REGION_FETCH_DEBOUNCE_MS,
+    mapFetchCellKey,
+} from '@/constants/mapSearch';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -26,16 +33,19 @@ import type { Portfolio } from '@/redux/portfolio/types';
 import { selectUserLocation } from '@/redux/app/selector';
 import { selectHomeActiveBooking } from '@/redux/bookings/selector';
 import { actions as bookingsActions } from '@/redux/bookings/slice';
-import { selectIsInitializing, selectNearestWorkers, selectSelectedArtisan, selectTotalNearbyWorkers } from '@/redux/search/selector';
+import type { Booking } from '@/redux/booking/types';
+import { selectIsInitializing, selectNearestWorkers, selectSelectedArtisan } from '@/redux/search/selector';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from "@react-navigation/native";
 import { BlurTint, BlurView } from 'expo-blur';
 import { router } from 'expo-router';
+import { isBefore } from 'date-fns';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
+    Easing,
     FlatList,
     NativeScrollEvent,
     NativeSyntheticEvent,
@@ -46,9 +56,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type MapView from 'react-native-maps';
-import { Marker } from 'react-native-maps';
+import { Marker, type Region } from 'react-native-maps';
 
-const FEED_PANEL_TOP = heightPixel(120) + heightPixel(72) + heightPixel(6);
+const SEARCH_BAR_TOP_FEED = heightPixel(120);
+/** Same targets as `searchBarContainer` top when booking preview is closed vs open */
+const SEARCH_BAR_TOP_BOOKING_OPEN =
+    heightPixel(50) + heightPixel(2) + heightPixel(180) + heightPixel(1);
+const FEED_TOP_DELTA_WHEN_BOOKING_OPEN = SEARCH_BAR_TOP_BOOKING_OPEN - SEARCH_BAR_TOP_FEED;
+
+const FEED_PANEL_TOP = SEARCH_BAR_TOP_FEED + heightPixel(72) + heightPixel(6);
 
 /** Feed scroll: hide header location when scrolling down; show on scroll up or when scroll ends */
 const FEED_SCROLL_TOP_THRESHOLD = 12;
@@ -59,17 +75,33 @@ const LOCATION_BAR_HIDE_DURATION_MS = 240;
 /** Layout height of the header BlurView row (location + toggles); also used to collapse gap + shift search/feed */
 const HEADER_BLUR_ROW_LAYOUT_HEIGHT = heightPixel(56);
 
+/** Booking toggle label pulse: shared animated opacity min + timing (scale interpolates from the same driver) */
+const TOGGLE_LABEL_PULSE_MIN = 0.55;
+const TOGGLE_LABEL_PULSE_MS = 1400;
+
+/** Matches `useBookingStatus` — combine service date with start clock time */
+function getBookingStartDate(booking: Pick<Booking, 'date' | 'startTime'>): Date | null {
+    if (!booking.date || !booking.startTime) return null;
+    const ms = new Date(booking.date).setTime(new Date(booking.startTime).getTime());
+    const d = new Date(ms);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export default function HomeScreen() {
     const selectedArtisan = useAppSelector(selectSelectedArtisan);
     const [showBookingCard, setShowBookingCard] = useState(false);
     const [isMapFullView, setIsMapFullView] = useState(false);
     const mapRef = useRef<MapView>(null);
+    /** Grid cells already loaded via map-region fetch (dedupe). Seeded on init/refresh; cleared on tab focus refresh. */
+    const fetchedMapCellsRef = useRef<Set<string>>(new Set());
+    const mapRegionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const prevMapFullViewRef = useRef(false);
+    const isMapFullViewRef = useRef(isMapFullView);
     const homeActiveBooking = useAppSelector(selectHomeActiveBooking);
     const nearestWorkers = useAppSelector(selectNearestWorkers);
     const location = useAppSelector(selectUserLocation);
     const dispatch = useAppDispatch();
     const isInitializing = useAppSelector(selectIsInitializing);
-    const totalNearbyWorkers = useAppSelector(selectTotalNearbyWorkers);
     const homePopularPortfolios = useAppSelector(selectHomePopularPortfolios);
     const homePopularPagination = useAppSelector(selectHomePopularPagination);
     const isLoadingHomePopular = useAppSelector(selectIsLoadingHomePopular);
@@ -81,12 +113,16 @@ export default function HomeScreen() {
     const bookingCardHeight = useRef(new Animated.Value(0)).current;
     const bookingCardOpacity = useRef(new Animated.Value(0)).current;
     const toggleRotation = useRef(new Animated.Value(0)).current;
+    /** Subtle breathe on booking toggle label when a booking exists */
+    const toggleLabelAttention = useRef(new Animated.Value(1)).current;
     /** 0 = location visible, 1 = hidden */
     const locationBarAnim = useRef(new Animated.Value(0)).current;
     const prevScrollYRef = useRef(0);
     const isLocationHiddenRef = useRef(false);
     const hideLocationDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [locationBarHiddenForPointer, setLocationBarHiddenForPointer] = useState(false);
+    /** Keeps scroll handler in sync — collapse booking preview on scroll down without stale state */
+    const showBookingCardRef = useRef(false);
 
     const clearHideLocationDebounce = useCallback(() => {
         if (hideLocationDebounceRef.current) {
@@ -135,6 +171,36 @@ export default function HomeScreen() {
         }, LOCATION_BAR_HIDE_DEBOUNCE_MS);
     }, [commitHideLocationBar]);
 
+    const collapseBookingPreview = useCallback(() => {
+        if (!showBookingCardRef.current) {
+            return;
+        }
+        showBookingCardRef.current = false;
+        setShowBookingCard(false);
+        bookingCardHeight.stopAnimation();
+        bookingCardOpacity.stopAnimation();
+        toggleRotation.stopAnimation();
+        Animated.parallel([
+            Animated.spring(bookingCardHeight, {
+                toValue: 0,
+                useNativeDriver: false,
+                tension: 80,
+                friction: 12,
+            }),
+            Animated.timing(bookingCardOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: false,
+            }),
+            Animated.spring(toggleRotation, {
+                toValue: 0,
+                useNativeDriver: true,
+                tension: 80,
+                friction: 12,
+            }),
+        ]).start();
+    }, [bookingCardHeight, bookingCardOpacity, toggleRotation]);
+
     const onFeedScroll = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
             if (isMapFullView) {
@@ -155,11 +221,18 @@ export default function HomeScreen() {
 
             if (delta > FEED_SCROLL_DELTA_THRESHOLD) {
                 queueHideLocationBar();
+                collapseBookingPreview();
             } else if (delta < -FEED_SCROLL_DELTA_THRESHOLD) {
                 revealLocationBar();
             }
         },
-        [isMapFullView, queueHideLocationBar, revealLocationBar, clearHideLocationDebounce],
+        [
+            isMapFullView,
+            queueHideLocationBar,
+            revealLocationBar,
+            clearHideLocationDebounce,
+            collapseBookingPreview,
+        ],
     );
 
     useEffect(() => {
@@ -180,20 +253,20 @@ export default function HomeScreen() {
     }, [clearHideLocationDebounce]);
 
     useFocusEffect(useCallback(() => {
-        dispatch(actions.onInitialize({
-            lat: location?.lat || ACCRA_REGION.latitude,
-            lng: location?.lng || ACCRA_REGION.longitude,
-        }));
+        const lat = location?.lat ?? ACCRA_REGION.latitude;
+        const lng = location?.lng ?? ACCRA_REGION.longitude;
+        fetchedMapCellsRef.current = new Set([mapFetchCellKey(lat, lng)]);
+        dispatch(actions.onInitialize({ lat, lng }));
         dispatch(portfolioActions.fetchHomePopular({ page: 1 }));
         dispatch(bookingsActions.fetchHomeActiveBooking());
     }, [dispatch, location?.lat, location?.lng]));
 
     const onRefreshFeed = useCallback(() => {
         setIsPullRefreshing(true);
-        dispatch(actions.onInitialize({
-            lat: location?.lat || ACCRA_REGION.latitude,
-            lng: location?.lng || ACCRA_REGION.longitude,
-        }));
+        const lat = location?.lat ?? ACCRA_REGION.latitude;
+        const lng = location?.lng ?? ACCRA_REGION.longitude;
+        fetchedMapCellsRef.current = new Set([mapFetchCellKey(lat, lng)]);
+        dispatch(actions.onInitialize({ lat, lng }));
         dispatch(portfolioActions.fetchHomePopular({ page: 1 }));
         dispatch(bookingsActions.fetchHomeActiveBooking());
     }, [dispatch, location?.lat, location?.lng]);
@@ -207,11 +280,16 @@ export default function HomeScreen() {
     useEffect(() => {
         if (!homeActiveBooking) {
             setShowBookingCard(false);
+            showBookingCardRef.current = false;
             bookingCardHeight.setValue(0);
             bookingCardOpacity.setValue(0);
             toggleRotation.setValue(0);
         }
     }, [homeActiveBooking, bookingCardHeight, bookingCardOpacity, toggleRotation]);
+
+    useEffect(() => {
+        showBookingCardRef.current = showBookingCard;
+    }, [showBookingCard]);
 
     const onEndReachedPopular = useCallback(() => {
         if (
@@ -233,8 +311,16 @@ export default function HomeScreen() {
     ]);
 
     const toggleMapView = useCallback(() => {
-        setIsMapFullView((v) => !v);
+        setIsMapFullView((v) => {
+            const next = !v;
+            isMapFullViewRef.current = next;
+            return next;
+        });
     }, []);
+
+    useEffect(() => {
+        isMapFullViewRef.current = isMapFullView;
+    }, [isMapFullView]);
 
     const backgroundColor = useThemeColor({
         light: colors.light.background + 'F0',
@@ -266,6 +352,81 @@ export default function HomeScreen() {
         dark: colors.dark.tint,
     }, 'tint');
 
+    const homeMapInitialRegion = useMemo(
+        () => ({
+            latitude: location?.lat ?? ACCRA_REGION.latitude,
+            longitude: location?.lng ?? ACCRA_REGION.longitude,
+            latitudeDelta: HOME_MAP_INITIAL_LATITUDE_DELTA,
+            longitudeDelta: HOME_MAP_INITIAL_LONGITUDE_DELTA,
+        }),
+        [location?.lat, location?.lng],
+    );
+
+    const centerMapOnUser = useCallback(() => {
+        if (!mapRef.current) return;
+        const lat = location?.lat ?? ACCRA_REGION.latitude;
+        const lng = location?.lng ?? ACCRA_REGION.longitude;
+        mapRef.current.animateToRegion(
+            {
+                latitude: lat,
+                longitude: lng,
+                latitudeDelta: HOME_MAP_INITIAL_LATITUDE_DELTA,
+                longitudeDelta: HOME_MAP_INITIAL_LONGITUDE_DELTA,
+            },
+            350,
+        );
+    }, [location?.lat, location?.lng]);
+
+    const scheduleMapRegionFetch = useCallback(
+        (region: Region) => {
+            if (mapRegionDebounceRef.current) {
+                clearTimeout(mapRegionDebounceRef.current);
+            }
+            mapRegionDebounceRef.current = setTimeout(() => {
+                mapRegionDebounceRef.current = null;
+                if (!isMapFullViewRef.current) return;
+                const key = mapFetchCellKey(region.latitude, region.longitude);
+                if (fetchedMapCellsRef.current.has(key)) return;
+                fetchedMapCellsRef.current.add(key);
+                dispatch(
+                    actions.fetchMapRegionWorkers({
+                        lat: region.latitude,
+                        lng: region.longitude,
+                    }),
+                );
+            }, MAP_REGION_FETCH_DEBOUNCE_MS);
+        },
+        [dispatch],
+    );
+
+    const onMapRegionChangeComplete = useCallback(
+        (region: Region) => {
+            if (!isMapFullViewRef.current) return;
+            scheduleMapRegionFetch(region);
+        },
+        [scheduleMapRegionFetch],
+    );
+
+    useEffect(() => {
+        return () => {
+            if (mapRegionDebounceRef.current) {
+                clearTimeout(mapRegionDebounceRef.current);
+            }
+        };
+    }, []);
+
+    /** Entering full map: center on user (do not zoom to fit all worker markers). */
+    useEffect(() => {
+        if (isMapFullView && !prevMapFullViewRef.current) {
+            const t = setTimeout(() => centerMapOnUser(), 200);
+            prevMapFullViewRef.current = true;
+            return () => clearTimeout(t);
+        }
+        if (!isMapFullView) {
+            prevMapFullViewRef.current = false;
+        }
+    }, [isMapFullView, centerMapOnUser]);
+
     // Get selected artisan object
     const selectedArtisanObject = useMemo(() => {
         return nearestWorkers.find(worker => worker.id === selectedArtisan);
@@ -293,11 +454,47 @@ export default function HomeScreen() {
         homePopularPortfolios,
     ]);
 
+    const homeBookingToggleLabel = useMemo(() => {
+        const start = homeActiveBooking ? getBookingStartDate(homeActiveBooking) : null;
+        if (!start) return 'BOOKING';
+        return isBefore(new Date(), start) ? 'UPCOMING' : 'ONGOING';
+    }, [homeActiveBooking]);
+
+    useEffect(() => {
+        if (!homeActiveBooking) {
+            toggleLabelAttention.setValue(1);
+            return;
+        }
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(toggleLabelAttention, {
+                    toValue: TOGGLE_LABEL_PULSE_MIN,
+                    duration: TOGGLE_LABEL_PULSE_MS,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(toggleLabelAttention, {
+                    toValue: 1,
+                    duration: TOGGLE_LABEL_PULSE_MS,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: true,
+                }),
+            ]),
+        );
+        loop.start();
+        return () => {
+            loop.stop();
+            toggleLabelAttention.setValue(1);
+        };
+    }, [homeActiveBooking, toggleLabelAttention]);
+
     // Toggle booking card visibility with animation
     const toggleBookingCard = () => {
-        const toValue = showBookingCard ? 0 : 1;
-        setShowBookingCard(!showBookingCard);
-        
+        const nextOpen = !showBookingCard;
+        const toValue = nextOpen ? 1 : 0;
+        showBookingCardRef.current = nextOpen;
+        setShowBookingCard(nextOpen);
+
         Animated.parallel([
             Animated.spring(bookingCardHeight, {
                 toValue,
@@ -319,51 +516,6 @@ export default function HomeScreen() {
         ]).start();
     };
 
-    // Fit all markers on map
-    const fitAllMarkers = useCallback(() => {
-        if (mapRef.current && nearestWorkers.length > 0) {
-            const coordinates = nearestWorkers.map(worker => ({
-                latitude: worker.coordinates[1],
-                longitude: worker.coordinates[0],
-            }));
-
-            mapRef.current.fitToCoordinates(coordinates, {
-                edgePadding: { top: 200, right: 50, bottom: 200, left: 50 },
-                animated: true,
-            });
-        }
-    }, [nearestWorkers]);
-
-    useEffect(() => {
-        if (!isMapFullView) return;
-        const timer = setTimeout(() => {
-            fitAllMarkers();
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [isMapFullView, fitAllMarkers]);
-
-    // Fit markers when workers are loaded after initialization (full map only)
-    useEffect(() => {
-        if (!isMapFullView) return;
-        if (!isInitializing && nearestWorkers.length > 0 && mapRef.current) {
-            const timer = setTimeout(() => {
-                fitAllMarkers();
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [isMapFullView, isInitializing, nearestWorkers, fitAllMarkers]);
-
-    // Refit markers when ArtisanOptions closes
-    useEffect(() => {
-        if (!isMapFullView) return;
-        if (!selectedArtisan) {
-            const timer = setTimeout(() => {
-                fitAllMarkers();
-            }, 300);
-            return () => clearTimeout(timer);
-        }
-    }, [selectedArtisan, fitAllMarkers, isMapFullView]);
-
     const handleMarkerPress = (artisanId: string) => {
         dispatch(actions.setSelectedArtisan(artisanId));
         
@@ -379,35 +531,28 @@ export default function HomeScreen() {
         }
     };
 
-    // const handleRegionChange = (region: Region) => {
-    //     dispatch(actions.onInitialize({
-    //         lat: region.latitude,
-    //         lng: region.longitude,
-    //     }));
-    // };
-
     return (
         <ThemedSafeAreaView style={styles.container}>
             {/* Map Background */}
             <ThemedMapView
                 ref={mapRef}
                 style={styles.map}
-                initialRegion={{
-                    latitude: location?.lat || ACCRA_REGION.latitude,
-                    longitude: location?.lng || ACCRA_REGION.longitude,
-                    latitudeDelta: ACCRA_REGION.latitudeDelta,
-                    longitudeDelta: ACCRA_REGION.longitudeDelta,
-                }}
-                showsUserLocation
+                initialRegion={homeMapInitialRegion}
+                showsUserLocation={false}
                 showsMyLocationButton={false}
                 showsCompass={false}
                 toolbarEnabled={false}
+                onRegionChangeComplete={onMapRegionChangeComplete}
                 onMapReady={() => {
                     if (isMapFullView) {
-                        fitAllMarkers();
+                        centerMapOnUser();
                     }
                 }}
             >
+                <UserMapLocationMarker
+                    latitude={location?.lat ?? ACCRA_REGION.latitude}
+                    longitude={location?.lng ?? ACCRA_REGION.longitude}
+                />
                 {nearestWorkers.map((artisan) => (
                     <Marker
                         key={artisan.id}
@@ -415,6 +560,7 @@ export default function HomeScreen() {
                             latitude: artisan.coordinates[1],
                             longitude: artisan.coordinates[0],
                         }}
+                        anchor={{ x: 0.5, y: 1 }}
                         onPress={() => handleMarkerPress(artisan.id)}
                     >
                         <WorkerMapMarker
@@ -467,11 +613,37 @@ export default function HomeScreen() {
                                         style={styles.bookingToggle}
                                         onPress={toggleBookingCard}
                                         activeOpacity={0.7}
+                                        accessibilityLabel={
+                                            homeBookingToggleLabel === 'UPCOMING'
+                                                ? 'Upcoming booking'
+                                                : homeBookingToggleLabel === 'ONGOING'
+                                                  ? 'Ongoing booking'
+                                                  : 'Booking'
+                                        }
                                     >
-                                        <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.toggleContent, { backgroundColor }]}>
-                                            <ThemedText style={[styles.toggleText, { color: secondaryColor }]}>
-                                                BOOKING
-                                            </ThemedText>
+                                        <View style={[styles.toggleContent]}>
+                                            <Animated.Text
+                                                style={[
+                                                    styles.toggleText,
+                                                    {
+                                                        color: secondaryColor,
+                                                        opacity: toggleLabelAttention,
+                                                        transform: [
+                                                            {
+                                                                scale: toggleLabelAttention.interpolate({
+                                                                    inputRange: [
+                                                                        TOGGLE_LABEL_PULSE_MIN,
+                                                                        1,
+                                                                    ],
+                                                                    outputRange: [0.9, 1],
+                                                                }),
+                                                            },
+                                                        ],
+                                                    },
+                                                ]}
+                                            >
+                                                {homeBookingToggleLabel}
+                                            </Animated.Text>
                                             <Animated.View style={{
                                                 transform: [{
                                                     rotate: toggleRotation.interpolate({
@@ -482,7 +654,7 @@ export default function HomeScreen() {
                                             }}>
                                                 <Feather name="chevron-down" size={16} color={tintColor} />
                                             </Animated.View>
-                                        </BlurView>
+                                        </View>
                                     </TouchableOpacity>
                                 ) : null}
                             </View>
@@ -530,10 +702,7 @@ export default function HomeScreen() {
                   top: Animated.add(
                       bookingCardHeight.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [
-                              heightPixel(120),
-                              heightPixel(50) + heightPixel(2) + heightPixel(180) + heightPixel(1),
-                          ],
+                          outputRange: [SEARCH_BAR_TOP_FEED, SEARCH_BAR_TOP_BOOKING_OPEN],
                       }),
                       locationBarAnim.interpolate({
                           inputRange: [0, 1],
@@ -551,13 +720,19 @@ export default function HomeScreen() {
                     style={[
                         styles.feedSheet,
                         {
-                            top: locationBarAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [
-                                    FEED_PANEL_TOP,
-                                    FEED_PANEL_TOP - HEADER_BLUR_ROW_LAYOUT_HEIGHT,
-                                ],
-                            }),
+                            top: Animated.add(
+                                locationBarAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [
+                                        FEED_PANEL_TOP,
+                                        FEED_PANEL_TOP - HEADER_BLUR_ROW_LAYOUT_HEIGHT,
+                                    ],
+                                }),
+                                bookingCardHeight.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, FEED_TOP_DELTA_WHEN_BOOKING_OPEN],
+                                }),
+                            ),
                         },
                     ]}
                     pointerEvents="box-none"
@@ -635,16 +810,19 @@ export default function HomeScreen() {
                 </Animated.View>
             ) : null}
 
-            {/* Floating Stats/Info */}
+            {/* Full map: recenter on your location */}
             {isMapFullView ? (
-                <View style={styles.statsContainer}>
-                    <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.statCard, { backgroundColor, borderColor }]}>
-                        <ThemedText style={[styles.statValue, { color: textColor }]}>
-                            {totalNearbyWorkers}
-                        </ThemedText>
-                        <ThemedText style={[styles.statLabel, { color: secondaryColor }]}>
-                            NEARBY
-                        </ThemedText>
+                <View style={styles.mapRecenterWrap} pointerEvents="box-none">
+                    <BlurView intensity={40} tint={blurTint as 'light' | 'dark'} style={[styles.mapRecenterBlur, { backgroundColor, borderColor }]}>
+                        <TouchableOpacity
+                            style={styles.mapRecenterButton}
+                            onPress={centerMapOnUser}
+                            activeOpacity={0.75}
+                            accessibilityRole="button"
+                            accessibilityLabel="Recenter map on your location"
+                        >
+                            <Feather name="crosshair" size={22} color={textColor} />
+                        </TouchableOpacity>
                     </BlurView>
                 </View>
             ) : null}
@@ -690,7 +868,7 @@ const styles = StyleSheet.create({
     },
     floatingHeader: {
       position: 'absolute',
-      top: heightPixel(50),
+      top: heightPixel(60),
       left: widthPixel(16),
       right: widthPixel(16),
       zIndex: 2,
@@ -720,7 +898,6 @@ const styles = StyleSheet.create({
       minWidth: 0,
     },
     feedMapToggle: {
-    //   padding: widthPixel(8),
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -729,18 +906,12 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       gap: widthPixel(8),
     },
-    resetButton: {
-      padding: widthPixel(8),
-    },
-    bookingToggle: {
-      // No additional styles needed, handled by toggleContent
-    },
+    bookingToggle: {},
     toggleContent: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: widthPixel(6),
       paddingHorizontal: widthPixel(12),
-      paddingVertical: heightPixel(8),
       overflow: 'hidden',
     },
     toggleText: {
@@ -758,28 +929,22 @@ const styles = StyleSheet.create({
       zIndex: 2,
       elevation: 2,
     },
-    statsContainer: {
+    mapRecenterWrap: {
       position: 'absolute',
       bottom: heightPixel(180),
       right: widthPixel(16),
       zIndex: 2,
       elevation: 2,
     },
-    statCard: {
-      paddingHorizontal: widthPixel(16),
-      paddingVertical: heightPixel(12),
-      alignItems: 'center',
+    mapRecenterBlur: {
       overflow: 'hidden',
       borderWidth: 0.5,
     },
-    statValue: {
-      fontSize: fontPixel(24),
-      fontFamily: 'Bold',
-    },
-    statLabel: {
-      fontSize: fontPixel(9),
-      fontFamily: 'SemiBold',
-      letterSpacing: 1,
+    mapRecenterButton: {
+      width: widthPixel(48),
+      height: widthPixel(48),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     feedSheet: {
       position: 'absolute',

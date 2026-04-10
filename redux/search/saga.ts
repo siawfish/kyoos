@@ -12,6 +12,10 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
+import {
+    MAP_SEARCH_PAGE_LIMIT,
+    MAP_SEARCH_RADIUS_METERS,
+} from '@/constants/mapSearch';
 
 export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>) {
     try {
@@ -23,15 +27,15 @@ export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>)
             params: {
                 lat: action.payload.lat,
                 lng: action.payload.lng,
-                limit: 1000
+                limit: MAP_SEARCH_PAGE_LIMIT,
+                radiusMeters: MAP_SEARCH_RADIUS_METERS,
             },
         });
         if (error || !data) {
             throw new Error(error || message || 'An error occurred while initializing');
         }
         yield put(actions.setNearestWorkers({
-            workers: data.workers, 
-            total: data.pagination.total
+            workers: data.workers,
         }));
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while initializing';
@@ -42,6 +46,34 @@ export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>)
         });
     } finally {
         yield put(actions.onInitializeCompleted());
+    }
+}
+
+export function* fetchMapRegionWorkersSaga(action: PayloadAction<{ lat: number; lng: number }>) {
+    try {
+        const { data, error, message }: ApiResponse<InitializeResponse> = yield call(request, {
+            method: 'GET',
+            url: '/api/users/search',
+            params: {
+                lat: action.payload.lat,
+                lng: action.payload.lng,
+                limit: MAP_SEARCH_PAGE_LIMIT,
+                page: 1,
+                radiusMeters: MAP_SEARCH_RADIUS_METERS,
+                // Query string must be "false" — axios may omit boolean false from params
+                saveHistory: 'false',
+            },
+        });
+        if (error || !data) {
+            return;
+        }
+        yield put(
+            actions.appendNearestWorkers({
+                workers: data.workers,
+            }),
+        );
+    } catch {
+        // Map exploration: avoid toasts on transient failures
     }
 }
 
@@ -176,6 +208,7 @@ export function* continueAgentConversation(action: PayloadAction<{
 
 export function* searchSaga() {
     yield takeLatest(actions.onInitialize, onInitialize);
+    yield takeLatest(actions.fetchMapRegionWorkers, fetchMapRegionWorkersSaga);
     yield takeLatest(actions.resetState, resetState);
     yield takeLatest(actions.startAgentConversation, startAgentConversation);
     yield takeLatest(actions.continueAgentConversation, continueAgentConversation);

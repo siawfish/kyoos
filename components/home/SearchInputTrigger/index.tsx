@@ -126,8 +126,6 @@ const styles = StyleSheet.create({
         gap: widthPixel(12),
     },
     searchIconContainer: {
-        width: widthPixel(36),
-        height: widthPixel(36),
         alignItems: 'center',
         justifyContent: 'center',
     },

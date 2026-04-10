@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
   ring: {
     width: widthPixel(64),
     height: widthPixel(64),
-    // borderRadius: widthPixel(32),
     borderWidth: 2,
     padding: 2,
     marginBottom: heightPixel(6),
@@ -169,7 +168,6 @@ const styles = StyleSheet.create({
   avatar: {
     width: '100%',
     height: '100%',
-    // borderRadius: widthPixel(30),
   },
   skill: {
     fontSize: fontPixel(11),
@@ -196,7 +194,6 @@ const styles = StyleSheet.create({
   skeletonRing: {
     width: widthPixel(64),
     height: widthPixel(64),
-    // borderRadius: widthPixel(32),
     marginBottom: heightPixel(6),
   },
   skeletonLineShort: {

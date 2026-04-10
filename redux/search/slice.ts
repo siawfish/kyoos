@@ -23,7 +23,6 @@ export const initialState: SearchState = {
   recommendedWorkers: [],
   closestWorkers: [],
   nearestWorkers: [],
-  totalNearbyWorkers: 0,
   searchReferenceId: '',
   isUpdatingLocation: false,
   searchModalVisible: false,
@@ -58,6 +57,8 @@ const searchSlice = createSlice({
     onInitialize: (state, action: PayloadAction<{lat: number, lng: number}>) => {
       state.isInitializing = true;
     },
+    /** Dispatched when the map viewport center changes; saga loads workers without resetting search state. */
+    fetchMapRegionWorkers: (_state, _action: PayloadAction<{ lat: number; lng: number }>) => {},
     onInitializeCompleted: (state) => {
       state.isInitializing = false;
     },
@@ -68,9 +69,17 @@ const searchSlice = createSlice({
         isInitializing: true,
       };
     },
-    setNearestWorkers: (state, action: PayloadAction<{workers: Worker[], total: number}>) => {
+    setNearestWorkers: (state, action: PayloadAction<{ workers: Worker[] }>) => {
       state.nearestWorkers = action.payload.workers;
-      state.totalNearbyWorkers = action.payload.total;
+    },
+    appendNearestWorkers: (state, action: PayloadAction<{ workers: Worker[] }>) => {
+      const seen = new Set(state.nearestWorkers.map((w) => w.id));
+      for (const w of action.payload.workers) {
+        if (!seen.has(w.id)) {
+          seen.add(w.id);
+          state.nearestWorkers.push(w);
+        }
+      }
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;

@@ -10,13 +10,14 @@ export type MapStyle = {
 }[];
 
 /**
- * Light theme map style - Clean minimal styling with subtle grays
- * Enhanced to match app's minimal black/white aesthetic
+ * Light theme map style - Neutral grays with clear land / road / water separation.
+ * Base is deliberately below pure white so frosted BlurViews (light tint + near-white fill)
+ * stay legible; an all-white map visually merges with those overlays.
  */
 export const lightMapStyle: MapStyle = [
   {
     elementType: 'geometry',
-    stylers: [{ color: '#ffffff' }],
+    stylers: [{ color: '#e6e6e6' }],
   },
   {
     elementType: 'labels.icon',
@@ -24,26 +25,26 @@ export const lightMapStyle: MapStyle = [
   },
   {
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#666666' }, { saturation: -20 }],
+    stylers: [{ color: '#5c5c5c' }, { saturation: -25 }],
   },
   {
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#ffffff' }, { weight: 1 }],
+    stylers: [{ color: '#e6e6e6' }, { weight: 1 }],
   },
   {
     featureType: 'administrative',
     elementType: 'geometry',
-    stylers: [{ color: '#f5f5f5' }],
+    stylers: [{ color: '#dedede' }],
   },
   {
     featureType: 'administrative.land_parcel',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#bdbdbd' }],
+    stylers: [{ color: '#9e9e9e' }],
   },
   {
     featureType: 'poi',
     elementType: 'geometry',
-    stylers: [{ color: '#f5f5f5' }],
+    stylers: [{ color: '#e0e0e0' }],
   },
   {
     featureType: 'poi',
@@ -53,7 +54,7 @@ export const lightMapStyle: MapStyle = [
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#e5e5e5' }],
+    stylers: [{ color: '#d6dcd6' }],
   },
   {
     featureType: 'poi.park',
@@ -63,37 +64,37 @@ export const lightMapStyle: MapStyle = [
   {
     featureType: 'road',
     elementType: 'geometry',
-    stylers: [{ color: '#ffffff' }],
+    stylers: [{ color: '#f4f4f4' }],
   },
   {
     featureType: 'road',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#e5e5e5' }, { weight: 0.5 }],
+    stylers: [{ color: '#cfcfcf' }, { weight: 0.5 }],
   },
   {
     featureType: 'road.arterial',
     elementType: 'geometry',
-    stylers: [{ color: '#ffffff' }],
+    stylers: [{ color: '#f2f2f2' }],
   },
   {
     featureType: 'road.arterial',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#757575' }],
+    stylers: [{ color: '#6a6a6a' }],
   },
   {
     featureType: 'road.highway',
     elementType: 'geometry',
-    stylers: [{ color: '#f0f0f0' }],
+    stylers: [{ color: '#eaeaea' }],
   },
   {
     featureType: 'road.highway',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#e5e5e5' }],
+    stylers: [{ color: '#c8c8c8' }],
   },
   {
     featureType: 'road.highway',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#616161' }],
+    stylers: [{ color: '#555555' }],
   },
   {
     featureType: 'road.local',
@@ -103,27 +104,27 @@ export const lightMapStyle: MapStyle = [
   {
     featureType: 'transit',
     elementType: 'geometry',
-    stylers: [{ color: '#f5f5f5' }],
+    stylers: [{ color: '#dcdcdc' }],
   },
   {
     featureType: 'transit.line',
     elementType: 'geometry',
-    stylers: [{ color: '#e5e5e5' }],
+    stylers: [{ color: '#c4c4c4' }],
   },
   {
     featureType: 'transit.station',
     elementType: 'geometry',
-    stylers: [{ color: '#eeeeee' }],
+    stylers: [{ color: '#d2d2d2' }],
   },
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [{ color: '#e5e5e5' }],
+    stylers: [{ color: '#b8c5d4' }],
   },
   {
     featureType: 'water',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#999999' }],
+    stylers: [{ color: '#6d7a88' }],
   },
 ];
 

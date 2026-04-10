@@ -420,6 +420,7 @@ export default function Results() {
                                             latitude,
                                             longitude,
                                         }}
+                                        anchor={{ x: 0.5, y: 1 }}
                                         onPress={() => {
                                             // Set selected artisan to trigger ArtisanOptions
                                             setSelectedArtisan(artisan.id);
