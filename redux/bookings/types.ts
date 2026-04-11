@@ -14,8 +14,9 @@ export interface BookingsState {
 }
 
 export enum AuxStatus {
-    PASSED = 'PASSED',
+    MISSED = 'MISSED',
     DUE = 'DUE',
+    
 }
 
 export interface Service {

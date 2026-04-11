@@ -3,6 +3,8 @@ import { useBookingStatus } from '@/hooks/useBookingStatus';
 import { Booking } from '@/redux/booking/types';
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import AuxStatuses from '../AuxStatuses';
+import { AuxStatus } from '@/redux/bookings/types';
 
 type BadgeSize = 'small' | 'medium' | 'large';
 
@@ -48,7 +50,13 @@ const Status = ({
     booking,
     size = 'medium',
 }: StatusProps) => {
-    const { statusColor } = useBookingStatus(booking);
+    const { statusColor, isPassed, isDue } = useBookingStatus(booking);
+    if(isPassed) {
+        return <AuxStatuses size="small" type={AuxStatus.MISSED} />
+    }
+    if(isDue) {
+        return <AuxStatuses size="small" type={AuxStatus.DUE} />
+    }
     const sizeStyle = sizeStyles[size];
 
     return (

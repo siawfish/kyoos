@@ -10,7 +10,6 @@ import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings/selector";
 import { actions } from "@/redux/bookings/slice";
 import { Booking } from "@/redux/booking/types";
@@ -47,11 +46,6 @@ const Details = () => {
   }, [dispatch, stateBooking, id]);
   
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const backgroundColor = useThemeColor({
-    light: colors.light.background,
-    dark: colors.dark.background
-  }, 'background');
-  const borderColor = isDark ? colors.dark.white : colors.light.black;
 
   const handleBack = () => {
     router.back();
@@ -132,18 +126,6 @@ const Details = () => {
   };
 
   const determineRescheduleAction = () => {
-    if(booking?.status === BookingStatuses.PENDING) {
-      return {
-        onPress: handleReschedule,
-        label: 'RESCHEDULE',
-      };
-    }
-    if(booking?.status === BookingStatuses.ACCEPTED) {
-      return {
-        onPress: handleReschedule,
-        label: 'RESCHEDULE',
-      };
-    }
     if(booking?.status === BookingStatuses.COMPLETED) {
       return {
         onPress: handleRebook,
@@ -175,19 +157,12 @@ const Details = () => {
       <View style={styles.contentContainer}>
         <BookingDetails booking={booking} />
       </View>
-      <View style={[
-        styles.fixedActions, 
-        { 
-          backgroundColor,
-          borderTopColor: borderColor,
-        }
-      ]}>
         <Actions 
           onCancel={handleCancel} 
           onReport={handleReport} 
           onDelete={handleDelete} 
+          onReschedule={handleReschedule}
         />
-      </View>
         {showReschedule && (
             <ConfirmActionSheet 
                 isOpen={showReschedule} 
@@ -258,12 +233,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-  },
-  fixedActions: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-    paddingTop: heightPixel(12),
-    borderTopWidth: 0.5,
   },
   dangerIcon: {
     width: widthPixel(60),
