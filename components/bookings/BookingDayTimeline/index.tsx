@@ -1,4 +1,5 @@
 import BookingStatus from '@/components/bookings/BookingDetails/Status';
+import EmptyList from '@/components/ui/EmptyList';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
@@ -7,17 +8,23 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Booking } from '@/redux/booking/types';
 import { router } from 'expo-router';
 import { format } from 'date-fns';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
+  FlatList,
+  ListRenderItem,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { OptionIcons, BookingStatuses, Options } from '@/redux/app/types';
+import { Options as OptionsComponent } from '@/components/portfolio/Options';
 
 /** Fixed width for start/end times — keeps cards full width on the right. */
 const TIME_RAIL_WIDTH = widthPixel(58);
 const ROW_GAP = heightPixel(14);
+const SKELETON_ROWS = [0, 1, 2] as const;
 
 export type ParsedBooking = {
   booking: Booking;
@@ -71,6 +78,11 @@ type AgendaRowProps = {
   textColor: string;
   labelColor: string;
   cardBg: string;
+  onChatWorker: (booking: Booking) => void;
+  onReschedule: (booking: Booking) => void;
+  onCancel: (booking: Booking) => void;
+  onRebook: (booking: Booking) => void;
+  onReport: (booking: Booking) => void;
 };
 
 function AgendaBookingRow({
@@ -79,11 +91,81 @@ function AgendaBookingRow({
   textColor,
   labelColor,
   cardBg,
+  onChatWorker,
+  onReschedule,
+  onCancel,
+  onRebook,
+  onReport,
 }: AgendaRowProps) {
   const { booking, startMs, endMs } = parsed;
-  const { statusColor } = useBookingStatus(booking);
+  const { statusColor, isPassed } = useBookingStatus(booking);
   const durationMs = endMs - startMs;
   const durationLabel = formatDurationMs(durationMs);
+  
+  const getBookingOptions = (): Options[] => {
+    const isPending = booking.status === BookingStatuses.PENDING;
+    const isCancelled = booking.status === BookingStatuses.CANCELLED;
+    const isOngoing = booking.status === BookingStatuses.ONGOING;
+    const isCompleted = booking.status === BookingStatuses.COMPLETED;
+    const isDeclined = booking.status === BookingStatuses.DECLINED;
+    const isAccepted = booking.status === BookingStatuses.ACCEPTED;
+    if (isPending) {
+      if(isPassed) {
+        return [
+          { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+        ];
+      }
+      return [
+        { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+        { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
+      ];
+    }
+
+    if (isAccepted) {
+      if(isPassed) {
+        return [
+          { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+          { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+        ];
+      }
+      return [
+        { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+        { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: () => onChatWorker(booking) },
+        { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
+      ];
+    }
+
+    if (isDeclined) {
+      return [];
+    }
+
+    if (isCancelled) {
+      return [
+        { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+      ];
+    }
+
+    if (isOngoing) {
+      return [
+        { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: () => onChatWorker(booking) },
+        { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
+      ];
+    }
+
+    if (isCompleted) {
+      return [
+        { label: 'Book Again', icon: OptionIcons.CALENDAR, onPress: () => onRebook(booking)},
+        { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+      ];
+    }
+    
+    return [];
+  };
+
+  const renderSnapPoints = () => {
+    const options = getBookingOptions();
+    return options.length > 2 ? ['42%'] : options.length > 1 ? ['35%'] : ['30%'];
+  }
 
   return (
     <View style={styles.agendaRow}>
@@ -114,6 +196,16 @@ function AgendaBookingRow({
         <View style={styles.cardBody}>
           <View style={styles.cardHeaderRow}>
             <BookingStatus booking={booking} />
+
+            {getBookingOptions().length > 0 && (
+              <View>
+                <OptionsComponent
+                  options={getBookingOptions()}
+                  title="Booking Actions"
+                  snapPoints={renderSnapPoints()}
+                />
+              </View>
+            )}
           </View>
           <Text style={[styles.cardTitle, { color: textColor }]}>
             {booking.description}
@@ -167,16 +259,34 @@ function AgendaRowSkeleton({
   );
 }
 
+type ListRow = ParsedBooking | { skeleton: number };
+
 export type BookingDayTimelineProps = {
   bookings: Booking[];
   selectedDate: Date;
   isLoading: boolean;
+  listHeader: React.ReactNode;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onChatWorker: (booking: Booking) => void;
+  onReschedule: (booking: Booking) => void;
+  onCancel: (booking: Booking) => void;
+  onRebook: (booking: Booking) => void;
+  onReport: (booking: Booking) => void;
 };
 
 export default function BookingDayTimeline({
   bookings,
   selectedDate: _selectedDate,
   isLoading,
+  listHeader,
+  refreshing,
+  onRefresh,
+  onChatWorker,
+  onReschedule,
+  onCancel,
+  onRebook,
+  onReport,
 }: BookingDayTimelineProps) {
   const isDark = useAppTheme() === 'dark';
   const borderColor = isDark ? colors.dark.white : colors.light.black;
@@ -196,53 +306,119 @@ export default function BookingDayTimeline({
       .sort((a, b) => a.startMs - b.startMs);
   }, [bookings]);
 
-  if (isLoading) {
-    return (
-      <View style={styles.list}>
-        {[0, 1, 2].map((i) => (
-          <View key={i} style={i < 2 ? styles.rowMargin : null}>
-            <AgendaRowSkeleton
-              borderColor={borderColor}
-              cardBg={cardBg}
-              skeletonColor={skeletonColor}
-              accentColor={accentColor}
-            />
-          </View>
-        ))}
-      </View>
-    );
-  }
+  const listData: ListRow[] = useMemo(() => {
+    if (isLoading) {
+      return SKELETON_ROWS.map((i) => ({ skeleton: i }));
+    }
+    return parsedList;
+  }, [isLoading, parsedList]);
 
-  if (parsedList.length === 0) {
-    return null;
-  }
+  const keyExtractor = useCallback((item: ListRow) => {
+    if ('skeleton' in item) {
+      return `sk-${item.skeleton}`;
+    }
+    return item.booking.id;
+  }, []);
+
+  const renderItem: ListRenderItem<ListRow> = useCallback(
+    ({ item }) => {
+      const body = 'skeleton' in item ? (
+        <AgendaRowSkeleton
+          borderColor={borderColor}
+          cardBg={cardBg}
+          skeletonColor={skeletonColor}
+          accentColor={accentColor}
+        />
+      ) : (
+        <AgendaBookingRow
+          parsed={item}
+          borderColor={borderColor}
+          textColor={textColor}
+          labelColor={labelColor}
+          cardBg={cardBg}
+          onChatWorker={onChatWorker}
+          onReschedule={onReschedule}
+          onCancel={onCancel}
+          onRebook={onRebook}
+          onReport={onReport}
+        />
+      );
+      return <View style={styles.rowPad}>{body}</View>;
+    },
+    [
+      accentColor,
+      borderColor,
+      cardBg,
+      labelColor,
+      skeletonColor,
+      textColor,
+      onChatWorker,
+      onReschedule,
+      onCancel,
+      onRebook,
+      onReport,
+    ]
+  );
+
+  const ListHeader = useCallback(
+    () => <View style={styles.headerSlot}>{listHeader}</View>,
+    [listHeader]
+  );
+
+  const renderEmpty = useCallback(() => {
+    if (isLoading || refreshing) {
+      return null;
+    }
+    return (
+      <EmptyList
+        containerStyle={styles.emptyContainer}
+        message="No bookings scheduled for this day"
+      />
+    );
+  }, [isLoading, refreshing]);
 
   return (
-    <View style={styles.list}>
-      {parsedList.map((p, index) => (
-        <View
-          key={p.booking.id}
-          style={index < parsedList.length - 1 ? styles.rowMargin : null}
-        >
-          <AgendaBookingRow
-            parsed={p}
-            borderColor={borderColor}
-            textColor={textColor}
-            labelColor={labelColor}
-            cardBg={cardBg}
-          />
-        </View>
-      ))}
-    </View>
+    <FlatList<ListRow>
+      data={listData}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      ItemSeparatorComponent={() => <View style={styles.rowMargin} />}
+      ListHeaderComponent={ListHeader}
+      ListEmptyComponent={renderEmpty}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      stickyHeaderIndices={[0]}
+      contentContainerStyle={styles.listContent}
+      style={styles.list}
+      showsVerticalScrollIndicator={false}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   list: {
+    flex: 1,
     width: '100%',
+  },
+  listContent: {
+    flexGrow: 1,
+    paddingBottom: heightPixel(100),
+  },
+  headerSlot: {
+    width: '100%',
+  },
+  rowPad: {
+    paddingHorizontal: widthPixel(16),
   },
   rowMargin: {
     marginBottom: ROW_GAP,
+  },
+  emptyContainer: {
+    flex: 1,
+    paddingTop: heightPixel(48),
+    minHeight: heightPixel(200),
+    paddingHorizontal: widthPixel(16),
   },
   agendaRow: {
     flexDirection: 'row',
@@ -288,6 +464,9 @@ const styles = StyleSheet.create({
   cardHeaderRow: {
     marginBottom: heightPixel(8),
     alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   cardTitle: {
     fontSize: fontPixel(16),

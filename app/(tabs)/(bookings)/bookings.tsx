@@ -1,5 +1,7 @@
 import BookingDayTimeline from '@/components/bookings/BookingDayTimeline';
 import WeekCalendar from '@/components/bookings/WeekCalendar';
+import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
+import OverlayLoader from '@/components/ui/OverlayLoader';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { formatRelativeDate } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -18,9 +20,12 @@ import {
 import { actions } from '@/redux/bookings/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { format, startOfWeek } from 'date-fns';
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import EmptyList from '@/components/ui/EmptyList';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { selectFetchingConversation } from '@/redux/messaging/selector';
+import { router } from 'expo-router';
+import { actions as messagingActions } from '@/redux/messaging/slice';
 
 export default function BookingsScreen() {
   const dispatch = useAppDispatch();
@@ -32,6 +37,14 @@ export default function BookingsScreen() {
   const isRefreshing = useAppSelector(selectIsRefreshing);
   const selectedDateString = useAppSelector(selectSelectedDate);
   const currentWeekStart = useAppSelector(selectCurrentWeekStart);
+  const isLoadingMessaging = useAppSelector(selectFetchingConversation);
+
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRebookConfirm, setShowRebookConfirm] = useState(false);
+  const [showReportConfirm, setShowReportConfirm] = useState(false);
 
   const selectedDate = useMemo(() => {
     return new Date(selectedDateString);
@@ -82,16 +95,93 @@ export default function BookingsScreen() {
     return counts;
   }, [bookings]);
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = useCallback((date: Date) => {
     dispatch(actions.setSelectedDate(date.toISOString()));
-  };
+  }, [dispatch]);
 
   const onRefresh = useCallback(() => {
     dispatch(actions.refreshBookings());
   }, [dispatch]);
 
-  const showEmpty =
-    !isLoading && !isRefreshing && bookingsForSelectedDate.length === 0;
+  const handleChatWorker = (booking: Booking) => {
+    if(!booking) return;
+    dispatch(messagingActions.fetchOrCreateConversationByBooking(booking.id));
+  };
+
+  const confirmReschedule = (booking: Booking) => {
+    if(!booking) return;
+    setShowReschedule(false);
+    dispatch(actions.rescheduleBooking(booking.id));
+    router.push({
+      pathname: '/(tabs)/(bookings)/booking',
+      params: {
+        callbackRoute: `/(tabs)/(bookings)/bookings`,
+      },
+    });
+  };
+
+  const handleReschedule = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowReschedule(true);
+  };
+
+  const handleCancel = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowCancelConfirm(true);
+  };
+
+  const handleConfirmCancel = (booking: Booking) => {
+    if(!booking) return;
+    setShowCancelConfirm(false);
+    dispatch(actions.cancelBooking(booking.id));
+  };
+
+  const handleConfirmDelete = (booking: Booking) => {
+    if(!booking) return;
+    setShowDeleteConfirm(false);
+    dispatch(actions.deleteBooking(booking.id));
+  };
+
+  const handleRebook = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowRebookConfirm(true);
+  };
+
+  const handleConfirmRebook = (booking: Booking) => {
+    if(!booking) return;
+    setShowRebookConfirm(false);
+    dispatch(actions.rebookBooking(booking.id));
+    router.push({
+      pathname: '/(tabs)/(bookings)/booking',
+      params: {
+        callbackRoute: `/(tabs)/(bookings)/bookings`,
+      },
+    });
+  };
+
+  const handleReport = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowReportConfirm(true);
+  };
+
+  const handleConfirmReport = (booking: Booking) => {
+    if(!booking) return;
+    setShowReportConfirm(false);
+    dispatch(actions.reportBooking(booking.id));
+  };
+
+
+
+  const calendarHeader = useMemo(
+    () => (
+      <WeekCalendar
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        bookingCounts={bookingCounts}
+      />
+    ),
+    [selectedDate, bookingCounts, handleDateSelect]
+  );
 
   return (
     <ThemedSafeAreaView style={styles.containerStyle}>
@@ -106,35 +196,109 @@ export default function BookingsScreen() {
         </Text>
       </View>
 
-      <WeekCalendar
-        selectedDate={selectedDate}
-        onDateSelect={handleDateSelect}
-        bookingCounts={bookingCounts}
-      />
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-          />
-        }
-      >
+      <View style={styles.timelineWrap}>
         <BookingDayTimeline
           bookings={bookingsForSelectedDate}
           selectedDate={selectedDate}
           isLoading={isLoading}
+          listHeader={calendarHeader}
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          onChatWorker={handleChatWorker}
+          onReschedule={handleReschedule}
+          onCancel={handleCancel}
+          onRebook={handleRebook}
+          onReport={handleReport}
         />
-        {showEmpty ? (
-          <EmptyList
-            containerStyle={styles.emptyContainer}
-            message="No bookings scheduled for this day"
+      </View>
+      {isLoadingMessaging && (
+          <OverlayLoader />
+      )}
+      {showReschedule && (
+          <ConfirmActionSheet 
+              isOpen={showReschedule} 
+              isOpenChange={(open) => {
+                setShowReschedule(open);
+                if (!open) setSelectedBooking(null);
+              }} 
+              onConfirm={() => {
+                if (selectedBooking) confirmReschedule(selectedBooking);
+              }} 
+              title="Reschedule Booking?" 
+              icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+              description={`Are you sure you want to reschedule this booking${selectedBooking?.worker?.name ? ` with ${selectedBooking.worker.name}` : ''}?`}
+              confirmText="Yes, Reschedule Booking"
+              cancelText="Cancel"
           />
-        ) : null}
-      </ScrollView>
+      )}
+      {showCancelConfirm && (
+          <ConfirmActionSheet 
+              isOpen={showCancelConfirm} 
+              isOpenChange={(open) => {
+                setShowCancelConfirm(open);
+                if (!open) setSelectedBooking(null);
+              }} 
+              onConfirm={() => {
+                if (selectedBooking) handleConfirmCancel(selectedBooking);
+              }} 
+              title="Cancel Booking?" 
+              icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+              description={`Are you sure you want to cancel this booking? This action cannot be reversed.${selectedBooking?.worker?.name ? ` ${selectedBooking.worker.name} will also be notified.` : ''}`}
+              confirmText="Yes, Cancel Booking"
+              cancelText="Cancel"
+          />
+      )}
+      {showDeleteConfirm && (
+          <ConfirmActionSheet 
+              isOpen={showDeleteConfirm} 
+              isOpenChange={(open) => {
+                setShowDeleteConfirm(open);
+                if (!open) setSelectedBooking(null);
+              }} 
+              onConfirm={() => {
+                if (selectedBooking) handleConfirmDelete(selectedBooking);
+              }} 
+              title="Delete Booking?" 
+              icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+              description="Are you sure you want to delete this booking? This action cannot be reversed."
+              confirmText="Yes, Delete"
+              cancelText="Cancel"
+          />
+      )}
+      {showRebookConfirm && (
+          <ConfirmActionSheet 
+              isOpen={showRebookConfirm} 
+              isOpenChange={(open) => {
+                setShowRebookConfirm(open);
+                if (!open) setSelectedBooking(null);
+              }} 
+              onConfirm={() => {
+                if (selectedBooking) handleConfirmRebook(selectedBooking);
+              }} 
+              title="Rebook Booking?" 
+              icon={<Image source={require('@/assets/images/event.png')} style={styles.dangerIcon} />}
+              description={`Are you sure you want to book another session${selectedBooking?.worker?.name ? ` with ${selectedBooking.worker.name}` : ''}?`}
+              confirmText="Yes, Rebook Booking"
+              cancelText="Cancel"
+          />
+      )}
+      {showReportConfirm && (
+          <ConfirmActionSheet 
+              isOpen={showReportConfirm} 
+              isOpenChange={(open) => {
+                setShowReportConfirm(open);
+                if (!open) setSelectedBooking(null);
+              }} 
+              onConfirm={() => {
+                if (selectedBooking) handleConfirmReport(selectedBooking);
+              }} 
+              title="Report Booking?" 
+              icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
+              description={`Are you sure you want to report this booking${selectedBooking?.worker?.name ? ` with ${selectedBooking.worker.name}` : ''}?`}
+              confirmText="Yes, Report Booking"
+              cancelText="Cancel"
+          />
+      )}
     </ThemedSafeAreaView>
   );
 }
@@ -143,13 +307,8 @@ const styles = StyleSheet.create({
   containerStyle: {
     flex: 1,
   },
-  scroll: {
+  timelineWrap: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(100),
-    flexGrow: 1,
   },
   header: {
     paddingHorizontal: widthPixel(16),
@@ -177,9 +336,8 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(14),
     fontFamily: 'Regular',
   },
-  emptyContainer: {
-    flex: 1,
-    paddingTop: heightPixel(48),
-    minHeight: heightPixel(200),
-  },
+  dangerIcon: {
+      width: widthPixel(60),
+      height: widthPixel(60),
+  }
 });
