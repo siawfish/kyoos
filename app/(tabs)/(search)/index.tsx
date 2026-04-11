@@ -565,8 +565,6 @@ export default function HomeScreen() {
                     >
                         <WorkerMapMarker
                             worker={artisan}
-                            pinColor={tintColor}
-                            estimatedDuration={60}
                             onPress={handleMarkerPress}
                             displayCost={false}
                         />

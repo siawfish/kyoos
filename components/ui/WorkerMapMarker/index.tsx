@@ -81,8 +81,11 @@ export default function WorkerMapMarker({
     );
 
     const workerCost = useMemo(() => {
+        if (!displayCost) {
+            return 0;
+        }
         return calculateWorkerCost(worker, estimatedDuration || 0);
-    }, [worker, estimatedDuration]);
+    }, [displayCost, worker, estimatedDuration]);
 
     const initial = useMemo(() => {
         const n = worker.name?.trim();

@@ -71,13 +71,16 @@ export interface Skill {
 export interface Worker {
     id: string;
     name: string;
-    email: string;
+    /** Omitted on geo/search list responses; present on full profile fetches. */
+    email?: string;
     gender: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     location: Location;
     coordinates: [number, number];
-    workingHours: Record<Weekday, WorkingDay>;
-    ghanaCard: GhanaCard;
+    /** Omitted on geo/search list responses. */
+    workingHours?: Record<Weekday, WorkingDay>;
+    /** Omitted on geo/search list responses. */
+    ghanaCard?: GhanaCard;
     skills: Skill[];
     settings: Settings;
     avatar: string;
