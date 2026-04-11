@@ -1,36 +1,13 @@
 import BackButton from '@/components/ui/BackButton'
-import Button from '@/components/ui/Button'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import { colors } from '@/constants/theme/colors'
-import { useThemeColor } from '@/hooks/use-theme-color'
-import Ionicons from '@expo/vector-icons/Ionicons'
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
 const Header = ({
-  onReschedule,
   onBack
 }: {
-  onReschedule?: {
-    onPress: () => void;
-    label: string;
-  };
   onBack: () => void;
 }) => {
-    const color = useThemeColor(
-      {
-        light: colors.light.text,
-        dark: colors.dark.text,
-      },
-      "text"
-    );
-    const borderColor = useThemeColor(
-      {
-        light: colors.light.black,
-        dark: colors.dark.white,
-      },
-      "text"
-    );
     return (
         <View style={styles.header}>
             <View style={styles.backButtonContainer}>
@@ -39,17 +16,6 @@ const Header = ({
                 iconName='arrow-left'
                 onPress={onBack}
               />
-              {
-                onReschedule && (
-                  <Button 
-                    style={{...styles.rescheduleButton, borderColor: borderColor}}
-                    labelStyle={{...styles.rescheduleLabel, color: color}}
-                    icon={<Ionicons name="calendar" size={fontPixel(16)} color={color} />}
-                    label={onReschedule.label}
-                    onPress={onReschedule.onPress}
-                  />
-                )
-              }
             </View>
         </View>
     )

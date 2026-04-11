@@ -139,7 +139,7 @@ const Details = () => {
   if (!booking) {
     return (
       <ThemedSafeAreaView style={styles.container}>
-        <Header onReschedule={determineRescheduleAction()} onBack={handleBack} />
+        <Header onBack={handleBack} />
         <EmptyList
           containerStyle={styles.notFoundContainer}
           message="The booking you're looking for doesn't exist or has been removed."
@@ -151,7 +151,6 @@ const Details = () => {
   return (
     <ThemedSafeAreaView style={styles.container}>
       <Header 
-        onReschedule={determineRescheduleAction()} 
         onBack={handleBack} 
       />
       <View style={styles.contentContainer}>
