@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 
 /** Fixed width for start/end times — keeps cards full width on the right. */
-const TIME_RAIL_WIDTH = widthPixel(56);
+const TIME_RAIL_WIDTH = widthPixel(58);
 const ROW_GAP = heightPixel(14);
 
 export type ParsedBooking = {
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   agendaRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: widthPixel(12),
+    gap: widthPixel(8),
   },
   timeRail: {
     paddingTop: heightPixel(2),

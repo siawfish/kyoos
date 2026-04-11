@@ -2,7 +2,8 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFooter, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Image, Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
@@ -80,6 +81,59 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
     }
   }, [handleClose]);
 
+  const renderFooter = useCallback(
+    (props: BottomSheetDefaultFooterProps) => (
+      <BottomSheetFooter {...props}>
+        <View style={[styles.buttonContainer, styles.footerWrap, { backgroundColor }]}>
+          <TouchableOpacity
+            onPress={onCancel || handleClose}
+            style={[styles.outlineButton, { borderColor }]}
+          >
+            <ThemedText
+              style={[styles.outlineButtonText, { color: textColor }]}
+              lightColor={colors.light.text}
+              darkColor={colors.dark.text}
+            >
+              {cancelText.toUpperCase()}
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleConfirm}
+            style={[
+              styles.confirmButton,
+              {
+                borderColor,
+                backgroundColor: isDark ? colors.dark.white : colors.light.black,
+              },
+              confirmButtonStyle,
+            ]}
+          >
+            <ThemedText
+              style={[styles.confirmButtonText, confirmTextStyle]}
+              lightColor={colors.light.white}
+              darkColor={colors.dark.black}
+            >
+              {confirmText.toUpperCase()}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetFooter>
+    ),
+    [
+      backgroundColor,
+      borderColor,
+      cancelText,
+      confirmButtonStyle,
+      confirmText,
+      confirmTextStyle,
+      handleClose,
+      handleConfirm,
+      isDark,
+      onCancel,
+      textColor,
+    ]
+  );
+
   if (!isOpen) return null;
 
   return (
@@ -101,6 +155,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
           onClose={handleClose}
           enablePanDownToClose={true}
           enableDynamicSizing={false}
+          footerComponent={renderFooter}
           backgroundStyle={{
             backgroundColor,
             borderTopLeftRadius: 0,
@@ -138,40 +193,6 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
             >
               {description}
             </ThemedText>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={onCancel || handleClose}
-                style={[styles.outlineButton, { borderColor }]}
-              >
-                <ThemedText 
-                  style={[styles.outlineButtonText, { color: textColor }]}
-                  lightColor={colors.light.text}
-                  darkColor={colors.dark.text}
-                >
-                  {cancelText.toUpperCase()}
-                </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleConfirm}
-                style={[
-                  styles.confirmButton, 
-                  { 
-                    borderColor,
-                    backgroundColor: isDark ? colors.dark.white : colors.light.black,
-                  }, 
-                  confirmButtonStyle
-                ]}
-              >
-                <ThemedText 
-                  style={[styles.confirmButtonText, confirmTextStyle]}
-                  lightColor={colors.light.white}
-                  darkColor={colors.dark.black}
-                >
-                  {confirmText.toUpperCase()}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
           </BottomSheetView>
         </BottomSheet>
       </View>
@@ -187,7 +208,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingTop: heightPixel(20),
-    paddingBottom: heightPixel(20),
+    paddingBottom: heightPixel(16),
     overflow: 'hidden',
   },
   header: {
@@ -233,8 +254,11 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(15),
     fontFamily: 'Regular',
     lineHeight: fontPixel(22),
-    marginBottom: heightPixel(32),
+    marginBottom: heightPixel(20),
     paddingHorizontal: widthPixel(20),
+  },
+  footerWrap: {
+    paddingBottom: heightPixel(50),
   },
   buttonContainer: {
     flexDirection: 'row',
