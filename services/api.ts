@@ -1,10 +1,8 @@
 import api from './axios';
-import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig, isAxiosError } from 'axios';
-import { actions as appActions } from '@/redux/app/slice';
+import { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig, isAxiosError } from 'axios';
 import { ApiResponse } from './types';
-import { getItemFromStorage, setItemToStorage, removeItemFromStorage } from './asyncStorage';
-
-const baseURL = process.env.EXPO_PUBLIC_API_URL;
+import { getItemFromStorage } from './asyncStorage';
+import { refreshUserSession } from './authRefresh';
 
 function toApiErrorShape(err: unknown): { error?: string; message?: string } {
   if (isAxiosError(err)) {
@@ -23,42 +21,6 @@ function isRefreshEndpointRequest(config: InternalAxiosRequestConfig): boolean {
   const url = config.url ?? '';
   return url.includes('/auth/refresh');
 }
-
-async function dispatchSessionRefreshed(accessToken: string) {
-  try {
-    const { store } = await import('@/store');
-    store.dispatch(appActions.setIsAuthenticated(accessToken));
-  } catch {
-    // Store may not be initialized yet
-  }
-}
-
-async function dispatchSessionCleared() {
-  try {
-    const { store } = await import('@/store');
-    store.dispatch(appActions.resetAppState());
-  } catch {
-    // Store may not be initialized yet
-  }
-}
-
-// Refresh token queue management
-let isRefreshing = false;
-let failedQueue: {
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
-}[] = [];
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token!);
-    }
-  });
-  failedQueue = [];
-};
 
 // Request Interceptor
 api.interceptors.request.use(
@@ -100,52 +62,18 @@ api.interceptors.response.use(
       return Promise.reject(errorResponse);
     }
 
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      })
-        .then((token) => {
-          originalRequest._retry = true;
-          if (!originalRequest.headers) {
-            originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
-          }
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        })
-        .catch((err) => Promise.reject(err));
-    }
-
     originalRequest._retry = true;
-    isRefreshing = true;
 
-    try {
-      const response = await axios.post(`${baseURL}/api/users/auth/refresh`, {
-        refreshToken,
-      });
-
-      const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-
-      await setItemToStorage('token', accessToken);
-      await setItemToStorage('refreshToken', newRefreshToken);
-
-      await dispatchSessionRefreshed(accessToken);
-
-      processQueue(null, accessToken);
-      if (!originalRequest.headers) {
-        originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
-      }
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-      return api(originalRequest);
-    } catch (refreshError) {
-      const rejection = toApiErrorShape(refreshError);
-      processQueue(rejection, null);
-      await removeItemFromStorage('token');
-      await removeItemFromStorage('refreshToken');
-      await dispatchSessionCleared();
-      return Promise.reject(rejection);
-    } finally {
-      isRefreshing = false;
+    const accessToken = await refreshUserSession();
+    if (!accessToken) {
+      return Promise.reject(toApiErrorShape(error));
     }
+
+    if (!originalRequest.headers) {
+      originalRequest.headers = {} as InternalAxiosRequestConfig['headers'];
+    }
+    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+    return api(originalRequest);
   }
 );
 
