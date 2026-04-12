@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   conversationItem: {
     width: '100%',
     flexDirection: 'row',
-    marginBottom: heightPixel(16),
+    marginBottom: heightPixel(11),
     borderWidth: 0.5,
     borderLeftWidth: 0,
     overflow: 'hidden',
@@ -101,15 +101,16 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: widthPixel(16),
+    paddingVertical: heightPixel(10),
+    paddingHorizontal: widthPixel(12),
   },
   topRow: {
     flexDirection: 'row',
-    gap: widthPixel(12),
+    gap: widthPixel(8),
   },
   avatarSkeleton: {
-    width: widthPixel(50),
-    height: heightPixel(50),
+    width: widthPixel(42),
+    height: heightPixel(42),
     borderRadius: 0,
   },
   messageContent: {
@@ -119,11 +120,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: heightPixel(8),
+    marginBottom: heightPixel(5),
   },
   senderNameSkeleton: {
     width: widthPixel(120),
-    height: heightPixel(15),
+    height: heightPixel(14),
     borderRadius: 0,
   },
   messagePreview: {
@@ -133,24 +134,24 @@ const styles = StyleSheet.create({
   },
   lastMessageSkeleton: {
     flex: 1,
-    height: heightPixel(15),
+    height: heightPixel(14),
     borderRadius: 0,
   },
   timestampSkeleton: {
     width: widthPixel(60),
-    height: heightPixel(12),
+    height: heightPixel(11),
     borderRadius: 0,
   },
   bookingContext: {
-    marginTop: heightPixel(10),
-    paddingTop: heightPixel(10),
+    marginTop: heightPixel(7),
+    paddingTop: heightPixel(7),
     borderTopWidth: 0.5,
   },
   bookingDescriptionSkeleton: {
     width: '70%',
-    height: heightPixel(13),
+    height: heightPixel(12),
     borderRadius: 0,
-    marginBottom: heightPixel(6),
+    marginBottom: heightPixel(4),
   },
   bookingMeta: {
     flexDirection: 'row',
@@ -160,12 +161,12 @@ const styles = StyleSheet.create({
   },
   bookingDateTimeSkeleton: {
     width: widthPixel(100),
-    height: heightPixel(12),
+    height: heightPixel(11),
     borderRadius: 0,
   },
   statusBadgeSkeleton: {
     width: widthPixel(60),
-    height: heightPixel(18),
+    height: heightPixel(16),
     borderRadius: 0,
   },
 });
