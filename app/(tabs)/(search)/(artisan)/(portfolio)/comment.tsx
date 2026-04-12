@@ -176,7 +176,6 @@ const styles = StyleSheet.create({
     marginBottom: heightPixel(8),
   },
   header: {
-    paddingHorizontal: widthPixel(20),
     gap: widthPixel(10),
     flexDirection: 'row',
     alignItems: 'center',

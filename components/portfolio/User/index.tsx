@@ -2,18 +2,24 @@ import user from "@/assets/images/individual.png";
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid } from 'date-fns';
 import React from 'react';
 import { Image, ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
 
 interface UserProps {
     name: string;
     avatar: string;
-    createdAt: string;
+    createdAt?: string;
     imageStyle?: StyleProp<ImageStyle>;
 }
 
 const User = ({ name, avatar, createdAt, imageStyle }: UserProps) => {
+    const createdDate = createdAt ? new Date(createdAt) : undefined;
+    const relativeCreated =
+        createdDate && isValid(createdDate)
+            ? formatDistanceToNow(createdDate, { addSuffix: true })
+            : null;
+
     return (
         <View style={styles.user}>
             <Image
@@ -27,9 +33,11 @@ const User = ({ name, avatar, createdAt, imageStyle }: UserProps) => {
                 >
                     {name}
                 </ThemedText>
-                <ThemedText darkColor={colors.dark.secondary} lightColor={colors.light.secondary} style={styles.createdAt}>
-                    {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
-                </ThemedText>
+                {relativeCreated != null && (
+                    <ThemedText darkColor={colors.dark.secondary} lightColor={colors.light.secondary} style={styles.createdAt}>
+                        {relativeCreated}
+                    </ThemedText>
+                )}
             </View>
         </View>
     )

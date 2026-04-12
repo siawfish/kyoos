@@ -84,7 +84,31 @@ export default function ArtisanScreen() {
         return (
             <>
                 <AccentScreenHeader
+                    layout="accentToolbar"
                     paddingPreset="none"
+                    afterAccent={
+                        <View style={styles.backButtonContainer}>
+                            <BackButton
+                                iconName="arrow-left"
+                                onPress={() => router.back()}
+                            />
+                            <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
+                                <IconButton 
+                                    style={styles.chatButton}
+                                    lightColor={colors.light.black}
+                                    darkColor={colors.dark.white}
+                                >
+                                    <Ionicons 
+                                        name="chatbox-ellipses-outline" 
+                                        size={24} 
+                                        color={isDark ? colors.dark.black : colors.light.white} 
+                                    />
+                                </IconButton>
+                            </Link>
+                        </View>
+                    }
+                    toolbarBottomGap={heightPixel(8)}
+                    accentSpacing="loose"
                     containerStyle={styles.header}
                     accentColor={accentColor}
                     label="WORKER"
@@ -94,43 +118,49 @@ export default function ArtisanScreen() {
                 <ProfileCard worker={artisan!} />
 
                 {/* Skills & Rate Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionLabelContainer}>
-                        <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
-                    </View>
-                    <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
-                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                        <View style={styles.skillsContent}>
-                            {artisan?.skills?.map((skill, index) => (
-                                <View 
-                                    key={index} 
-                                    style={[
-                                        styles.skillItem, 
-                                        { borderColor },
-                                        index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
-                                    ]}
-                                >
-                                    <View style={styles.skillInfo}>
-                                        <ThemedText style={[styles.skillName, { color: textColor }]}>
-                                            {skill.name}
-                                        </ThemedText>
-                                        <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
-                                            HOURLY RATE
-                                        </ThemedText>
-                                    </View>
-                                    <View style={styles.rateContainer}>
-                                        <ThemedText style={[styles.skillRate, { color: textColor }]}>
-                                            GH₵{skill.rate}
-                                        </ThemedText>
-                                        <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
-                                            /hr
-                                        </ThemedText>
+                {
+                    artisan?.skills?.length > 0 && (
+                        <>
+                            <View style={styles.section}>
+                                <View style={styles.sectionLabelContainer}>
+                                    <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
+                                </View>
+                                <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
+                                    <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                                    <View style={styles.skillsContent}>
+                                        {artisan?.skills?.map((skill, index) => (
+                                            <View 
+                                                key={index} 
+                                                style={[
+                                                    styles.skillItem, 
+                                                    { borderColor },
+                                                    index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
+                                                ]}
+                                            >
+                                                <View style={styles.skillInfo}>
+                                                    <ThemedText style={[styles.skillName, { color: textColor }]}>
+                                                        {skill.name}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
+                                                        HOURLY RATE
+                                                    </ThemedText>
+                                                </View>
+                                                <View style={styles.rateContainer}>
+                                                    <ThemedText style={[styles.skillRate, { color: textColor }]}>
+                                                        GH₵{skill.rate}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
+                                                        /hr
+                                                    </ThemedText>
+                                                </View>
+                                            </View>
+                                        ))}
                                     </View>
                                 </View>
-                            ))}
-                        </View>
-                    </View>
-                </View>
+                            </View>
+                        </>
+                    )
+                }
                 <View style={styles.section}>
                     <View style={styles.sectionLabelContainer}>
                         <Text style={[styles.sectionLabel, { color: labelColor }]}>RECENT WORKS</Text>
@@ -149,25 +179,6 @@ export default function ArtisanScreen() {
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.backButtonContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={() => router.back()}
-                />
-                <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
-                    <IconButton 
-                        style={styles.chatButton}
-                        lightColor={colors.light.black}
-                        darkColor={colors.dark.white}
-                    >
-                        <Ionicons 
-                            name="chatbox-ellipses-outline" 
-                            size={24} 
-                            color={isDark ? colors.dark.black : colors.light.white} 
-                        />
-                    </IconButton>
-                </Link>
-            </View>
             <FlashList 
                 style={styles.content} 
                 contentContainerStyle={styles.scrollContent}
@@ -187,8 +198,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     backButtonContainer: {
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(16),
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
