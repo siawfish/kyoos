@@ -8,7 +8,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import ContactCard from './ContactCard'
 import BookingStatus from './Status'
 
@@ -40,27 +39,6 @@ const BookingDetails = ({
             contentContainerStyle={styles.mainContainer}
             showsVerticalScrollIndicator={false}
         >
-            <AccentScreenHeader
-                paddingPreset="none"
-                containerStyle={styles.headerSection}
-                accentSpacing="split"
-                label="BOOKING DETAILS"
-                labelStyle={{ letterSpacing: 2 }}
-                title={booking?.description}
-                titlePreset="detail"
-            >
-                <View style={styles.clientRow}>
-                    <Text style={[styles.withText, { color: labelColor }]}>with</Text>
-                      <Image 
-                        source={{ uri: booking?.worker?.avatar }} 
-                        style={[styles.avatar, { backgroundColor: labelColor }]}
-                      />
-                    <Text style={[styles.clientName, { color: textColor }]}>
-                        {booking?.worker?.name}
-                    </Text>
-                </View>
-            </AccentScreenHeader>
-
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
                 <BookingStatus booking={booking} />
@@ -157,27 +135,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(16),
         gap: heightPixel(24),
         paddingBottom: heightPixel(100),
-    },
-    headerSection: {
-        paddingTop: heightPixel(8),
-    },
-    clientRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-    },
-    withText: {
-        fontSize: fontPixel(14),
-        fontFamily: 'Regular',
-    },
-    avatar: {
-        width: widthPixel(24),
-        height: widthPixel(24),
-        borderRadius: 0,
-    },
-    clientName: {
-        fontSize: fontPixel(14),
-        fontFamily: 'SemiBold',
     },
     statusRow: {
         flexDirection: 'row',

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Image, ActivityIndicator, View } from "react-native";
+import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import BookingDetails from "@/components/bookings/BookingDetails";
-import Header from "@/components/bookings/BookingDetails/Header";
 import Actions from "@/components/bookings/BookingDetails/Actions";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
+import BackButton from "@/components/ui/BackButton";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -13,7 +14,6 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings/selector";
 import { actions } from "@/redux/bookings/slice";
 import { Booking } from "@/redux/booking/types";
-import { BookingStatuses } from "@/redux/app/types";
 import EmptyList from "@/components/ui/EmptyList";
 
 const Details = () => {
@@ -46,16 +46,48 @@ const Details = () => {
   }, [dispatch, stateBooking, id]);
   
   const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const textColor = isDark ? colors.dark.text : colors.light.text;
+  const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
 
   const handleBack = () => {
     router.back();
   };
 
+  const renderBookingDetailHeader = (b: Booking | null | undefined) => (
+    <AccentScreenHeader
+      layout="accentToolbar"
+      paddingPreset="consumerSettingsNested"
+      accentColor={accentColor}
+      accentSpacing="split"
+      afterAccent={
+        <BackButton iconName="arrow-left" onPress={handleBack} />
+      }
+      toolbarBottomGap={heightPixel(10)}
+      label={b ? "BOOKING DETAILS" : undefined}
+      labelStyle={b ? { letterSpacing: 2 } : undefined}
+      title={b?.description}
+      titlePreset="detail"
+    >
+      {b ? (
+        <View style={styles.clientRow}>
+          <Text style={[styles.withText, { color: labelColor }]}>with</Text>
+          <Image
+            source={{ uri: b.worker?.avatar }}
+            style={[styles.avatar, { backgroundColor: labelColor }]}
+          />
+          <Text style={[styles.clientName, { color: textColor }]}>
+            {b.worker?.name}
+          </Text>
+        </View>
+      ) : null}
+    </AccentScreenHeader>
+  );
+
   // Loading state
   if (isLoading && !booking) {
     return (
       <ThemedSafeAreaView style={styles.container}>
-        <Header onBack={handleBack} />
+        {renderBookingDetailHeader(undefined)}
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
@@ -125,7 +157,7 @@ const Details = () => {
   if (!booking) {
     return (
       <ThemedSafeAreaView style={styles.container}>
-        <Header onBack={handleBack} />
+        {renderBookingDetailHeader(undefined)}
         <EmptyList
           containerStyle={styles.notFoundContainer}
           message="The booking you're looking for doesn't exist or has been removed."
@@ -136,9 +168,7 @@ const Details = () => {
 
   return (
     <ThemedSafeAreaView style={styles.container}>
-      <Header 
-        onBack={handleBack} 
-      />
+      {renderBookingDetailHeader(booking)}
       <View style={styles.contentContainer}>
         <BookingDetails booking={booking} />
       </View>
@@ -218,6 +248,24 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  clientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(8),
+  },
+  withText: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
+  },
+  avatar: {
+    width: widthPixel(24),
+    height: widthPixel(24),
+    borderRadius: 0,
+  },
+  clientName: {
+    fontSize: fontPixel(14),
+    fontFamily: 'SemiBold',
   },
   dangerIcon: {
     width: widthPixel(60),
