@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
@@ -13,6 +13,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import InputField from '@/components/ui/TextInput';
 import LocationMapPicker from './LocationMapPicker';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import { selectUserLocation, selectUserLocationIsMapPickerOpen } from '@/redux/app/selector';
 import { actions } from '@/redux/app/slice';
@@ -84,25 +85,31 @@ export default function LocationSelector() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section */}
-        <View style={styles.headerSection}>
-          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          <View style={styles.header}>
-            <BackButton 
-              iconName='arrow-left'
-              onPress={() => router.back()}
-            />
-          </View>
-          <ThemedText style={[styles.label, { color: secondaryColor }]}>
-            YOUR LOCATION
-          </ThemedText>
-          <ThemedText style={[styles.title, { color: textColor }]}>
-            Where are you located?
-          </ThemedText>
-          <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
-            This helps us connect you with nearby artisans
-          </ThemedText>
-        </View>
+        <AccentScreenHeader
+          layout="accentToolbar"
+          paddingPreset="none"
+          containerStyle={styles.headerSection}
+          accentColor={accentColor}
+          afterAccent={
+            <View style={styles.header}>
+              <BackButton 
+                iconName='arrow-left'
+                onPress={() => router.back()}
+              />
+            </View>
+          }
+          label="YOUR LOCATION"
+          title={
+            <ThemedText style={[styles.title, { color: textColor }]}>
+              Where are you located?
+            </ThemedText>
+          }
+          subtitle={
+            <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+              This helps us connect you with nearby artisans
+            </ThemedText>
+          }
+        />
 
         {/* Input Section */}
         <View style={styles.inputSection}>
@@ -192,19 +199,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(20),
     paddingBottom: heightPixel(20),
   },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
   header: {
     marginBottom: heightPixel(16),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-    marginBottom: heightPixel(8),
   },
   title: {
     fontSize: fontPixel(32),

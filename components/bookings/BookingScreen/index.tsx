@@ -1,4 +1,5 @@
 import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
@@ -122,10 +123,13 @@ export default function BookingScreen() {
                     onPress={handleBackPress}
                 />
             </View>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.label, { color: labelColor }]}>BOOK SERVICE</Text>
+            <AccentScreenHeader
+                paddingPreset="none"
+                containerStyle={styles.header}
+                accentColor={accentColor}
+                label="BOOK SERVICE"
+                labelStyle={{ marginBottom: heightPixel(12) }}
+            >
                 <View style={styles.headerSubtitle}>
                     <ThemedText 
                         type="defaultSemiBold" 
@@ -149,7 +153,7 @@ export default function BookingScreen() {
                         {artisan?.name}
                     </ThemedText>
                 </View>
-            </View>
+            </AccentScreenHeader>
 
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -285,17 +289,6 @@ const styles = StyleSheet.create({
     header: {
         paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
-        marginBottom: heightPixel(12),
     },
     headerSubtitle: {
         flexDirection: 'row',

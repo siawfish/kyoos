@@ -1,9 +1,9 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { BookingStatuses, Media, MimeType } from '@/redux/app/types';
@@ -43,12 +43,9 @@ function getVideoMimeType(mime: string | undefined): MimeType {
 }
 
 export default function ConversationScreen() {
-  const appTheme = useAppTheme();
-  const isDark = appTheme === 'dark';
   const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
   const conversations = useAppSelector(selectConversations);
   const conversationMessages = useAppSelector(selectCurrentConversationMessages);
   const [inputText, setInputText] = useState('');
@@ -337,26 +334,22 @@ export default function ConversationScreen() {
 
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <View style={styles.header}>
-          <BackButton onPress={() => router.back()} iconName="arrow-left" />
-          <View style={styles.headerRight}>
-            {/* {otherParticipant?.avatar ? (
-              <Image source={{ uri: otherParticipant.avatar }} style={styles.headerAvatar} />
-            ) : (
-              <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
-                <ThemedText style={[styles.headerAvatarText, { color: whiteColor }]}>
-                  {otherParticipant?.name?.charAt(0).toUpperCase() || '?'}
-                </ThemedText>
-              </View>
-            )} */}
-            <TouchableOpacity onPress={handleBookingPress}>
-              <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
-            </TouchableOpacity>
+      <AccentScreenHeader
+        layout="accentToolbar"
+        paddingPreset="conversationToolbar"
+        accentSpacing="tight"
+        toolbarBottomGap={0}
+        afterAccent={
+          <View style={styles.header}>
+            <BackButton onPress={() => router.back()} iconName="arrow-left" />
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={handleBookingPress}>
+                <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </View>
+        }
+      />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -426,15 +419,6 @@ export default function ConversationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  headerSection: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(10),
   },
   header: {
     flexDirection: 'row',

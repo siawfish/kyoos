@@ -1,3 +1,4 @@
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import BackButton from "@/components/ui/BackButton";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
@@ -120,25 +121,22 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     }}
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
-                        {/* Header */}
-                        <View style={styles.header}>
-                            <View style={styles.headerLeft}>
-                                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                                <View style={styles.headerLabelRow}>
-                                    <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                                        ARTISAN OPTIONS
-                                    </ThemedText>
-                                </View>
-                                <ThemedText 
+                        <AccentScreenHeader
+                            layout="split"
+                            paddingPreset="modalStack"
+                            accentColor={accentColor}
+                            label="ARTISAN OPTIONS"
+                            title={
+                                <ThemedText
                                     style={[styles.headerTitle, { color: textColor }]}
                                     lightColor={colors.light.text}
                                     darkColor={colors.dark.text}
                                 >
                                     {artisan?.name || 'Service Provider'}
                                 </ThemedText>
-                            </View>
-                            <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
-                        </View>
+                            }
+                            right={<BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />}
+                        />
 
                         {/* Children Container */}
                         {children && (
@@ -204,32 +202,6 @@ const styles = StyleSheet.create({
     bottomSheetContent: {
         flex: 1,
         paddingBottom: heightPixel(40),
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
-        paddingBottom: heightPixel(24),
-    },
-    headerLeft: {
-        flex: 1,
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerLabelRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: heightPixel(8),
-    },
-    headerLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
     },
     headerTitle: {
         fontSize: fontPixel(24),

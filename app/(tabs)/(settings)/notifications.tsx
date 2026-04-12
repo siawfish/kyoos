@@ -1,4 +1,5 @@
 import SettingsToggle from "@/components/settings/SettingsToggle";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import BackButton from "@/components/ui/BackButton";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
@@ -10,7 +11,7 @@ import { selectIsUpdatingNotifications, selectUser } from "@/redux/app/selector"
 import { actions } from "@/redux/app/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
   
 const NotificationsScreen = () => {
   const user = useAppSelector(selectUser)
@@ -23,12 +24,7 @@ const NotificationsScreen = () => {
     light: colors.light.background,
     dark: colors.dark.background
   }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const cardBg = useThemeColor({
     light: colors.light.background,
     dark: colors.dark.background
@@ -47,13 +43,12 @@ const NotificationsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerSection}>
-          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          <View style={styles.header}>
-            <BackButton onPress={() => router.back()} iconName="arrow-left" />
-          </View>
-          <Text style={[styles.label, { color: labelColor }]}>NOTIFICATIONS</Text>
-        </View>
+        <AccentScreenHeader
+          layout="accentToolbar"
+          paddingPreset="consumerSettingsNested"
+          afterAccent={<BackButton onPress={() => router.back()} iconName="arrow-left" />}
+          label="NOTIFICATIONS"
+        />
 
         <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>
           <SettingsToggle
@@ -89,23 +84,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: heightPixel(100),
-  },
-  headerSection: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  header: {
-    marginBottom: heightPixel(16),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
   },
   settingsGroup: {
     marginHorizontal: widthPixel(20),

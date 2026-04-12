@@ -6,7 +6,8 @@ import BottomSheet, { BottomSheetFooter, BottomSheetView } from '@gorhom/bottom-
 import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Image, Modal, StyleProp, StyleSheet, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { AccentScreenHeader } from '../AccentScreenHeader';
 import BackButton from '../BackButton';
 import { ThemedText } from '../Themed/ThemedText';
 
@@ -50,8 +51,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
     },
     "background"
   );
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const labelColor = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
@@ -165,20 +165,14 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
           }}
         >
           <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <View style={[styles.accentBar, { backgroundColor: borderColor }]} />
-                <Text style={[styles.label, { color: labelColor }]}>CONFIRMATION</Text>
-                <ThemedText 
-                  style={[styles.title, { color: textColor }]} 
-                  lightColor={colors.light.text} 
-                  darkColor={colors.dark.text}
-                >
-                  {title}
-                </ThemedText>
-              </View>
-              <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-            </View>
+            <AccentScreenHeader
+              layout="split"
+              paddingPreset="sheetSplit"
+              accentColor={borderColor}
+              label="CONFIRMATION"
+              title={title}
+              right={<BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+            />
 
             {icon && (
               <View style={styles.iconContainer}>
@@ -210,33 +204,6 @@ const styles = StyleSheet.create({
     paddingTop: heightPixel(20),
     paddingBottom: heightPixel(16),
     overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: widthPixel(20),
-    paddingBottom: heightPixel(24),
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(16),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-    marginBottom: heightPixel(8),
-  },
-  title: {
-    fontSize: fontPixel(24),
-    fontFamily: 'Bold',
-    letterSpacing: -0.5,
-    lineHeight: fontPixel(28),
   },
   closeButton: {
     marginTop: heightPixel(8),

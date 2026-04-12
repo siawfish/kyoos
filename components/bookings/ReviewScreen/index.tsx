@@ -1,3 +1,4 @@
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import MediaPreviews from "@/components/ui/MediaPreviews";
@@ -158,8 +159,17 @@ export default function ReviewBooking() {
                     iconName="arrow-left"
                     onPress={() => router.back()}
                 />
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.pageTitle, { color: labelColor }]}>REVIEW BOOKING</Text>
+                <AccentScreenHeader
+                    paddingPreset="none"
+                    containerStyle={styles.reviewAccentHeader}
+                    accentColor={accentColor}
+                    accentBarStyle={{
+                        height: heightPixel(3),
+                        marginBottom: heightPixel(16),
+                    }}
+                    label="REVIEW BOOKING"
+                    labelStyle={[styles.pageTitle, { color: labelColor }]}
+                />
             </View>
 
             <ScrollView 
@@ -410,10 +420,8 @@ const styles = StyleSheet.create({
         paddingBottom: heightPixel(8),
         gap: heightPixel(8),
     },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(3),
-        marginBottom: heightPixel(16),
+    reviewAccentHeader: {
+        paddingHorizontal: 0,
     },
     Title: {
         fontSize: fontPixel(10),

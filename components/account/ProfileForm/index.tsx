@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform, Text } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
@@ -7,9 +7,12 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
+import BackButton from '@/components/ui/BackButton';
+import { router } from 'expo-router';
 
 export default function ProfileForm({
     registerForm,
@@ -62,18 +65,23 @@ export default function ProfileForm({
                 showsVerticalScrollIndicator={false}
             >
                 <ThemedView style={styles.container}>
-                    <View style={styles.contentContainer}>
-                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                        <Text style={[styles.label, { color: subtitleColor }]}>
-                            REGISTER
-                        </Text>
-                        <Text style={[styles.title, { color: textColor }]}>
-                            Profile info
-                        </Text>
-                        <Text style={[styles.subtitle, { color: subtitleColor }]}>
-                            Please provide your name and an optional profile photo
-                        </Text>
-                    </View>
+                    <AccentScreenHeader
+                        layout="accentToolbar"
+                        paddingPreset="none"
+                        afterAccent={
+                        <View style={styles.header}>
+                            <BackButton onPress={() => router.back()} iconName="arrow-left" />
+                        </View>
+                        }
+                        toolbarBottomGap={heightPixel(8)}
+                        accentSpacing="loose"
+                        label="USER PROFILE"
+                        title="Profile info"
+                        titleStyle={[styles.title, { color: textColor }]}
+                        subtitle="Please provide your name and an optional profile photo"
+                        subtitleStyle={[styles.subtitle, { color: subtitleColor }]}
+                        containerStyle={styles.contentContainer}
+                    />
 
                     <View style={styles.gap}>
                         <UploadProfilePhoto 
@@ -131,11 +139,6 @@ const styles = StyleSheet.create({
         paddingTop: heightPixel(24),
         marginBottom: heightPixel(24),
     },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
-    },
     title: {
         fontSize: fontPixel(32),
         fontFamily: 'Bold',
@@ -148,6 +151,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Regular',
         lineHeight: fontPixel(22),
     },
+    header: {
+      marginBottom: heightPixel(8),
+    },  
     gap: {
         flexDirection: 'column',
         gap: heightPixel(16),
@@ -160,11 +166,5 @@ const styles = StyleSheet.create({
         backgroundColor: colors.light.grey,
         borderRadius: widthPixel(16),
         marginBottom: heightPixel(12),
-    },
-    label: {
-        fontSize: fontPixel(11),
-        fontFamily: 'SemiBold',
-        letterSpacing: 2,
-        marginBottom: heightPixel(8),
     },
 });

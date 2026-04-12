@@ -1,6 +1,7 @@
 import ProfileCard from "@/components/account/ProfileCard";
 import Portfolio from "@/components/portfolio/Portfolio";
 import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import EmptyList from "@/components/ui/EmptyList";
 import BackButton from "@/components/ui/BackButton";
 import IconButton from "@/components/ui/IconButton";
@@ -82,11 +83,12 @@ export default function ArtisanScreen() {
     const renderHeader = () => {
         return (
             <>
-                {/* Header Section */}
-                <View style={styles.header}>
-                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>WORKER</Text>
-                </View>
+                <AccentScreenHeader
+                    paddingPreset="none"
+                    containerStyle={styles.header}
+                    accentColor={accentColor}
+                    label="WORKER"
+                />
 
                 {/* Basic Info Section */}
                 <ProfileCard worker={artisan!} />
@@ -200,16 +202,6 @@ const styles = StyleSheet.create({
     },
     header: {
         marginBottom: heightPixel(24),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
     },
     section: {
         marginTop: heightPixel(24),

@@ -1,13 +1,11 @@
 import BookingDayTimeline from '@/components/bookings/BookingDayTimeline';
 import WeekCalendar from '@/components/bookings/WeekCalendar';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import OverlayLoader from '@/components/ui/OverlayLoader';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { formatRelativeDate } from '@/constants/helpers';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
-import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { widthPixel } from '@/constants/normalize';
 import { Booking } from '@/redux/booking/types';
 import {
   selectBookings,
@@ -21,7 +19,7 @@ import { actions } from '@/redux/bookings/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { format, startOfWeek } from 'date-fns';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { selectFetchingConversation } from '@/redux/messaging/selector';
 import { router } from 'expo-router';
@@ -64,25 +62,6 @@ export default function BookingsScreen() {
   useEffect(() => {
     dispatch(actions.fetchBookings());
   }, [dispatch]);
-
-  const theme = useAppTheme();
-  const isDark = theme === 'dark';
-
-  const textColor = useThemeColor(
-    {
-      light: colors.light.text,
-      dark: colors.dark.text,
-    },
-    'text'
-  );
-  const subtitleColor = useThemeColor(
-    {
-      light: colors.light.secondary,
-      dark: colors.dark.secondary,
-    },
-    'text'
-  );
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
 
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -174,18 +153,17 @@ export default function BookingsScreen() {
 
   const pageHeader = useMemo(
     () => (
-      <View style={styles.header}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <Text style={[styles.label, { color: subtitleColor }]}>BOOKINGS</Text>
-        <Text style={[styles.title, { color: textColor }]}>
-          {formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
-        </Text>
-        <Text style={[styles.subtitle, { color: subtitleColor }]}>
-          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-        </Text>
-      </View>
+      <AccentScreenHeader
+        paddingPreset="consumerHero"
+        labelVariant="hero"
+        label="BOOKINGS"
+        title={formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
+        subtitle={format(selectedDate, 'EEEE, MMMM d, yyyy')}
+        titlePreset="hero"
+        titleStyle={{ textTransform: 'capitalize' }}
+      />
     ),
-    [accentColor, subtitleColor, textColor, selectedDate]
+    [selectedDate]
   );
 
   const weekCalendar = useMemo(
@@ -315,32 +293,6 @@ const styles = StyleSheet.create({
   },
   timelineWrap: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: widthPixel(16),
-    marginBottom: heightPixel(24),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(11),
-    fontFamily: 'SemiBold',
-    letterSpacing: 2,
-    marginBottom: heightPixel(8),
-  },
-  title: {
-    fontSize: fontPixel(36),
-    fontFamily: 'Bold',
-    letterSpacing: -1,
-    marginBottom: heightPixel(4),
-    textTransform: 'capitalize',
-  },
-  subtitle: {
-    fontSize: fontPixel(14),
-    fontFamily: 'Regular',
   },
   dangerIcon: {
       width: widthPixel(60),

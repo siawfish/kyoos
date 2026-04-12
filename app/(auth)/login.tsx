@@ -1,11 +1,10 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
 import PhoneInput from '@/components/ui/PhoneInput'
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
 import { validateGhanaianPhoneNumber } from '@/constants/helpers/validations'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
-import { ThemedText } from '@/components/ui/Themed/ThemedText'
 import { colors } from '@/constants/theme/colors'
-import { useAppTheme } from '@/hooks/use-app-theme'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { selectLoginFormIsLoading, selectLoginFormPhoneNumber } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
@@ -17,23 +16,10 @@ export default function Login() {
   const dispatch = useAppDispatch();
   const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
   const isLoading = useAppSelector(selectLoginFormIsLoading);
-  const theme = useAppTheme();
-  const isDark = theme === 'dark';
-  
   const inputBackgroundColor = useThemeColor({
       light: colors.light.white,
       dark: colors.dark.black
   }, 'white');
-
-  const textColor = useThemeColor({
-    light: colors.light.text,
-    dark: colors.dark.text
-  }, 'text');
-  const subtitleColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
 
   useEffect(() => {
     if (phoneNumber.value.length === 10) {
@@ -59,18 +45,18 @@ export default function Login() {
         style={styles.keyboardAvoidingView}
       >
         <View style={styles.mainStyle}>
-          <View style={styles.titleContainer}>
-            <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-            <ThemedText style={[styles.label, { color: subtitleColor }]}>
-              SIGN IN
-            </ThemedText>
-            <ThemedText style={[styles.title, { color: textColor }]}>
-              Enter your{'\n'}phone number
-            </ThemedText>
-            <ThemedText style={[styles.subtitle, { color: subtitleColor }]}>
-              You will receive a 4-digit code to verify your account
-            </ThemedText>
-          </View>
+          <AccentScreenHeader
+            paddingPreset="none"
+            containerStyle={styles.titleContainer}
+            accentSpacing="loose"
+            labelVariant="hero"
+            label="SIGN IN"
+            title={'Enter your\nphone number'}
+            titlePreset="hero"
+            titleStyle={{ marginBottom: heightPixel(16), lineHeight: fontPixel(42) }}
+            subtitle="You will receive a 4-digit code to verify your account"
+            subtitleStyle={{ fontSize: fontPixel(15), lineHeight: fontPixel(22) }}
+          />
           <PhoneInput 
             style={{marginTop: widthPixel(16), backgroundColor: inputBackgroundColor}}
             containerStyle={{marginBottom: '8%'}}
@@ -107,29 +93,6 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingHorizontal: widthPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(24),
-  },
-  label: {
-    fontSize: fontPixel(11),
-    fontFamily: 'SemiBold',
-    letterSpacing: 2,
-    marginBottom: heightPixel(8),
-  },
-  title: {
-    fontSize: fontPixel(36),
-    fontFamily: 'Bold',
-    lineHeight: fontPixel(42),
-    letterSpacing: -1,
-    marginBottom: heightPixel(16),
-  },
-  subtitle: {
-    fontSize: fontPixel(15),
-    fontFamily: 'Regular',
-    lineHeight: fontPixel(22),
   },
   buttonStyle: {
     marginHorizontal: widthPixel(20),

@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { BlurView } from 'expo-blur';
+import { AccentBar } from '@/components/ui/AccentScreenHeader';
 
 interface DateTimeSelectorProps {
     containerStyle?: ViewStyle;
@@ -140,7 +141,7 @@ const DateTimeSelector = ({
                                 <View style={[styles.modalContent, { backgroundColor: cardBg }]}>
                                     {/* Header */}
                                     <View style={styles.modalHeader}>
-                                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+                                        <AccentBar color={accentColor} spacing="split" />
                                         <View style={styles.headerContent}>
                                             <View style={styles.headerLabelRow}>
                                                 <Feather 
@@ -229,11 +230,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(20),
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(16),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
     },
     headerContent: {
         // flex: 1,

@@ -1,4 +1,5 @@
 import SettingsItem from '@/components/settings/SettingItem';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
@@ -64,8 +65,7 @@ const SettingsScreen = () => {
     light: colors.light.background,
     dark: colors.dark.background
   }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const labelColor = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
@@ -90,10 +90,7 @@ const SettingsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerSection}>
-          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          <Text style={[styles.label, { color: labelColor }]}>SETTINGS</Text>
-        </View>
+        <AccentScreenHeader paddingPreset="consumerTab" label="SETTINGS" />
 
         <View style={styles.sectionLabelContainer}>
           <Text style={[styles.sectionLabel, { color: labelColor }]}>GENERAL</Text>
@@ -198,20 +195,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: heightPixel(100),
-  },
-  headerSection: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
   },
   sectionLabelContainer: {
     paddingHorizontal: widthPixel(16),

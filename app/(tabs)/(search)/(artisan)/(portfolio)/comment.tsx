@@ -1,4 +1,5 @@
 import User from '@/components/portfolio/User';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
 import SmartTextArea from '@/components/ui/SmartTextArea';
@@ -82,26 +83,25 @@ const Comment = () => {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.headerSection}>
-                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>
-                        {comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
-                    </Text>
-                </View>
-
-                <View style={styles.header}>
-                    <BackButton onPress={() => router.back()} iconName="arrow-left" />
-                    <Button 
-                        style={styles.btn} 
-                        label={comment ? "UPDATE" : "POST"}
-                        labelStyle={styles.buttonLabel}
-                        disabled={commentForm.comment.length === 0 || isLoading}
-                        onPress={comment ? handleUpdate : handleSubmit}
-                        lightBackgroundColor={colors.light.tint}
-                        darkBackgroundColor={colors.dark.tint}
-                        icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
-                    />
-                </View>
+                <AccentScreenHeader
+                    paddingPreset="none"
+                    containerStyle={styles.headerSection}
+                    label={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
+                >
+                    <View style={styles.header}>
+                        <BackButton onPress={() => router.back()} iconName="arrow-left" />
+                        <Button 
+                            style={styles.btn} 
+                            label={comment ? "UPDATE" : "POST"}
+                            labelStyle={styles.buttonLabel}
+                            disabled={commentForm.comment.length === 0 || isLoading}
+                            onPress={comment ? handleUpdate : handleSubmit}
+                            lightBackgroundColor={colors.light.tint}
+                            darkBackgroundColor={colors.dark.tint}
+                            icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
+                        />
+                    </View>
+                </AccentScreenHeader>
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>
                     <User
@@ -174,16 +174,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(20),
     paddingTop: heightPixel(32),
     marginBottom: heightPixel(8),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
   },
   header: {
     paddingHorizontal: widthPixel(20),

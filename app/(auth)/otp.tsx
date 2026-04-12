@@ -1,5 +1,6 @@
 import OtpField from '@/components/auth/Otp'
 import ResendOtp from '@/components/auth/ResendOtp'
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
@@ -42,7 +43,6 @@ const Otp = () => {
     const isResending = useAppSelector(selectLoginFormIsResending);
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
-    const accentColor = isDark ? colors.dark.white : colors.light.black;
 
     const openHubtelOtpUssd = useCallback(async () => {
         const urls = hubtelOtpUssdTelUrls()
@@ -79,16 +79,21 @@ const Otp = () => {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.mainStyle}>
-                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                        <Text style={[styles.label, { color: subtitleColor }]}>
-                            VERIFICATION
-                        </Text>
-                        <Text style={[styles.title, { color: textColor }]}>
-                            Enter the{'\n'}confirmation code
-                        </Text>
-                        <Text style={[styles.subtitle, { color: subtitleColor }]}>
-                            We sent a code to {phoneNumber.value}.
-                        </Text>
+                        <AccentScreenHeader
+                            paddingPreset="none"
+                            accentSpacing="loose"
+                            labelVariant="hero"
+                            label="VERIFICATION"
+                            title={'Enter the\nconfirmation code'}
+                            titlePreset="hero"
+                            titleStyle={{ marginBottom: heightPixel(16), lineHeight: fontPixel(42) }}
+                            subtitle={`We sent a code to ${phoneNumber.value}.`}
+                            subtitleStyle={{
+                                fontSize: fontPixel(15),
+                                lineHeight: fontPixel(22),
+                                marginBottom: heightPixel(12),
+                            }}
+                        />
                         <Link href="/(auth)/login" asChild>
                             <TouchableOpacity>
                                 <Text style={[styles.changeNumber, { color: textColor }]}>
@@ -159,30 +164,6 @@ const styles = StyleSheet.create({
         marginTop: "15%",
         paddingHorizontal: widthPixel(20),
         marginBottom: heightPixel(24),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(24),
-    },
-    label: {
-        fontSize: fontPixel(11),
-        fontFamily: 'SemiBold',
-        letterSpacing: 2,
-        marginBottom: heightPixel(8),
-    },
-    title: {
-        fontSize: fontPixel(36),
-        fontFamily: 'Bold',
-        lineHeight: fontPixel(42),
-        letterSpacing: -1,
-        marginBottom: heightPixel(16),
-    },
-    subtitle: {
-        fontSize: fontPixel(15),
-        fontFamily: 'Regular',
-        lineHeight: fontPixel(22),
-        marginBottom: heightPixel(12),
     },
     prefixOtpRow: {
         flexDirection: 'row',

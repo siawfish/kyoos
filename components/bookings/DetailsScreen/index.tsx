@@ -99,10 +99,6 @@ const Details = () => {
     dispatch(actions.deleteBooking(booking.id));
   };
 
-  const handleRebook = () => {
-    setShowRebookConfirm(true);
-  };
-
   const handleConfirmRebook = () => {
     if(!booking) return;
     setShowRebookConfirm(false);
@@ -123,16 +119,6 @@ const Details = () => {
     if(!booking) return;
     setShowReportConfirm(false);
     dispatch(actions.reportBooking(booking.id));
-  };
-
-  const determineRescheduleAction = () => {
-    if(booking?.status === BookingStatuses.COMPLETED) {
-      return {
-        onPress: handleRebook,
-        label: 'REBOOK',
-      };
-    }
-    return undefined;
   };
 
   // Booking not found state

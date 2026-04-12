@@ -1,3 +1,4 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -7,7 +8,7 @@ import { SimpleLineIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Options as OptionsType } from '@/redux/app/types';
 
 export function Options({
@@ -37,10 +38,6 @@ export function Options({
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
-    }, 'text');
-    const labelColor = useThemeColor({
-        light: colors.light.secondary,
-        dark: colors.dark.secondary
     }, 'text');
     const successColor = useThemeColor({
         light: colors.light.green,
@@ -114,20 +111,22 @@ export function Options({
                             }}
                         >
                             <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
-                                <View style={styles.header}>
-                                    <View style={styles.headerLeft}>
-                                        <View style={[styles.accentBar, { backgroundColor: borderColor }]} />
-                                        <Text style={[styles.label, { color: labelColor }]}>OPTIONS</Text>
-                                        <ThemedText 
-                                            style={[styles.title, { color: textColor }]} 
-                                            lightColor={colors.light.text} 
+                                <AccentScreenHeader
+                                    layout="split"
+                                    paddingPreset="sheetSplit"
+                                    accentColor={borderColor}
+                                    label="OPTIONS"
+                                    title={
+                                        <ThemedText
+                                            style={[styles.title, { color: textColor }]}
+                                            lightColor={colors.light.text}
                                             darkColor={colors.dark.text}
                                         >
                                             {title}
                                         </ThemedText>
-                                    </View>
-                                    <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-                                </View>
+                                    }
+                                    right={<BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+                                />
 
                                 <View style={styles.optionsContainer}>
                                     {
@@ -175,27 +174,6 @@ const styles = StyleSheet.create({
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(20),
         overflow: 'hidden',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingBottom: heightPixel(24),
-    },
-    headerLeft: {
-        flex: 1,
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
-        marginBottom: heightPixel(8),
     },
     title: {
         fontSize: fontPixel(24),

@@ -1,13 +1,12 @@
 import { FlashList } from '@shopify/flash-list';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import EmptyList from '@/components/ui/EmptyList';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectIsLoading, selectConversations, selectIsRefreshing } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
@@ -21,9 +20,6 @@ export default function MessagingScreen() {
   const conversations = useSelector(selectConversations);
   const isLoading = useSelector(selectIsLoading);
   const isRefreshing = useSelector(selectIsRefreshing);
-  const theme = useAppTheme();
-  const isDark = theme === 'dark';
-
   useFocusEffect(() => {
     dispatch(actions.fetchConversations());
   });
@@ -32,12 +28,6 @@ export default function MessagingScreen() {
     light: colors.light.background,
     dark: colors.dark.background
   }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
-
   const renderEmptyList = () => {
     return (
       <EmptyList
@@ -75,10 +65,7 @@ export default function MessagingScreen() {
 
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <ThemedText style={[styles.label, { color: labelColor }]}>MESSAGES</ThemedText>
-      </View>
+      <AccentScreenHeader paddingPreset="consumerTab" label="MESSAGES" />
       <FlashList
         data={listData}
         renderItem={renderItem}
@@ -101,20 +88,6 @@ export default function MessagingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  headerSection: {
-    paddingBottom: heightPixel(20),
-    paddingHorizontal: widthPixel(16),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
   },
   listContainer: {
     paddingHorizontal: widthPixel(16),

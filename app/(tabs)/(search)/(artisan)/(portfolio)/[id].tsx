@@ -1,6 +1,7 @@
 import CommentItem from '@/components/portfolio/CommentItem';
 import CommentItemSkeletonLoader from '@/components/portfolio/Loaders/CommentItemSkeletonLoader';
 import Portfolio from '@/components/portfolio/Portfolio';
+import { AccentBar, AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
 import EmptyList from '@/components/ui/EmptyList';
@@ -15,7 +16,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function PortfolioDetails() {
@@ -34,10 +35,6 @@ export default function PortfolioDetails() {
     dark: colors.dark.background
   }, 'background');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
   const textColor = useThemeColor({
     light: colors.light.text,
     dark: colors.dark.text
@@ -74,7 +71,7 @@ export default function PortfolioDetails() {
         />
         <View style={styles.commentsSection}>
           <View>
-            <View style={[styles.commentsAccentBar, { backgroundColor: accentColor }]} />
+            <AccentBar color={accentColor} spacing="section" />
             <ThemedText type="title" style={[styles.commentsTitle, { color: textColor }]}>
               COMMENTS
             </ThemedText>
@@ -91,13 +88,17 @@ export default function PortfolioDetails() {
   }, [portfolio, accentColor, textColor, isLoading, isSubmittingComment]);
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <View style={styles.header}>
-          <BackButton onPress={() => router.back()} iconName="arrow-left" />
-        </View>
-        <Text style={[styles.label, { color: labelColor }]}>PORTFOLIO DETAILS</Text>
-      </View>
+      <AccentScreenHeader
+        layout="accentToolbar"
+        paddingPreset="portfolioScreen"
+        afterAccent={
+          <View style={styles.header}>
+            <BackButton onPress={() => router.back()} iconName="arrow-left" />
+          </View>
+        }
+        toolbarBottomGap={heightPixel(8)}
+        label="PORTFOLIO DETAILS"
+      />
       {
         portfolio ? (
           <FlashList
@@ -131,23 +132,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
   header: {
     marginBottom: heightPixel(8),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
   },
   scrollView: {
     paddingHorizontal: widthPixel(20),
@@ -156,11 +142,6 @@ const styles = StyleSheet.create({
   commentsSection: {
     marginTop: heightPixel(24),
     paddingBottom: heightPixel(20),
-  },
-  commentsAccentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(12),
   },
   commentsTitle: {
     fontSize: fontPixel(14),

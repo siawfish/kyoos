@@ -39,11 +39,6 @@ export default function ProfileScreen() {
         <ThemedSafeAreaView 
             style={styles.container}
         >
-            <BackButton
-                containerStyle={styles.backButton}
-                iconName="arrow-left"
-                onPress={() => router.back()}
-            />
             <ProfileForm 
                 onSetFormValues={(key, value) => dispatch(actions.setProfileFormValue({key, value}))} 
                 onSetFormErrors={(key, value) => dispatch(actions.setProfileFormErrors({key, value}))} 
@@ -69,10 +64,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    backButton: {
-        marginHorizontal: widthPixel(16),
-        // marginTop: heightPixel(16),
     },
     footer: {
         paddingHorizontal: widthPixel(16),

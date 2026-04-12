@@ -1,3 +1,4 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
 import SmartTextArea from '@/components/ui/SmartTextArea';
@@ -806,14 +807,20 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                 keyboardVerticalOffset={0}
             >
                 {(currentView === 'search' || currentView === 'question' || currentView === 'loading' || currentView === 'error') && (
-                    <View style={styles.header}>
-                        <View style={styles.headerLeft}>
-                            <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                            <View style={styles.headerLabelRow}>
-                                <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                                    {currentView === 'question' ? 'QUICK QUESTION' : currentView === 'loading' ? 'LOADING...' : currentView === 'error' ? 'ERROR' : headerLabel}
-                                </ThemedText>
-                            </View>
+                    <AccentScreenHeader
+                        layout="split"
+                        paddingPreset="modalStack"
+                        accentColor={accentColor}
+                        label={
+                            currentView === 'question'
+                                ? 'QUICK QUESTION'
+                                : currentView === 'loading'
+                                  ? 'LOADING...'
+                                  : currentView === 'error'
+                                    ? 'ERROR'
+                                    : headerLabel
+                        }
+                        title={
                             <ThemedText
                                 style={[styles.headerTitle, { color: textColor }]}
                                 lightColor={colors.light.text}
@@ -821,15 +828,17 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                             >
                                 {headerTitle}
                             </ThemedText>
-                        </View>
-                        {currentView !== 'loading' && currentView !== 'error' && (
-                            <BackButton
-                                iconName="x"
-                                onPress={agentIsLoading ? undefined : handleClose}
-                                containerStyle={styles.closeButton}
-                            />
-                        )}
-                    </View>
+                        }
+                        right={
+                            currentView !== 'loading' && currentView !== 'error' ? (
+                                <BackButton
+                                    iconName="x"
+                                    onPress={agentIsLoading ? undefined : handleClose}
+                                    containerStyle={styles.closeButton}
+                                />
+                            ) : null
+                        }
+                    />
                 )}
 
                 <View style={styles.body}>
@@ -876,16 +885,13 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                             <BottomSheetView
                                 style={[styles.additionalSheetContent, { backgroundColor }]}
                             >
-                                <View style={styles.additionalSheetHeader}>
-                                    <View style={styles.additionalSheetHeaderLeft}>
-                                        <View
-                                            style={[styles.accentBar, { backgroundColor: accentColor }]}
-                                        />
-                                        <ThemedText
-                                            style={[styles.additionalSheetLabel, { color: secondaryColor }]}
-                                        >
-                                            OPTIONAL
-                                        </ThemedText>
+                                <AccentScreenHeader
+                                    layout="split"
+                                    paddingPreset="none"
+                                    containerStyle={styles.additionalSheetHeader}
+                                    accentColor={accentColor}
+                                    label="OPTIONAL"
+                                    title={
                                         <ThemedText
                                             style={[styles.additionalSheetTitle, { color: textColor }]}
                                             lightColor={colors.light.text}
@@ -893,13 +899,15 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                                         >
                                             Additional information
                                         </ThemedText>
-                                    </View>
-                                    <BackButton
-                                        iconName="x"
-                                        onPress={closeAdditionalInfoSheet}
-                                        containerStyle={styles.additionalSheetCloseButton}
-                                    />
-                                </View>
+                                    }
+                                    right={
+                                        <BackButton
+                                            iconName="x"
+                                            onPress={closeAdditionalInfoSheet}
+                                            containerStyle={styles.additionalSheetCloseButton}
+                                        />
+                                    }
+                                />
                                 <SmartTextArea
                                     inputComponent={BottomSheetTextInput}
                                     density="sheet"
@@ -976,34 +984,6 @@ const styles = StyleSheet.create({
     body: {
         flex: 1,
         minHeight: 0,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
-        paddingBottom: heightPixel(24),
-    },
-    headerLeft: {
-        flex: 1,
-        paddingRight: widthPixel(16),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerLabelRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-        marginBottom: heightPixel(8),
-    },
-    headerLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
     },
     headerTitle: {
         fontSize: fontPixel(24),
@@ -1327,21 +1307,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     additionalSheetHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
         paddingHorizontal: widthPixel(20),
         paddingBottom: heightPixel(16),
-    },
-    additionalSheetHeaderLeft: {
-        flex: 1,
-        paddingRight: widthPixel(12),
-    },
-    additionalSheetLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
-        marginBottom: heightPixel(8),
     },
     additionalSheetTitle: {
         fontSize: fontPixel(22),

@@ -1,3 +1,4 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -433,25 +434,26 @@ export default function AttachMedia({
             }}
           >
             <BottomSheetView style={styles.bottomSheetContent}>
-              {/* Header */}
-              <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                  <View style={[styles.accentBar, { backgroundColor: tintColor }]} />
-                  <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                    ADD INPUT
-                  </ThemedText>
+              <AccentScreenHeader
+                layout="split"
+                paddingPreset="sheetSplit"
+                accentColor={tintColor}
+                label="ADD INPUT"
+                title={
                   <ThemedText style={[styles.headerTitle, { color: textColor }]}>
                     Attach Media
                   </ThemedText>
-                </View>
-                <TouchableOpacity 
-                  onPress={handleClose} 
-                  style={[styles.closeButton, { borderColor }]}
-                  activeOpacity={0.7}
-                >
-                  <Feather name="x" size={18} color={textColor} />
-                </TouchableOpacity>
-              </View>
+                }
+                right={
+                  <TouchableOpacity 
+                    onPress={handleClose} 
+                    style={[styles.closeButton, { borderColor }]}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="x" size={18} color={textColor} />
+                  </TouchableOpacity>
+                }
+              />
 
               {/* Options */}
               <View style={styles.optionsContainer}>
@@ -561,25 +563,26 @@ export default function AttachMedia({
           >
             <BottomSheetView style={styles.voiceSheetContent}>
               <View style={styles.voiceMainContent}>
-                {/* Voice Header */}
-                <View style={styles.header}>
-                  <View style={styles.headerLeft}>
-                    <View style={[styles.accentBar, { backgroundColor: tintColor }]} />
-                    <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                      VOICE INPUT
-                    </ThemedText>
+                <AccentScreenHeader
+                  layout="split"
+                  paddingPreset="sheetSplit"
+                  accentColor={tintColor}
+                  label="VOICE INPUT"
+                  title={
                     <ThemedText style={[styles.headerTitle, { color: textColor }]}>
                       Speak Your Request
                     </ThemedText>
-                  </View>
-                  <TouchableOpacity 
-                    onPress={handleCloseVoiceModal} 
-                    style={[styles.closeButton, { borderColor }]}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="x" size={18} color={textColor} />
-                  </TouchableOpacity>
-                </View>
+                  }
+                  right={
+                    <TouchableOpacity 
+                      onPress={handleCloseVoiceModal} 
+                      style={[styles.closeButton, { borderColor }]}
+                      activeOpacity={0.7}
+                    >
+                      <Feather name="x" size={18} color={textColor} />
+                    </TouchableOpacity>
+                  }
+                />
 
                 {/* Recording Area */}
                 <View style={styles.recordingArea}>
@@ -651,27 +654,6 @@ const styles = StyleSheet.create({
   },
   voiceMainContent: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: widthPixel(20),
-    paddingBottom: heightPixel(24),
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(16),
-  },
-  headerLabel: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-    marginBottom: heightPixel(8),
   },
   headerTitle: {
     fontSize: fontPixel(24),

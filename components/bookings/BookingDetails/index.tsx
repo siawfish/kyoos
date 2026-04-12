@@ -8,6 +8,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import ContactCard from './ContactCard'
 import BookingStatus from './Status'
 
@@ -39,15 +40,15 @@ const BookingDetails = ({
             contentContainerStyle={styles.mainContainer}
             showsVerticalScrollIndicator={false}
         >
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.pageLabel, { color: labelColor }]}>
-                    BOOKING DETAILS
-                </Text>
-                <Text style={[styles.headerTitle, { color: textColor }]}>
-                    {booking?.description}
-                </Text>
+            <AccentScreenHeader
+                paddingPreset="none"
+                containerStyle={styles.headerSection}
+                accentSpacing="split"
+                label="BOOKING DETAILS"
+                labelStyle={{ letterSpacing: 2 }}
+                title={booking?.description}
+                titlePreset="detail"
+            >
                 <View style={styles.clientRow}>
                     <Text style={[styles.withText, { color: labelColor }]}>with</Text>
                       <Image 
@@ -58,7 +59,7 @@ const BookingDetails = ({
                         {booking?.worker?.name}
                     </Text>
                 </View>
-            </View>
+            </AccentScreenHeader>
 
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
@@ -159,23 +160,6 @@ const styles = StyleSheet.create({
     },
     headerSection: {
         paddingTop: heightPixel(8),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    pageLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 2,
-        marginBottom: heightPixel(8),
-    },
-    headerTitle: {
-        fontSize: fontPixel(28),
-        fontFamily: 'Bold',
-        letterSpacing: -0.5,
-        marginBottom: heightPixel(12),
     },
     clientRow: {
         flexDirection: 'row',
