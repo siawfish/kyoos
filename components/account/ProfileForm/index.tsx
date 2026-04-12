@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
         lineHeight: fontPixel(22),
     },
     header: {
-      marginBottom: heightPixel(8),
+    //   marginBottom: heightPixel(8),
     },  
     gap: {
         flexDirection: 'column',

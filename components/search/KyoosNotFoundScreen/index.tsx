@@ -38,7 +38,7 @@ export default function KyoosNotFoundScreen() {
                     Artisan Not Found
                 </ThemedText>
                 <ThemedText style={[styles.message, { color: secondaryColor }]} type="subtitle">
-                    The artisan you're looking for doesn't exist or is no longer available.
+                    The artisan you&apos;re looking for doesn&apos;t exist or is no longer available.
                 </ThemedText>
             </View>
         </ThemedSafeAreaView>

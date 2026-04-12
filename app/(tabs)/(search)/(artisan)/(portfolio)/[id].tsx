@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    marginBottom: heightPixel(8),
+    // marginBottom: heightPixel(8),
   },
   scrollView: {
     paddingHorizontal: widthPixel(20),

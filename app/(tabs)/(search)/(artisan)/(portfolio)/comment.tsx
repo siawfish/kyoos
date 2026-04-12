@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: heightPixel(20),
+    // marginBottom: heightPixel(20),
   },
   btn: {
     minWidth: widthPixel(100),

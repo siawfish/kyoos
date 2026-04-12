@@ -117,15 +117,16 @@ export default function BookingScreen() {
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={handleBackPress}
-                />
-            </View>
             <AccentScreenHeader
+                layout="accentToolbar"
                 paddingPreset="none"
                 containerStyle={styles.header}
+                afterAccent={
+                    <BackButton
+                        iconName="arrow-left"
+                        onPress={handleBackPress}
+                    />
+                }
                 accentColor={accentColor}
                 label="BOOK SERVICE"
                 labelStyle={{ marginBottom: heightPixel(12) }}

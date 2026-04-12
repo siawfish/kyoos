@@ -155,19 +155,18 @@ export default function ReviewBooking() {
     return (
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.headerContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={() => router.back()}
-                />
                 <AccentScreenHeader
                     paddingPreset="none"
+                    layout="accentToolbar"
                     containerStyle={styles.reviewAccentHeader}
                     accentColor={accentColor}
-                    accentBarStyle={{
-                        height: heightPixel(3),
-                        marginBottom: heightPixel(16),
-                    }}
                     label="REVIEW BOOKING"
+                    afterAccent={
+                        <BackButton
+                            iconName="arrow-left"
+                            onPress={() => router.back()}
+                        />
+                    }
                     labelStyle={[styles.pageTitle, { color: labelColor }]}
                 />
             </View>

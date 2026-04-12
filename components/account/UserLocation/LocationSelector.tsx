@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingBottom: heightPixel(20),
   },
   header: {
-    marginBottom: heightPixel(16),
+    // marginBottom: heightPixel(16),
   },
   title: {
     fontSize: fontPixel(32),
