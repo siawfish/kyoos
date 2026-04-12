@@ -16,7 +16,7 @@ const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCa
   const theme = useAppTheme()
   const isDark = theme === 'dark'
 
-  const cardBg = isDark ? 'transparent' : colors.light.background
+  const cardBg = isDark ? colors.dark.background : colors.light.background
   const borderColor = isDark ? colors.dark.white : colors.light.black
   const textColor = isDark ? colors.dark.text : colors.light.text
   const labelColor = isDark ? colors.dark.secondary : colors.light.secondary

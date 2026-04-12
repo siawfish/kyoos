@@ -34,7 +34,7 @@ class SocketService {
             if (RECOVERABLE_AUTH_MESSAGES.has(msg)) {
                 this.authFailurePending = true;
             }
-            console.error('Socket error:', error);
+            console.log('Socket error:', error);
         });
 
         socket.on('disconnect', (reason) => {
@@ -51,7 +51,7 @@ class SocketService {
             return;
         }
         if (this.authRecoveryAttempts >= MAX_AUTH_RECOVERY_ATTEMPTS) {
-            console.warn('Socket: auth recovery max attempts reached');
+            console.log('Socket: auth recovery max attempts reached');
             return;
         }
 
@@ -69,7 +69,7 @@ class SocketService {
             this.socket.auth = { token: accessToken };
             this.socket.connect();
         } catch (e) {
-            console.warn('Socket auth recovery failed:', e);
+            console.log('Socket auth recovery failed:', e);
         } finally {
             this.recoveryInProgress = false;
         }
@@ -106,7 +106,7 @@ class SocketService {
             const token = await getItemFromStorage('token');
 
             if (!token) {
-                console.error('No auth token found');
+                console.log('No auth token found');
                 this.isConnecting = false;
                 return null;
             }
@@ -132,7 +132,7 @@ class SocketService {
             });
 
             this.socket.on('connect_error', (error) => {
-                console.error('Socket connection error:', error);
+                console.log('Socket connection error:', error);
             });
 
             // Wait for connection
@@ -155,7 +155,7 @@ class SocketService {
             this.isConnecting = false;
             return this.socket;
         } catch (error) {
-            console.warn('Failed to connect socket:', error);
+            console.log('Failed to connect socket:', error);
             this.isConnecting = false;
             this.socket = null;
             return null;

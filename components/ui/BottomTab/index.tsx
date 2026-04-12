@@ -2,49 +2,48 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/** Feather icons — uniform stroke, flat geometric shapes (no filled MD blobs). */
 const MenuItems = [
   {
     name: '(search)',
     title: 'Home',
-    icon: 'home',
-    iconOutline: 'home-outline'
+    icon: 'home' as const,
   },
   {
     name: '(bookings)',
     title: 'Bookings',
-    icon: 'calendar-check',
-    iconOutline: 'calendar-outline'
+    icon: 'calendar' as const,
   },
   {
     name: '(messaging)',
     title: 'Messages',
-    icon: 'chat',
-    iconOutline: 'chat-outline'
+    icon: 'message-square' as const,
   },
   {
     name: 'notifications',
     title: 'Notifications',
-    icon: 'bell',
-    iconOutline: 'bell-outline'
+    icon: 'bell' as const,
   },
   {
     name: '(settings)',
     title: 'Settings',
-    icon: 'cog',
-    iconOutline: 'cog-outline'
-  }
+    icon: 'settings' as const,
+  },
 ];
 
 /** Stack root screen per tab — used to pop nested stacks when re-tapping the active tab. */
@@ -55,10 +54,11 @@ const TAB_STACK_ROOT: Partial<Record<string, string>> = {
   '(settings)': 'settings',
 };
 
+type TabIconName = (typeof MenuItems)[number]['icon'];
+
 interface TabItemProps {
   focused: boolean;
-  icon: string;
-  iconOutline: string;
+  icon: TabIconName;
   label: string;
   onPress: () => void;
   onLongPress: () => void;
@@ -70,7 +70,6 @@ interface TabItemProps {
 const TabItem = ({
   focused,
   icon,
-  iconOutline,
   label,
   onPress,
   onLongPress,
@@ -79,24 +78,43 @@ const TabItem = ({
   activeIconColor,
 }: TabItemProps) => {
   const scale = useSharedValue(1);
+  const iconEmphasis = useSharedValue(focused ? 1 : 0.55);
+  const iconPop = useSharedValue(1);
+
+  useEffect(() => {
+    iconEmphasis.value = withTiming(focused ? 1 : 0.55, { duration: 220 });
+    if (focused) {
+      iconPop.value = withSequence(
+        withTiming(1.07, { duration: 100 }),
+        withSpring(1, { mass: 0.35, damping: 14, stiffness: 220 })
+      );
+    } else {
+      iconPop.value = withTiming(1, { duration: 160 });
+    }
+  }, [focused, iconEmphasis, iconPop]);
 
   const animatedScaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: iconEmphasis.value,
+    transform: [{ scale: iconPop.value }],
+  }));
+
   const handlePressIn = () => {
-    scale.value = withSpring(0.92, {
-      mass: 0.3,
-      damping: 10,
-      stiffness: 200,
+    scale.value = withSpring(0.94, {
+      mass: 0.35,
+      damping: 14,
+      stiffness: 220,
     });
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, {
-      mass: 0.3,
-      damping: 10,
-      stiffness: 200,
+      mass: 0.35,
+      damping: 14,
+      stiffness: 220,
     });
   };
 
@@ -108,17 +126,24 @@ const TabItem = ({
       onPressOut={handlePressOut}
       onLayout={onLayout}
       style={[styles.tabItem, focused ? styles.tabItemFocused : styles.tabItemUnfocused]}
+      android_ripple={
+        Platform.OS === 'android'
+          ? { color: `${iconColor}33`, borderless: true }
+          : undefined
+      }
     >
       <Animated.View style={[styles.tabItemInner, animatedScaleStyle]}>
-        <MaterialCommunityIcons
-          name={focused ? (icon as any) : (iconOutline as any)}
-          size={22}
-          color={focused ? activeIconColor : iconColor}
-        />
+        <Animated.View style={iconAnimatedStyle}>
+          <Feather
+            name={icon}
+            size={22}
+            color={focused ? activeIconColor : iconColor}
+          />
+        </Animated.View>
         {focused && (
           <Animated.Text
-            entering={FadeIn.duration(150)}
-            exiting={FadeOut.duration(100)}
+            entering={FadeIn.delay(32).duration(180)}
+            exiting={FadeOut.duration(120)}
             numberOfLines={1}
             style={[
               styles.tabLabel,
@@ -141,9 +166,9 @@ interface TabItemLayout {
 }
 
 const SPRING_CONFIG = {
-  mass: 0.5,
-  damping: 12,
-  stiffness: 100,
+  mass: 0.45,
+  damping: 18,
+  stiffness: 160,
   overshootClamping: false,
 };
 
@@ -252,6 +277,11 @@ export default function BottomTab({ state, descriptors, navigation }: BottomTabB
             }
 
             if (!isFocused) {
+              if (Platform.OS === 'ios') {
+                Haptics.selectionAsync();
+              } else {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
               navigation.navigate(route.name, route.params);
               return;
             }
@@ -277,7 +307,6 @@ export default function BottomTab({ state, descriptors, navigation }: BottomTabB
               key={route.key}
               focused={isFocused}
               icon={menuItem.icon}
-              iconOutline={menuItem.iconOutline}
               label={label}
               onPress={onPress}
               onLongPress={onLongPress}
