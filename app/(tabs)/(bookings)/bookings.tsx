@@ -172,7 +172,23 @@ export default function BookingsScreen() {
 
 
 
-  const calendarHeader = useMemo(
+  const pageHeader = useMemo(
+    () => (
+      <View style={styles.header}>
+        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+        <Text style={[styles.label, { color: subtitleColor }]}>BOOKINGS</Text>
+        <Text style={[styles.title, { color: textColor }]}>
+          {formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
+        </Text>
+        <Text style={[styles.subtitle, { color: subtitleColor }]}>
+          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+        </Text>
+      </View>
+    ),
+    [accentColor, subtitleColor, textColor, selectedDate]
+  );
+
+  const weekCalendar = useMemo(
     () => (
       <WeekCalendar
         selectedDate={selectedDate}
@@ -185,23 +201,13 @@ export default function BookingsScreen() {
 
   return (
     <ThemedSafeAreaView style={styles.containerStyle}>
-      <View style={styles.header}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <Text style={[styles.label, { color: subtitleColor }]}>BOOKINGS</Text>
-        <Text style={[styles.title, { color: textColor }]}>
-          {formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
-        </Text>
-        <Text style={[styles.subtitle, { color: subtitleColor }]}>
-          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-        </Text>
-      </View>
-
       <View style={styles.timelineWrap}>
         <BookingDayTimeline
           bookings={bookingsForSelectedDate}
           selectedDate={selectedDate}
           isLoading={isLoading}
-          listHeader={calendarHeader}
+          pageHeader={pageHeader}
+          calendar={weekCalendar}
           refreshing={isRefreshing}
           onRefresh={onRefresh}
           onChatWorker={handleChatWorker}

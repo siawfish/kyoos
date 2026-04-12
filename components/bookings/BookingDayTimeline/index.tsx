@@ -259,13 +259,21 @@ function AgendaRowSkeleton({
   );
 }
 
-type ListRow = ParsedBooking | { skeleton: number };
+type PageHeaderRow = { kind: 'pageHeader' };
+type CalendarRow = { kind: 'calendar' };
+type ListRow = PageHeaderRow | CalendarRow | ParsedBooking | { skeleton: number };
+
+const PAGE_HEADER_ROW: PageHeaderRow = { kind: 'pageHeader' };
+const CALENDAR_ROW: CalendarRow = { kind: 'calendar' };
 
 export type BookingDayTimelineProps = {
   bookings: Booking[];
   selectedDate: Date;
   isLoading: boolean;
-  listHeader: React.ReactNode;
+  /** Title block — first list row (scrolls away). */
+  pageHeader: React.ReactNode;
+  /** Week strip — second list row, sticky at top. */
+  calendar: React.ReactNode;
   refreshing: boolean;
   onRefresh: () => void;
   onChatWorker: (booking: Booking) => void;
@@ -279,7 +287,8 @@ export default function BookingDayTimeline({
   bookings,
   selectedDate: _selectedDate,
   isLoading,
-  listHeader,
+  pageHeader,
+  calendar,
   refreshing,
   onRefresh,
   onChatWorker,
@@ -308,48 +317,85 @@ export default function BookingDayTimeline({
 
   const listData: ListRow[] = useMemo(() => {
     if (isLoading) {
-      return SKELETON_ROWS.map((i) => ({ skeleton: i }));
+      return [
+        PAGE_HEADER_ROW,
+        CALENDAR_ROW,
+        ...SKELETON_ROWS.map((i) => ({ skeleton: i })),
+      ];
     }
-    return parsedList;
+    return [PAGE_HEADER_ROW, CALENDAR_ROW, ...parsedList];
   }, [isLoading, parsedList]);
 
   const keyExtractor = useCallback((item: ListRow) => {
+    if ('kind' in item && item.kind === 'pageHeader') {
+      return '__page_header__';
+    }
+    if ('kind' in item && item.kind === 'calendar') {
+      return '__week_calendar__';
+    }
     if ('skeleton' in item) {
       return `sk-${item.skeleton}`;
     }
-    return item.booking.id;
+    if ('booking' in item) {
+      return item.booking.id;
+    }
+    return '__row__';
   }, []);
 
   const renderItem: ListRenderItem<ListRow> = useCallback(
     ({ item }) => {
-      const body = 'skeleton' in item ? (
-        <AgendaRowSkeleton
-          borderColor={borderColor}
-          cardBg={cardBg}
-          skeletonColor={skeletonColor}
-          accentColor={accentColor}
-        />
-      ) : (
-        <AgendaBookingRow
-          parsed={item}
-          borderColor={borderColor}
-          textColor={textColor}
-          labelColor={labelColor}
-          cardBg={cardBg}
-          onChatWorker={onChatWorker}
-          onReschedule={onReschedule}
-          onCancel={onCancel}
-          onRebook={onRebook}
-          onReport={onReport}
-        />
+      if ('kind' in item && item.kind === 'pageHeader') {
+        return <View style={styles.pageHeaderSlot}>{pageHeader}</View>;
+      }
+      if ('kind' in item && item.kind === 'calendar') {
+        return (
+          <View
+            collapsable={false}
+            style={[styles.stickyCalendarSlot, { backgroundColor: cardBg }]}
+          >
+            {calendar}
+          </View>
+        );
+      }
+      if ('skeleton' in item) {
+        return (
+          <View style={styles.rowPad}>
+            <AgendaRowSkeleton
+              borderColor={borderColor}
+              cardBg={cardBg}
+              skeletonColor={skeletonColor}
+              accentColor={accentColor}
+            />
+          </View>
+        );
+      }
+      if (!('booking' in item)) {
+        return null;
+      }
+      return (
+        <View style={styles.rowPad}>
+          <AgendaBookingRow
+            parsed={item}
+            borderColor={borderColor}
+            textColor={textColor}
+            labelColor={labelColor}
+            cardBg={cardBg}
+            onChatWorker={onChatWorker}
+            onReschedule={onReschedule}
+            onCancel={onCancel}
+            onRebook={onRebook}
+            onReport={onReport}
+          />
+        </View>
       );
-      return <View style={styles.rowPad}>{body}</View>;
     },
     [
       accentColor,
       borderColor,
+      calendar,
       cardBg,
       labelColor,
+      pageHeader,
       skeletonColor,
       textColor,
       onChatWorker,
@@ -360,13 +406,8 @@ export default function BookingDayTimeline({
     ]
   );
 
-  const ListHeader = useCallback(
-    () => <View style={styles.headerSlot}>{listHeader}</View>,
-    [listHeader]
-  );
-
-  const renderEmpty = useCallback(() => {
-    if (isLoading || refreshing) {
+  const renderListFooter = useCallback(() => {
+    if (isLoading || refreshing || parsedList.length > 0) {
       return null;
     }
     return (
@@ -375,23 +416,27 @@ export default function BookingDayTimeline({
         message="No bookings scheduled for this day"
       />
     );
-  }, [isLoading, refreshing]);
+  }, [isLoading, refreshing, parsedList.length]);
 
   return (
     <FlatList<ListRow>
       data={listData}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
-      ItemSeparatorComponent={() => <View style={styles.rowMargin} />}
-      ListHeaderComponent={ListHeader}
-      ListEmptyComponent={renderEmpty}
+      ItemSeparatorComponent={({ leadingItem }) =>
+        'kind' in leadingItem && leadingItem.kind === 'pageHeader' ? null : (
+          <View style={styles.rowMargin} />
+        )
+      }
+      ListFooterComponent={renderListFooter}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-      stickyHeaderIndices={[0]}
+      stickyHeaderIndices={[1]}
       contentContainerStyle={styles.listContent}
       style={styles.list}
       showsVerticalScrollIndicator={false}
+      removeClippedSubviews={false}
     />
   );
 }
@@ -405,7 +450,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: heightPixel(100),
   },
-  headerSlot: {
+  pageHeaderSlot: {
+    width: '100%',
+  },
+  stickyCalendarSlot: {
     width: '100%',
   },
   rowPad: {

@@ -49,13 +49,17 @@ const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCa
       
       {/* Month/Year Header with Navigation */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={goToPreviousWeek} style={styles.navButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPressIn={goToPreviousWeek}
+          style={styles.navButton}
+          activeOpacity={0.7}
+        >
           <Ionicons name="chevron-back" size={20} color={textColor} />
         </TouchableOpacity>
         <Text style={[styles.monthYear, { color: textColor }]}>
           {format(selectedDate, 'MMMM yyyy').toUpperCase()}
         </Text>
-        <TouchableOpacity onPress={goToNextWeek} style={styles.navButton} activeOpacity={0.7}>
+        <TouchableOpacity onPressIn={goToNextWeek} style={styles.navButton} activeOpacity={0.7}>
           <Ionicons name="chevron-forward" size={20} color={textColor} />
         </TouchableOpacity>
       </View>
@@ -73,7 +77,7 @@ const WeekCalendar = ({ selectedDate, onDateSelect, bookingCounts = {} }: WeekCa
                 styles.dayContainer,
                 selected && { backgroundColor: borderColor },
               ]}
-              onPress={() => onDateSelect(date)}
+              onPressIn={() => onDateSelect(date)}
               activeOpacity={0.7}
             >
               <Text
