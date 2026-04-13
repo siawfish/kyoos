@@ -1,5 +1,5 @@
 import Button from '@/components/ui/Button';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -136,7 +136,7 @@ export default function Onboarding() {
   };
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <Animated.ScrollView
         ref={scrollViewRef}
         horizontal
@@ -183,7 +183,7 @@ export default function Onboarding() {
           style={styles.button}
         />
       </View>
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 

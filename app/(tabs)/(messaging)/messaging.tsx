@@ -4,7 +4,8 @@ import { StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import EmptyList from '@/components/ui/EmptyList';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -64,7 +65,7 @@ export default function MessagingScreen() {
   };
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
         style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
         title="MESSAGES"
@@ -89,7 +90,7 @@ export default function MessagingScreen() {
         showsVerticalScrollIndicator={false}
         onRefresh={() => dispatch(actions.refreshConversations())}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   emptyList: {
     flex: 1,

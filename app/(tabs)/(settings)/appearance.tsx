@@ -1,6 +1,7 @@
 import SettingsToggle from "@/components/settings/SettingsToggle";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -43,7 +44,7 @@ const AppearanceScreen = () => {
   }
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -81,7 +82,7 @@ const AppearanceScreen = () => {
           </ThemedText>
         </View>
       </ScrollView>
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 };
 
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   settingsGroup: {
     marginHorizontal: widthPixel(20),

@@ -4,7 +4,7 @@ import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import JobSummary from "@/components/ui/JobSummary";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import ThemedMapView from '@/components/ui/ThemedMapView';
 import WorkerMapMarker from "@/components/ui/WorkerMapMarker";
@@ -377,7 +377,7 @@ export default function Results() {
     }, [selectedArtisan, unifiedWorkers]);
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             {/* Map Background */}
             <ThemedMapView
                 ref={mapRef}
@@ -611,7 +611,7 @@ export default function Results() {
                 confirmText="Confirm"
                 cancelText="Cancel"
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 

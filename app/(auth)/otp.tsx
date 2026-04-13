@@ -2,7 +2,7 @@ import OtpField from '@/components/auth/Otp'
 import ResendOtp from '@/components/auth/ResendOtp'
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
+import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { selectLoginFormIsLoading, selectLoginFormIsResending, selectLoginFormOtp, selectLoginFormPhoneNumber, selectOtpPrefix, selectReferenceId } from '@/redux/auth/selector'
@@ -14,6 +14,7 @@ import { Link, Redirect } from 'expo-router'
 import React, { useCallback } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAppTheme } from '@/hooks/use-app-theme'
+import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift'
 import { useThemeColor } from '@/hooks/use-theme-color'
 
 const HUBTEL_OTP_USSD = '*713*90#'
@@ -33,6 +34,7 @@ function hubtelOtpUssdTelUrls(): string[] {
 }
 
 const Otp = () => {
+    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const dispatch = useAppDispatch();
     const otp = useAppSelector(selectLoginFormOtp);
     const isLoading = useAppSelector(selectLoginFormIsLoading);
@@ -72,15 +74,19 @@ const Otp = () => {
     }
 
     return (
-        <ThemedSafeAreaView
+        <ScreenLayout
             style={styles.container}
+            preset="auth"
         >
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoid}
             >
                 <ScrollView 
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
+                    ]}
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.mainStyle}>
@@ -150,7 +156,7 @@ const Otp = () => {
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 }
 

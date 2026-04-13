@@ -1,9 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import ProfileForm from '@/components/account/ProfileForm';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenFooter } from '@/components/layout/ScreenFooter';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import BackButton from '@/components/ui/BackButton';
 import { heightPixel, widthPixel } from '@/constants/normalize';
 import { Link } from 'expo-router';
+import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift';
 import { usePermissionsRequestQueue } from '@/hooks/use-permissions-request-queue';
 import { PermissionRequestSheet } from '@/components/ui/PermissionRequestSheet';
 import { actions } from '@/redux/auth/slice';
@@ -18,6 +20,7 @@ import { useEffect, useCallback } from 'react';
 import { StoreName } from '@/redux/app/types';
 
 export default function RegisterScreen() {
+    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const dispatch = useAppDispatch();
     const registerForm = useAppSelector(selectRegisterForm);
     const isLoading = useAppSelector(selectRegisterFormIsLoading);
@@ -68,27 +71,37 @@ export default function RegisterScreen() {
     }
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
-            <Link asChild href="/(auth)">
-                <BackButton 
-                    containerStyle={styles.backButton}
-                    iconName="arrow-left"
-                />
-            </Link>
-            <ProfileForm 
-                registerForm={registerForm}
-                onSetFormValues={(key, value) => dispatch(actions.setRegisterFormValue({key, value}))}
-                onSetFormErrors={(key, value) => dispatch(actions.setRegisterFormErrors({key, value}))}
-                onSubmit={() => {}}
-            />
-            <View style={styles.footer}>
-                <Button
-                    label="SAVE"
-                    isLoading={isLoading}
-                    onPress={handleSave}
-                    style={styles.button}
-                />
-            </View>
+        <ScreenLayout style={styles.container} preset="auth">
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={[
+                    styles.keyboardAvoid,
+                    androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
+                ]}
+            >
+                <Link asChild href="/(auth)">
+                    <BackButton 
+                        containerStyle={styles.backButton}
+                        iconName="arrow-left"
+                    />
+                </Link>
+                <View style={styles.formWrap}>
+                    <ProfileForm 
+                        registerForm={registerForm}
+                        onSetFormValues={(key, value) => dispatch(actions.setRegisterFormValue({key, value}))}
+                        onSetFormErrors={(key, value) => dispatch(actions.setRegisterFormErrors({key, value}))}
+                        onSubmit={() => {}}
+                    />
+                </View>
+                <ScreenFooter hideBorder style={styles.footer}>
+                    <Button
+                        label="SAVE"
+                        isLoading={isLoading}
+                        onPress={handleSave}
+                        style={styles.button}
+                    />
+                </ScreenFooter>
+            </KeyboardAvoidingView>
             <PermissionRequestSheet
                 isOpen={permissionsQueue.length > 0}
                 isOpenChange={(isOpen) => {}}
@@ -96,7 +109,7 @@ export default function RegisterScreen() {
                 onDenied={handleOnPermissionDenied}
                 onGranted={handleOnPermissionGranted}
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 
@@ -104,13 +117,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    keyboardAvoid: {
+        flex: 1,
+    },
     backButton: {
         marginHorizontal: widthPixel(16),
         marginTop: heightPixel(16),
     },
+    formWrap: {
+        flex: 1,
+    },
     footer: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(20),
     },
     button: {
         marginHorizontal: 0,

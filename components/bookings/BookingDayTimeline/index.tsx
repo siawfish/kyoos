@@ -1,5 +1,6 @@
 import BookingStatus from '@/components/bookings/BookingDetails/Status';
 import EmptyList from '@/components/ui/EmptyList';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   pageHeaderSlot: {
     width: '100%',

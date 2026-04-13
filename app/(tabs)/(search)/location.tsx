@@ -1,12 +1,12 @@
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import { StyleSheet } from "react-native";
 import LocationSelector from "@/components/account/UserLocation/LocationSelector";
 
 export default function LocationScreen() {
     return (
-        <ThemedSafeAreaView style={[styles.container]}>
+        <ScreenLayout style={[styles.container]}>
             <LocationSelector />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 }
 

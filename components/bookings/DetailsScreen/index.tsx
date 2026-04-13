@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import BookingDetails from "@/components/bookings/BookingDetails";
 import Actions from "@/components/bookings/BookingDetails/Actions";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
@@ -86,12 +86,12 @@ const Details = () => {
   // Loading state
   if (isLoading && !booking) {
     return (
-      <ThemedSafeAreaView style={styles.container}>
+      <ScreenLayout style={styles.container}>
         {renderBookingDetailHeader(undefined)}
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
-      </ThemedSafeAreaView>
+      </ScreenLayout>
     );
   }
 
@@ -156,18 +156,18 @@ const Details = () => {
   // Booking not found state
   if (!booking) {
     return (
-      <ThemedSafeAreaView style={styles.container}>
+      <ScreenLayout style={styles.container}>
         {renderBookingDetailHeader(undefined)}
         <EmptyList
           containerStyle={styles.notFoundContainer}
           message="The booking you're looking for doesn't exist or has been removed."
         />
-      </ThemedSafeAreaView>
+      </ScreenLayout>
     );
   }
 
   return (
-    <ThemedSafeAreaView style={styles.container}>
+    <ScreenLayout style={styles.container}>
       {renderBookingDetailHeader(booking)}
       <View style={styles.contentContainer}>
         <BookingDetails booking={booking} />
@@ -238,7 +238,7 @@ const Details = () => {
               cancelText="Cancel"
             />
         )}
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 };
 

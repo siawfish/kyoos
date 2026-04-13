@@ -5,7 +5,8 @@ import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import ServiceLocation from "@/components/ui/ServiceLocation";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -115,7 +116,7 @@ export default function BookingScreen() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             <AccentScreenHeader
                 style={styles.header}
                 onBackPress={handleBackPress}
@@ -273,7 +274,7 @@ export default function BookingScreen() {
                 confirmText="Yes, Cancel"
                 cancelText="Continue Booking"
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     section: {
         marginBottom: heightPixel(24),

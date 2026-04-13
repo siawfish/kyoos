@@ -1,4 +1,5 @@
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         paddingHorizontal: widthPixel(16),
         gap: heightPixel(24),
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     statusRow: {
         flexDirection: 'row',

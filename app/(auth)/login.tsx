@@ -1,10 +1,11 @@
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
 import PhoneInput from '@/components/ui/PhoneInput'
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView'
+import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { validateGhanaianPhoneNumber } from '@/constants/helpers/validations'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
+import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { selectLoginFormIsLoading, selectLoginFormPhoneNumber } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
@@ -13,6 +14,7 @@ import React, { useEffect } from 'react'
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native'
 
 export default function Login() {
+  const androidKeyboardLift = useAndroidKeyboardFooterLift();
   const dispatch = useAppDispatch();
   const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
   const isLoading = useAppSelector(selectLoginFormIsLoading);
@@ -45,12 +47,16 @@ export default function Login() {
   }
 
   return (
-    <ThemedSafeAreaView 
+    <ScreenLayout 
       style={styles.containerStyle}
+      preset="auth"
     >
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
+        style={[
+          styles.keyboardAvoidingView,
+          androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
+        ]}
       >
         <View style={styles.mainStyle}>
           <AccentScreenHeader
@@ -85,7 +91,7 @@ export default function Login() {
           disabled={phoneNumber.error !== '' || phoneNumber.value.length !== 10}
         />
       </KeyboardAvoidingView>
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   )
 }
 

@@ -3,7 +3,7 @@ import WeekCalendar from '@/components/bookings/WeekCalendar';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import OverlayLoader from '@/components/ui/OverlayLoader';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { formatRelativeDate } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -198,7 +198,7 @@ export default function BookingsScreen() {
   );
 
   return (
-    <ThemedSafeAreaView style={styles.containerStyle}>
+    <ScreenLayout style={styles.containerStyle}>
       <View style={styles.timelineWrap}>
         <BookingDayTimeline
           bookings={bookingsForSelectedDate}
@@ -303,7 +303,7 @@ export default function BookingsScreen() {
               cancelText="Cancel"
           />
       )}
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 

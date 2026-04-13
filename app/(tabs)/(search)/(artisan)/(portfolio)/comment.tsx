@@ -2,7 +2,7 @@ import User from '@/components/portfolio/User';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import Button from '@/components/ui/Button';
 import SmartTextArea from '@/components/ui/SmartTextArea';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -76,7 +76,7 @@ const Comment = () => {
     }, [dispatch, id, commentForm.comment, comment]);
 
     return (
-        <ThemedSafeAreaView style={[styles.containerStyle, { backgroundColor }]}>
+        <ScreenLayout style={[styles.containerStyle, { backgroundColor }]}>
             <ScrollView 
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -156,7 +156,7 @@ const Comment = () => {
                     containerStyle={styles.smartTextArea}
                 />
             </ScrollView>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 };
 

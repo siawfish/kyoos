@@ -4,7 +4,7 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import success from "@/assets/images/success.png";
 import Button from "../Button";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { colors } from "@/constants/theme/colors";
 
@@ -71,7 +71,7 @@ const SuccessOverlay = ({ title, text, buttonLabel, onButtonPress }: SuccessOver
 
   return (
     <Modal animationType="slide" transparent style={styles.modal} visible>
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             <View style={[styles.contentContainer, {backgroundColor}]}>
                 <Animated.View style={{ 
                   transform: [
@@ -100,7 +100,7 @@ const SuccessOverlay = ({ title, text, buttonLabel, onButtonPress }: SuccessOver
                     onPress={onButtonPress}
                 />
             </View>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     </Modal>
   );
 };

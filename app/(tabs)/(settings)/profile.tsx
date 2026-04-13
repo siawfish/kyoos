@@ -1,6 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import ProfileForm from '@/components/account/ProfileForm';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenFooter } from '@/components/layout/ScreenFooter';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectProfileForm, selectProfileFormIsLoading } from '@/redux/settings/selector';
 import { actions } from '@/redux/settings/slice';
@@ -8,10 +9,12 @@ import { useEffect, useMemo } from 'react';
 import { selectUser } from '@/redux/app/selector';
 import BackButton from '@/components/ui/BackButton';
 import { router } from 'expo-router';
-import { heightPixel, widthPixel } from '@/constants/normalize';
+import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift';
+import { widthPixel } from '@/constants/normalize';
 import Button from '@/components/ui/Button';
 
 export default function ProfileScreen() {
+    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const isLoading = useAppSelector(selectProfileFormIsLoading);
     const formValues = useAppSelector(selectProfileForm);
     const user = useAppSelector(selectUser);
@@ -36,28 +39,38 @@ export default function ProfileScreen() {
     }
 
     return (
-        <ThemedSafeAreaView 
+        <ScreenLayout 
             style={styles.container}
         >
-            <ProfileForm 
-                onSetFormValues={(key, value) => dispatch(actions.setProfileFormValue({key, value}))} 
-                onSetFormErrors={(key, value) => dispatch(actions.setProfileFormErrors({key, value}))} 
-                onSubmit={() => {
-                    if(!hasUserChanged) return;
-                    dispatch(actions.submitProfileForm())
-                }} 
-                registerForm={formValues} 
-                submitOnBlur
-            />
-            <View style={styles.footer}>
-                <Button
-                    label="SAVE"
-                    isLoading={isLoading}
-                    onPress={handleSave}
-                    style={styles.button}
-                />
-            </View>
-        </ThemedSafeAreaView>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={[
+                    styles.keyboardAvoid,
+                    androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
+                ]}
+            >
+                <View style={styles.formWrap}>
+                    <ProfileForm 
+                        onSetFormValues={(key, value) => dispatch(actions.setProfileFormValue({key, value}))} 
+                        onSetFormErrors={(key, value) => dispatch(actions.setProfileFormErrors({key, value}))} 
+                        onSubmit={() => {
+                            if(!hasUserChanged) return;
+                            dispatch(actions.submitProfileForm())
+                        }} 
+                        registerForm={formValues} 
+                        submitOnBlur
+                    />
+                </View>
+                <ScreenFooter hideBorder style={styles.footer}>
+                    <Button
+                        label="SAVE"
+                        isLoading={isLoading}
+                        onPress={handleSave}
+                        style={styles.button}
+                    />
+                </ScreenFooter>
+            </KeyboardAvoidingView>
+        </ScreenLayout>
     );
 }
 
@@ -65,9 +78,14 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    keyboardAvoid: {
+        flex: 1,
+    },
+    formWrap: {
+        flex: 1,
+    },
     footer: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(20),
     },
     button: {
         marginHorizontal: 0,

@@ -1,5 +1,6 @@
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -332,7 +333,7 @@ export default function ConversationScreen() {
 
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
         style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
         accentSpacing="tight"
@@ -406,7 +407,7 @@ export default function ConversationScreen() {
         onSelectDocument={pickDocument}
         onTakePhoto={takePhoto}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingVertical: heightPixel(20),
     paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   typingIndicator: {
     flexDirection: 'row',

@@ -4,7 +4,8 @@ import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import EmptyList from "@/components/ui/EmptyList";
 import IconButton from "@/components/ui/IconButton";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -175,7 +176,7 @@ export default function ArtisanScreen() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             <FlashList 
                 style={styles.content} 
                 contentContainerStyle={styles.scrollContent}
@@ -186,7 +187,7 @@ export default function ArtisanScreen() {
                 ListEmptyComponent={!isLoading ? <EmptyList message="No recent works found" /> : null}
                 keyExtractor={(item) => item.id}
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 }
 
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     header: {
         marginBottom: heightPixel(24),

@@ -4,7 +4,8 @@ import Portfolio from '@/components/portfolio/Portfolio';
 import { AccentBar, AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import Button from '@/components/ui/Button';
 import EmptyList from '@/components/ui/EmptyList';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -86,7 +87,7 @@ export default function PortfolioDetails() {
     )
   }, [portfolio, accentColor, textColor, isLoading, isSubmittingComment]);
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
         style={{
           paddingHorizontal: widthPixel(20),
@@ -120,7 +121,7 @@ export default function PortfolioDetails() {
           />
         )
       }
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     paddingHorizontal: widthPixel(20),
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   commentsSection: {
     marginTop: heightPixel(24),

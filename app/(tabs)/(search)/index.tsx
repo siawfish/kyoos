@@ -7,7 +7,8 @@ import ArtisanCard from '@/components/search/ArtisanCard';
 import UserLocation from '@/components/search/UserLocation';
 import ArtisanOptions from '@/components/ui/ArtisanOptions';
 import EmptyList from '@/components/ui/EmptyList';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import ThemedMapView from '@/components/ui/ThemedMapView';
 import UserMapLocationMarker from '@/components/ui/UserMapLocationMarker';
@@ -54,7 +55,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type MapView from 'react-native-maps';
 import { Marker, type Region } from 'react-native-maps';
 
@@ -106,7 +106,6 @@ export default function HomeScreen() {
     const homePopularPagination = useAppSelector(selectHomePopularPagination);
     const isLoadingHomePopular = useAppSelector(selectIsLoadingHomePopular);
     const isAppendingHomePopular = useAppSelector(selectIsAppendingHomePopular);
-    const insets = useSafeAreaInsets();
     /** Native RefreshControl spinner only while user pulled to refresh — not during initial skeleton load */
     const [isPullRefreshing, setIsPullRefreshing] = useState(false);
     // Animation values
@@ -532,7 +531,7 @@ export default function HomeScreen() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             {/* Map Background */}
             <ThemedMapView
                 ref={mapRef}
@@ -789,7 +788,7 @@ export default function HomeScreen() {
                             }
                             contentContainerStyle={[
                                 styles.feedListContent,
-                                { paddingBottom: heightPixel(24) + insets.bottom },
+                                { paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP },
                             ]}
                             refreshControl={
                                 <RefreshControl
@@ -847,7 +846,7 @@ export default function HomeScreen() {
                     />
                 )}
             </ArtisanOptions>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 

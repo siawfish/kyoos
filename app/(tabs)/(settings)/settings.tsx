@@ -1,7 +1,8 @@
 import SettingsItem from '@/components/settings/SettingItem';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -84,7 +85,7 @@ const SettingsScreen = () => {
   };
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -190,7 +191,7 @@ const SettingsScreen = () => {
         confirmButtonStyle={styles.dangerButton}
         confirmTextStyle={styles.dangerText}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 };
 
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   sectionLabelContainer: {
     paddingHorizontal: widthPixel(16),
