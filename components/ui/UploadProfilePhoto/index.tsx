@@ -130,6 +130,11 @@ export default function UploadProfilePhoto({
         dark: colors.dark.text
     }, 'text');
 
+    const secondaryColor = useThemeColor({
+        light: colors.light.secondary,
+        dark: colors.dark.secondary
+    }, 'text');
+
     const borderColor = useThemeColor({
         light: colors.light.black,
         dark: colors.dark.white
@@ -217,20 +222,32 @@ export default function UploadProfilePhoto({
                         >
                             <BottomSheetView style={[styles.bottomSheetContent, { backgroundColor: bottomSheetBackgroundColor }]}>
                                 <AccentScreenHeader
-                                    layout="split"
-                                    paddingPreset="sheetSplit"
+                                    style={{
+                                        paddingHorizontal: widthPixel(20),
+                                        paddingBottom: heightPixel(24),
+                                    }}
                                     accentColor={borderColor}
-                                    label="OPTIONS"
-                                    title={
-                                        <ThemedText 
-                                            style={[styles.title, { color: textColor }]} 
-                                            lightColor={colors.light.text} 
-                                            darkColor={colors.dark.text}
-                                        >
-                                            Photo Actions
-                                        </ThemedText>
+                                    trailing={
+                                        <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
                                     }
-                                    right={<BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+                                    title={
+                                        <View>
+                                            <ThemedText
+                                                style={[styles.optionsEyebrow, { color: secondaryColor }]}
+                                                lightColor={colors.light.secondary}
+                                                darkColor={colors.dark.secondary}
+                                            >
+                                                OPTIONS
+                                            </ThemedText>
+                                            <ThemedText 
+                                                style={[styles.title, { color: textColor }]} 
+                                                lightColor={colors.light.text} 
+                                                darkColor={colors.dark.text}
+                                            >
+                                                Photo Actions
+                                            </ThemedText>
+                                        </View>
+                                    }
                                 />
 
                                 <View style={styles.optionsContainer}>
@@ -326,6 +343,12 @@ const styles = StyleSheet.create({
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(20),
         overflow: 'hidden',
+    },
+    optionsEyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     title: {
         fontSize: fontPixel(24),

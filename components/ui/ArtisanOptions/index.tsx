@@ -122,20 +122,29 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
                         <AccentScreenHeader
-                            layout="split"
-                            paddingPreset="modalStack"
+                            style={styles.artisanModalHeader}
                             accentColor={accentColor}
-                            label="ARTISAN OPTIONS"
-                            title={
-                                <ThemedText
-                                    style={[styles.headerTitle, { color: textColor }]}
-                                    lightColor={colors.light.text}
-                                    darkColor={colors.dark.text}
-                                >
-                                    {artisan?.name || 'Service Provider'}
-                                </ThemedText>
+                            trailing={
+                                <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
                             }
-                            right={<BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />}
+                            title={
+                                <View>
+                                    <ThemedText
+                                        style={[styles.artisanEyebrow, { color: secondaryColor }]}
+                                        lightColor={colors.light.secondary}
+                                        darkColor={colors.dark.secondary}
+                                    >
+                                        ARTISAN OPTIONS
+                                    </ThemedText>
+                                    <ThemedText
+                                        style={[styles.headerTitle, { color: textColor }]}
+                                        lightColor={colors.light.text}
+                                        darkColor={colors.dark.text}
+                                    >
+                                        {artisan?.name || 'Service Provider'}
+                                    </ThemedText>
+                                </View>
+                            }
                         />
 
                         {/* Children Container */}
@@ -202,6 +211,17 @@ const styles = StyleSheet.create({
     bottomSheetContent: {
         flex: 1,
         paddingBottom: heightPixel(40),
+    },
+    artisanModalHeader: {
+        paddingHorizontal: widthPixel(20),
+        paddingTop: heightPixel(20),
+        paddingBottom: heightPixel(24),
+    },
+    artisanEyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     headerTitle: {
         fontSize: fontPixel(24),

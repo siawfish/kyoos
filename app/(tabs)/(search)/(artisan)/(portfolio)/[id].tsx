@@ -2,7 +2,6 @@ import CommentItem from '@/components/portfolio/CommentItem';
 import CommentItemSkeletonLoader from '@/components/portfolio/Loaders/CommentItemSkeletonLoader';
 import Portfolio from '@/components/portfolio/Portfolio';
 import { AccentBar, AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
 import EmptyList from '@/components/ui/EmptyList';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
@@ -89,15 +88,19 @@ export default function PortfolioDetails() {
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
-        layout="accentToolbar"
-        paddingPreset="portfolioScreen"
-        afterAccent={
-          <View style={styles.header}>
-            <BackButton onPress={() => router.back()} iconName="arrow-left" />
-          </View>
-        }
+        style={{
+          paddingHorizontal: widthPixel(20),
+          paddingTop: heightPixel(32),
+          paddingBottom: heightPixel(20),
+        }}
+        onBackPress={() => router.back()}
         toolbarBottomGap={heightPixel(8)}
-        label="PORTFOLIO DETAILS"
+        title="PORTFOLIO DETAILS"
+        titleStyle={{
+          fontSize: fontPixel(10),
+          fontFamily: 'SemiBold',
+          letterSpacing: 1.5,
+        }}
       />
       {
         portfolio ? (
@@ -131,9 +134,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  header: {
-    // marginBottom: heightPixel(8),
   },
   scrollView: {
     paddingHorizontal: widthPixel(20),

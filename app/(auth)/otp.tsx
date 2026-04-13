@@ -14,6 +14,7 @@ import { Link, Redirect } from 'expo-router'
 import React, { useCallback } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAppTheme } from '@/hooks/use-app-theme'
+import { useThemeColor } from '@/hooks/use-theme-color'
 
 const HUBTEL_OTP_USSD = '*713*90#'
 
@@ -43,6 +44,10 @@ const Otp = () => {
     const isResending = useAppSelector(selectLoginFormIsResending);
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const subtitleColor = isDark ? colors.dark.secondary : colors.light.secondary;
+    const eyebrowColor = useThemeColor(
+        { light: colors.light.secondary, dark: colors.dark.secondary },
+        'text'
+    );
 
     const openHubtelOtpUssd = useCallback(async () => {
         const urls = hubtelOtpUssdTelUrls()
@@ -80,13 +85,15 @@ const Otp = () => {
                 >
                     <View style={styles.mainStyle}>
                         <AccentScreenHeader
-                            paddingPreset="none"
                             accentSpacing="loose"
-                            labelVariant="hero"
-                            label="VERIFICATION"
-                            title={'Enter the\nconfirmation code'}
-                            titlePreset="hero"
-                            titleStyle={{ marginBottom: heightPixel(16), lineHeight: fontPixel(42) }}
+                            title={
+                                <View>
+                                    <Text style={[styles.otpEyebrow, { color: eyebrowColor }]}>VERIFICATION</Text>
+                                    <Text style={[styles.otpHeroTitle, { color: textColor }]}>
+                                        Enter the{'\n'}confirmation code
+                                    </Text>
+                                </View>
+                            }
                             subtitle={`We sent a code to ${phoneNumber.value}.`}
                             subtitleStyle={{
                                 fontSize: fontPixel(15),
@@ -164,6 +171,19 @@ const styles = StyleSheet.create({
         marginTop: "15%",
         paddingHorizontal: widthPixel(20),
         marginBottom: heightPixel(24),
+    },
+    otpEyebrow: {
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        letterSpacing: 2,
+        marginBottom: heightPixel(8),
+    },
+    otpHeroTitle: {
+        fontSize: fontPixel(36),
+        fontFamily: 'Bold',
+        letterSpacing: -1,
+        marginBottom: heightPixel(16),
+        lineHeight: fontPixel(42),
     },
     prefixOtpRow: {
         flexDirection: 'row',

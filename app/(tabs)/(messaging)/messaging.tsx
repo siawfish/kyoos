@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import EmptyList from '@/components/ui/EmptyList';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { heightPixel, widthPixel } from '@/constants/normalize';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectIsLoading, selectConversations, selectIsRefreshing } from '@/redux/messaging/selector';
@@ -65,7 +65,15 @@ export default function MessagingScreen() {
 
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <AccentScreenHeader paddingPreset="consumerTab" label="MESSAGES" />
+      <AccentScreenHeader
+        style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
+        title="MESSAGES"
+        titleStyle={{
+          fontSize: fontPixel(10),
+          fontFamily: 'SemiBold',
+          letterSpacing: 1.5,
+        }}
+      />
       <FlashList
         data={listData}
         renderItem={renderItem}

@@ -435,16 +435,12 @@ export default function AttachMedia({
           >
             <BottomSheetView style={styles.bottomSheetContent}>
               <AccentScreenHeader
-                layout="split"
-                paddingPreset="sheetSplit"
+                style={{
+                  paddingHorizontal: widthPixel(20),
+                  paddingBottom: heightPixel(24),
+                }}
                 accentColor={tintColor}
-                label="ADD INPUT"
-                title={
-                  <ThemedText style={[styles.headerTitle, { color: textColor }]}>
-                    Attach Media
-                  </ThemedText>
-                }
-                right={
+                trailing={
                   <TouchableOpacity 
                     onPress={handleClose} 
                     style={[styles.closeButton, { borderColor }]}
@@ -452,6 +448,16 @@ export default function AttachMedia({
                   >
                     <Feather name="x" size={18} color={textColor} />
                   </TouchableOpacity>
+                }
+                title={
+                  <View>
+                    <ThemedText style={[styles.attachEyebrow, { color: secondaryColor }]}>
+                      ADD INPUT
+                    </ThemedText>
+                    <ThemedText style={[styles.headerTitle, { color: textColor }]}>
+                      Attach Media
+                    </ThemedText>
+                  </View>
                 }
               />
 
@@ -564,16 +570,12 @@ export default function AttachMedia({
             <BottomSheetView style={styles.voiceSheetContent}>
               <View style={styles.voiceMainContent}>
                 <AccentScreenHeader
-                  layout="split"
-                  paddingPreset="sheetSplit"
+                  style={{
+                    paddingHorizontal: widthPixel(20),
+                    paddingBottom: heightPixel(24),
+                  }}
                   accentColor={tintColor}
-                  label="VOICE INPUT"
-                  title={
-                    <ThemedText style={[styles.headerTitle, { color: textColor }]}>
-                      Speak Your Request
-                    </ThemedText>
-                  }
-                  right={
+                  trailing={
                     <TouchableOpacity 
                       onPress={handleCloseVoiceModal} 
                       style={[styles.closeButton, { borderColor }]}
@@ -581,6 +583,16 @@ export default function AttachMedia({
                     >
                       <Feather name="x" size={18} color={textColor} />
                     </TouchableOpacity>
+                  }
+                  title={
+                    <View>
+                      <ThemedText style={[styles.attachEyebrow, { color: secondaryColor }]}>
+                        VOICE INPUT
+                      </ThemedText>
+                      <ThemedText style={[styles.headerTitle, { color: textColor }]}>
+                        Speak Your Request
+                      </ThemedText>
+                    </View>
                   }
                 />
 
@@ -654,6 +666,12 @@ const styles = StyleSheet.create({
   },
   voiceMainContent: {
     flex: 1,
+  },
+  attachEyebrow: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+    marginBottom: heightPixel(8),
   },
   headerTitle: {
     fontSize: fontPixel(24),

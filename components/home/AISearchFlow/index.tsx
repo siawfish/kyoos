@@ -808,35 +808,41 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
             >
                 {(currentView === 'search' || currentView === 'question' || currentView === 'loading' || currentView === 'error') && (
                     <AccentScreenHeader
-                        layout="split"
-                        paddingPreset="modalStack"
+                        style={styles.modalStackHeader}
                         accentColor={accentColor}
-                        label={
-                            currentView === 'question'
-                                ? 'QUICK QUESTION'
-                                : currentView === 'loading'
-                                  ? 'LOADING...'
-                                  : currentView === 'error'
-                                    ? 'ERROR'
-                                    : headerLabel
-                        }
+                        accentSpacing="split"
                         title={
-                            <ThemedText
-                                style={[styles.headerTitle, { color: textColor }]}
-                                lightColor={colors.light.text}
-                                darkColor={colors.dark.text}
-                            >
-                                {headerTitle}
-                            </ThemedText>
+                            <View>
+                                <ThemedText
+                                    style={[styles.headerEyebrow, { color: secondaryColor }]}
+                                    lightColor={colors.light.secondary}
+                                    darkColor={colors.dark.secondary}
+                                >
+                                    {currentView === 'question'
+                                        ? 'QUICK QUESTION'
+                                        : currentView === 'loading'
+                                          ? 'LOADING...'
+                                          : currentView === 'error'
+                                            ? 'ERROR'
+                                            : headerLabel}
+                                </ThemedText>
+                                <ThemedText
+                                    style={[styles.headerTitle, { color: textColor }]}
+                                    lightColor={colors.light.text}
+                                    darkColor={colors.dark.text}
+                                >
+                                    {headerTitle}
+                                </ThemedText>
+                            </View>
                         }
-                        right={
+                        trailing={
                             currentView !== 'loading' && currentView !== 'error' ? (
                                 <BackButton
                                     iconName="x"
                                     onPress={agentIsLoading ? undefined : handleClose}
                                     containerStyle={styles.closeButton}
                                 />
-                            ) : null
+                            ) : undefined
                         }
                     />
                 )}
@@ -886,26 +892,32 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                                 style={[styles.additionalSheetContent, { backgroundColor }]}
                             >
                                 <AccentScreenHeader
-                                    layout="split"
-                                    paddingPreset="none"
-                                    containerStyle={styles.additionalSheetHeader}
+                                    style={styles.additionalSheetHeader}
                                     accentColor={accentColor}
-                                    label="OPTIONAL"
-                                    title={
-                                        <ThemedText
-                                            style={[styles.additionalSheetTitle, { color: textColor }]}
-                                            lightColor={colors.light.text}
-                                            darkColor={colors.dark.text}
-                                        >
-                                            Additional information
-                                        </ThemedText>
-                                    }
-                                    right={
+                                    trailing={
                                         <BackButton
                                             iconName="x"
                                             onPress={closeAdditionalInfoSheet}
                                             containerStyle={styles.additionalSheetCloseButton}
                                         />
+                                    }
+                                    title={
+                                        <View>
+                                            <ThemedText
+                                                style={[styles.headerEyebrow, { color: secondaryColor }]}
+                                                lightColor={colors.light.secondary}
+                                                darkColor={colors.dark.secondary}
+                                            >
+                                                OPTIONAL
+                                            </ThemedText>
+                                            <ThemedText
+                                                style={[styles.additionalSheetTitle, { color: textColor }]}
+                                                lightColor={colors.light.text}
+                                                darkColor={colors.dark.text}
+                                            >
+                                                Additional information
+                                            </ThemedText>
+                                        </View>
                                     }
                                 />
                                 <SmartTextArea
@@ -984,6 +996,17 @@ const styles = StyleSheet.create({
     body: {
         flex: 1,
         minHeight: 0,
+    },
+    modalStackHeader: {
+        paddingHorizontal: widthPixel(20),
+        paddingTop: heightPixel(20),
+        paddingBottom: heightPixel(24),
+    },
+    headerEyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     headerTitle: {
         fontSize: fontPixel(24),

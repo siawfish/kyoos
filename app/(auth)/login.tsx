@@ -10,12 +10,20 @@ import { selectLoginFormIsLoading, selectLoginFormPhoneNumber } from '@/redux/au
 import { actions } from '@/redux/auth/slice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import React, { useEffect } from 'react'
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native'
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
   const isLoading = useAppSelector(selectLoginFormIsLoading);
+  const textColor = useThemeColor(
+    { light: colors.light.text, dark: colors.dark.text },
+    'text'
+  );
+  const secondaryColor = useThemeColor(
+    { light: colors.light.secondary, dark: colors.dark.secondary },
+    'text'
+  );
   const inputBackgroundColor = useThemeColor({
       light: colors.light.white,
       dark: colors.dark.black
@@ -46,14 +54,16 @@ export default function Login() {
       >
         <View style={styles.mainStyle}>
           <AccentScreenHeader
-            paddingPreset="none"
-            containerStyle={styles.titleContainer}
+            style={styles.titleContainer}
             accentSpacing="loose"
-            labelVariant="hero"
-            label="SIGN IN"
-            title={'Enter your\nphone number'}
-            titlePreset="hero"
-            titleStyle={{ marginBottom: heightPixel(16), lineHeight: fontPixel(42) }}
+            title={
+              <View>
+                <Text style={[styles.loginEyebrow, { color: secondaryColor }]}>SIGN IN</Text>
+                <Text style={[styles.loginHeroTitle, { color: textColor }]}>
+                  Enter your{'\n'}phone number
+                </Text>
+              </View>
+            }
             subtitle="You will receive a 4-digit code to verify your account"
             subtitleStyle={{ fontSize: fontPixel(15), lineHeight: fontPixel(22) }}
           />
@@ -93,6 +103,19 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingHorizontal: widthPixel(20),
+  },
+  loginEyebrow: {
+    fontSize: fontPixel(11),
+    fontFamily: 'SemiBold',
+    letterSpacing: 2,
+    marginBottom: heightPixel(8),
+  },
+  loginHeroTitle: {
+    fontSize: fontPixel(36),
+    fontFamily: 'Bold',
+    letterSpacing: -1,
+    marginBottom: heightPixel(16),
+    lineHeight: fontPixel(42),
   },
   buttonStyle: {
     marginHorizontal: widthPixel(20),

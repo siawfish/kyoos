@@ -9,7 +9,7 @@ import { BlurView } from 'expo-blur';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { colors } from '@/constants/theme/colors';
-import { widthPixel, heightPixel } from '@/constants/normalize';
+import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { AccentScreenHeader } from '../AccentScreenHeader';
@@ -93,11 +93,20 @@ const IOSDatePickerModal = ({
                 >
                     <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
                         <AccentScreenHeader
-                            layout="split"
-                            paddingPreset="sheetSplit"
+                            style={{
+                                paddingHorizontal: widthPixel(20),
+                                paddingBottom: heightPixel(24),
+                            }}
                             accentColor={borderColor}
-                            label="SELECT DATE"
-                            right={<BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+                            trailing={
+                                <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
+                            }
+                            title="SELECT DATE"
+                            titleStyle={{
+                                fontSize: fontPixel(10),
+                                fontFamily: 'SemiBold',
+                                letterSpacing: 1.5,
+                            }}
                         />
 
                         <View style={styles.pickerContainer}>

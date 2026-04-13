@@ -1,5 +1,4 @@
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
-import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import SuccessOverlay from "@/components/ui/SuccessOverlay";
@@ -156,18 +155,12 @@ export default function ReviewBooking() {
         <ThemedSafeAreaView style={styles.container}>
             <View style={styles.headerContainer}>
                 <AccentScreenHeader
-                    paddingPreset="none"
-                    layout="accentToolbar"
-                    containerStyle={styles.reviewAccentHeader}
+                    style={styles.reviewAccentHeader}
                     accentColor={accentColor}
-                    label="REVIEW BOOKING"
-                    afterAccent={
-                        <BackButton
-                            iconName="arrow-left"
-                            onPress={() => router.back()}
-                        />
-                    }
-                    labelStyle={[styles.pageTitle, { color: labelColor }]}
+                    onBackPress={() => router.back()}
+                    trailing={null}
+                    title="REVIEW BOOKING"
+                    titleStyle={[styles.pageTitle, { color: labelColor }]}
                 />
             </View>
 

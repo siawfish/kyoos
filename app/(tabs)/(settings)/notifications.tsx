@@ -1,6 +1,5 @@
 import SettingsToggle from "@/components/settings/SettingsToggle";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
-import BackButton from "@/components/ui/BackButton";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
@@ -44,10 +43,15 @@ const NotificationsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <AccentScreenHeader
-          layout="accentToolbar"
-          paddingPreset="consumerSettingsNested"
-          afterAccent={<BackButton onPress={() => router.back()} iconName="arrow-left" />}
-          label="NOTIFICATIONS"
+          style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
+          onBackPress={() => router.back()}
+          trailing={null}
+          title="NOTIFICATIONS"
+          titleStyle={{
+            fontSize: fontPixel(10),
+            fontFamily: 'SemiBold',
+            letterSpacing: 1.5,
+          }}
         />
 
         <View style={[styles.settingsGroup, { backgroundColor: cardBg, borderColor }]}>

@@ -90,7 +90,15 @@ const SettingsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <AccentScreenHeader paddingPreset="consumerTab" label="SETTINGS" />
+        <AccentScreenHeader
+          style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
+          title="SETTINGS"
+          titleStyle={{
+            fontSize: fontPixel(10),
+            fontFamily: 'SemiBold',
+            letterSpacing: 1.5,
+          }}
+        />
 
         <View style={styles.sectionLabelContainer}>
           <Text style={[styles.sectionLabel, { color: labelColor }]}>GENERAL</Text>

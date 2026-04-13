@@ -5,7 +5,8 @@ import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import OverlayLoader from '@/components/ui/OverlayLoader';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { formatRelativeDate } from '@/constants/helpers';
-import { widthPixel } from '@/constants/normalize';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { colors } from '@/constants/theme/colors';
 import { Booking } from '@/redux/booking/types';
 import {
   selectBookings,
@@ -19,10 +20,11 @@ import { actions } from '@/redux/bookings/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { format, startOfWeek } from 'date-fns';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { selectFetchingConversation } from '@/redux/messaging/selector';
 import { router } from 'expo-router';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions as messagingActions } from '@/redux/messaging/slice';
 
 export default function BookingsScreen() {
@@ -36,6 +38,14 @@ export default function BookingsScreen() {
   const selectedDateString = useAppSelector(selectSelectedDate);
   const currentWeekStart = useAppSelector(selectCurrentWeekStart);
   const isLoadingMessaging = useAppSelector(selectFetchingConversation);
+  const textColor = useThemeColor(
+    { light: colors.light.text, dark: colors.dark.text },
+    'text'
+  );
+  const secondaryColor = useThemeColor(
+    { light: colors.light.secondary, dark: colors.dark.secondary },
+    'text'
+  );
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showReschedule, setShowReschedule] = useState(false);
@@ -154,16 +164,26 @@ export default function BookingsScreen() {
   const pageHeader = useMemo(
     () => (
       <AccentScreenHeader
-        paddingPreset="consumerHero"
-        labelVariant="hero"
-        label="BOOKINGS"
-        title={formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
-        subtitle={format(selectedDate, 'EEEE, MMMM d, yyyy')}
-        titlePreset="hero"
-        titleStyle={{ textTransform: 'capitalize' }}
+        style={styles.bookingsHeader}
+        title={
+          <View>
+            <Text style={[styles.bookingsEyebrow, { color: secondaryColor }]}>BOOKINGS</Text>
+            <Text
+              style={[
+                styles.bookingsHeroTitle,
+                { color: textColor, textTransform: 'capitalize' },
+              ]}
+            >
+              {formatRelativeDate(format(selectedDate, 'yyyy-MM-dd'))}
+            </Text>
+            <Text style={[styles.bookingsSubtitle, { color: secondaryColor }]}>
+              {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+            </Text>
+          </View>
+        }
       />
     ),
-    [selectedDate]
+    [selectedDate, textColor, secondaryColor]
   );
 
   const weekCalendar = useMemo(
@@ -293,6 +313,26 @@ const styles = StyleSheet.create({
   },
   timelineWrap: {
     flex: 1,
+  },
+  bookingsHeader: {
+    paddingHorizontal: widthPixel(16),
+    marginBottom: heightPixel(24),
+  },
+  bookingsEyebrow: {
+    fontSize: fontPixel(11),
+    fontFamily: 'SemiBold',
+    letterSpacing: 2,
+    marginBottom: heightPixel(8),
+  },
+  bookingsHeroTitle: {
+    fontSize: fontPixel(36),
+    fontFamily: 'Bold',
+    letterSpacing: -1,
+    marginBottom: heightPixel(4),
+  },
+  bookingsSubtitle: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
   },
   dangerIcon: {
       width: widthPixel(60),

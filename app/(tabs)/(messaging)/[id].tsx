@@ -1,5 +1,4 @@
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import BackButton from '@/components/ui/BackButton';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -335,19 +334,14 @@ export default function ConversationScreen() {
   return (
     <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
-        layout="accentToolbar"
-        paddingPreset="conversationToolbar"
+        style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
         accentSpacing="tight"
         toolbarBottomGap={0}
-        afterAccent={
-          <View style={styles.header}>
-            <BackButton onPress={() => router.back()} iconName="arrow-left" />
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={handleBookingPress}>
-                <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
-              </TouchableOpacity>
-            </View>
-          </View>
+        onBackPress={() => router.back()}
+        trailing={
+          <TouchableOpacity onPress={handleBookingPress}>
+            <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
+          </TouchableOpacity>
         }
       />
       
@@ -419,18 +413,6 @@ export default function ConversationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: widthPixel(12),
-    flex: 1,
-    justifyContent: 'flex-end',
   },
   headerAvatar: {
     width: widthPixel(32),

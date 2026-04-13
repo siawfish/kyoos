@@ -158,22 +158,9 @@ const LocationMapPicker = ({
                 >
                   <View style={[styles.line, { backgroundColor: borderColor }]} />
                   <AccentScreenHeader
-                    layout="split"
-                    paddingPreset="none"
-                    containerStyle={styles.bottomSheetHeader}
+                    style={styles.bottomSheetHeader}
                     accentColor={accentColor}
-                    label="MAP PICKER"
-                    title={
-                      <ThemedText style={[styles.bottomSheetTitle, { color: textColor }]}>
-                        Select Location
-                      </ThemedText>
-                    }
-                    subtitle={
-                      <ThemedText style={[styles.helperText, { color: secondaryColor }]}>
-                        Tap on the map to select your location
-                      </ThemedText>
-                    }
-                    right={
+                    trailing={
                       <BackButton 
                         iconName="x"
                         onPress={() => {
@@ -185,6 +172,21 @@ const LocationMapPicker = ({
                         }}
                         containerStyle={styles.closeButton}
                       />
+                    }
+                    title={
+                      <View>
+                        <ThemedText style={[styles.mapEyebrow, { color: secondaryColor }]}>
+                          MAP PICKER
+                        </ThemedText>
+                        <ThemedText style={[styles.bottomSheetTitle, { color: textColor }]}>
+                          Select Location
+                        </ThemedText>
+                      </View>
+                    }
+                    subtitle={
+                      <ThemedText style={[styles.helperText, { color: secondaryColor }]}>
+                        Tap on the map to select your location
+                      </ThemedText>
                     }
                   />
                   <View style={styles.mapContainer}>
@@ -277,6 +279,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(24),
+    },
+    mapEyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     bottomSheetTitle: {
         fontSize: fontPixel(24),

@@ -1,6 +1,5 @@
 import User from '@/components/portfolio/User';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
 import SmartTextArea from '@/components/ui/SmartTextArea';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
@@ -84,12 +83,15 @@ const Comment = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <AccentScreenHeader
-                    paddingPreset="none"
-                    containerStyle={styles.headerSection}
-                    label={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
-                >
-                    <View style={styles.header}>
-                        <BackButton onPress={() => router.back()} iconName="arrow-left" />
+                    style={styles.headerSection}
+                    onBackPress={() => router.back()}
+                    title={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
+                    titleStyle={{
+                        fontSize: fontPixel(10),
+                        fontFamily: 'SemiBold',
+                        letterSpacing: 1.5,
+                    }}
+                    trailing={
                         <Button 
                             style={styles.btn} 
                             label={comment ? "UPDATE" : "POST"}
@@ -100,8 +102,8 @@ const Comment = () => {
                             darkBackgroundColor={colors.dark.tint}
                             icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
                         />
-                    </View>
-                </AccentScreenHeader>
+                    }
+                />
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>
                     <User
@@ -174,13 +176,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(20),
     paddingTop: heightPixel(32),
     marginBottom: heightPixel(8),
-  },
-  header: {
-    gap: widthPixel(10),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // marginBottom: heightPixel(20),
   },
   btn: {
     minWidth: widthPixel(100),

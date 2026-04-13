@@ -166,12 +166,32 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
         >
           <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
             <AccentScreenHeader
-              layout="split"
-              paddingPreset="sheetSplit"
+              style={{
+                paddingHorizontal: widthPixel(20),
+                paddingBottom: heightPixel(24),
+              }}
               accentColor={borderColor}
-              label="CONFIRMATION"
-              title={title}
-              right={<BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+              trailing={
+                <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
+              }
+              title={
+                <View>
+                  <ThemedText
+                    style={styles.confirmEyebrow}
+                    lightColor={colors.light.secondary}
+                    darkColor={colors.dark.secondary}
+                  >
+                    CONFIRMATION
+                  </ThemedText>
+                  <ThemedText
+                    style={styles.confirmTitle}
+                    lightColor={colors.light.text}
+                    darkColor={colors.dark.text}
+                  >
+                    {title}
+                  </ThemedText>
+                </View>
+              }
             />
 
             {icon && (
@@ -207,6 +227,18 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     marginTop: heightPixel(8),
+  },
+  confirmEyebrow: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+    marginBottom: heightPixel(8),
+  },
+  confirmTitle: {
+    fontSize: fontPixel(24),
+    fontFamily: 'Bold',
+    letterSpacing: -0.5,
+    lineHeight: fontPixel(28),
   },
   iconContainer: {
     alignItems: 'center',

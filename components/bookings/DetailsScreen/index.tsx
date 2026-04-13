@@ -6,7 +6,6 @@ import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import BookingDetails from "@/components/bookings/BookingDetails";
 import Actions from "@/components/bookings/BookingDetails/Actions";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
-import BackButton from "@/components/ui/BackButton";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -55,32 +54,33 @@ const Details = () => {
 
   const renderBookingDetailHeader = (b: Booking | null | undefined) => (
     <AccentScreenHeader
-      layout="accentToolbar"
-      paddingPreset="consumerSettingsNested"
+      style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
       accentColor={accentColor}
       accentSpacing="split"
-      afterAccent={
-        <BackButton iconName="arrow-left" onPress={handleBack} />
-      }
+      onBackPress={handleBack}
       toolbarBottomGap={heightPixel(10)}
-      label={b ? "BOOKING DETAILS" : undefined}
-      labelStyle={b ? { letterSpacing: 2 } : undefined}
-      title={b?.description}
-      titlePreset="detail"
-    >
-      {b ? (
-        <View style={styles.clientRow}>
-          <Text style={[styles.withText, { color: labelColor }]}>with</Text>
-          <Image
-            source={{ uri: b.worker?.avatar }}
-            style={[styles.avatar, { backgroundColor: labelColor }]}
-          />
-          <Text style={[styles.clientName, { color: textColor }]}>
-            {b.worker?.name}
-          </Text>
-        </View>
-      ) : null}
-    </AccentScreenHeader>
+      trailing={null}
+      title={
+        b ? (
+          <View>
+            <Text style={[styles.detailSectionLabel, { color: labelColor }]}>
+              BOOKING DETAILS
+            </Text>
+            <Text style={[styles.detailTitle, { color: textColor }]}>{b.description}</Text>
+            <View style={styles.clientRow}>
+              <Text style={[styles.withText, { color: labelColor }]}>with</Text>
+              <Image
+                source={{ uri: b.worker?.avatar }}
+                style={[styles.avatar, { backgroundColor: labelColor }]}
+              />
+              <Text style={[styles.clientName, { color: textColor }]}>
+                {b.worker?.name}
+              </Text>
+            </View>
+          </View>
+        ) : undefined
+      }
+    />
   );
 
   // Loading state
@@ -248,6 +248,18 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  detailSectionLabel: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 2,
+    marginBottom: heightPixel(8),
+  },
+  detailTitle: {
+    fontSize: fontPixel(28),
+    fontFamily: 'Bold',
+    letterSpacing: -0.5,
+    marginBottom: heightPixel(12),
   },
   clientRow: {
     flexDirection: 'row',

@@ -1,6 +1,5 @@
 import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
-import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import JobSummary from "@/components/ui/JobSummary";
@@ -118,43 +117,42 @@ export default function BookingScreen() {
     return (
         <ThemedSafeAreaView style={styles.container}>
             <AccentScreenHeader
-                layout="accentToolbar"
-                paddingPreset="none"
-                containerStyle={styles.header}
-                afterAccent={
-                    <BackButton
-                        iconName="arrow-left"
-                        onPress={handleBackPress}
-                    />
-                }
+                style={styles.header}
+                onBackPress={handleBackPress}
                 accentColor={accentColor}
-                label="BOOK SERVICE"
-                labelStyle={{ marginBottom: heightPixel(12) }}
-            >
-                <View style={styles.headerSubtitle}>
-                    <ThemedText 
-                        type="defaultSemiBold" 
-                        style={styles.subtitleText}
-                        darkColor={colors.dark.secondary}
-                        lightColor={colors.light.secondary}
-                    >
-                        with
-                    </ThemedText>
-                    <Image 
-                        source={{ uri: artisan?.avatar }} 
-                        style={[styles.avatar, { backgroundColor: cardBg }]}
-                        resizeMode="cover"
-                    />
-                    <ThemedText 
-                        type="defaultSemiBold"
-                        style={styles.artisanName}
-                        darkColor={colors.dark.text}
-                        lightColor={colors.light.text}
-                    >
-                        {artisan?.name}
-                    </ThemedText>
-                </View>
-            </AccentScreenHeader>
+                title="BOOK SERVICE"
+                titleStyle={{
+                    fontSize: fontPixel(10),
+                    fontFamily: 'SemiBold',
+                    letterSpacing: 1.5,
+                    marginBottom: heightPixel(12),
+                }}
+                subtitle={
+                    <View style={styles.headerSubtitle}>
+                        <ThemedText 
+                            type="defaultSemiBold" 
+                            style={styles.subtitleText}
+                            darkColor={colors.dark.secondary}
+                            lightColor={colors.light.secondary}
+                        >
+                            with
+                        </ThemedText>
+                        <Image 
+                            source={{ uri: artisan?.avatar }} 
+                            style={[styles.avatar, { backgroundColor: cardBg }]}
+                            resizeMode="cover"
+                        />
+                        <ThemedText 
+                            type="defaultSemiBold"
+                            style={styles.artisanName}
+                            darkColor={colors.dark.text}
+                            lightColor={colors.light.text}
+                        >
+                            {artisan?.name}
+                        </ThemedText>
+                    </View>
+                }
+            />
 
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}

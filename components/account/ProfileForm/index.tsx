@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -11,7 +12,6 @@ import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
-import BackButton from '@/components/ui/BackButton';
 import { router } from 'expo-router';
 
 export default function ProfileForm({
@@ -66,21 +66,22 @@ export default function ProfileForm({
             >
                 <ThemedView style={styles.container}>
                     <AccentScreenHeader
-                        layout="accentToolbar"
-                        paddingPreset="none"
-                        afterAccent={
-                        <View style={styles.header}>
-                            <BackButton onPress={() => router.back()} iconName="arrow-left" />
-                        </View>
-                        }
-                        toolbarBottomGap={heightPixel(8)}
+                        style={styles.contentContainer}
                         accentSpacing="loose"
-                        label="USER PROFILE"
-                        title="Profile info"
-                        titleStyle={[styles.title, { color: textColor }]}
+                        toolbarBottomGap={heightPixel(8)}
+                        onBackPress={() => router.back()}
+                        title={
+                            <View>
+                                <ThemedText style={[styles.eyebrow, { color: subtitleColor }]}>
+                                    USER PROFILE
+                                </ThemedText>
+                                <ThemedText style={[styles.title, { color: textColor }]}>
+                                    Profile info
+                                </ThemedText>
+                            </View>
+                        }
                         subtitle="Please provide your name and an optional profile photo"
                         subtitleStyle={[styles.subtitle, { color: subtitleColor }]}
-                        containerStyle={styles.contentContainer}
                     />
 
                     <View style={styles.gap}>
@@ -139,6 +140,12 @@ const styles = StyleSheet.create({
         paddingTop: heightPixel(24),
         marginBottom: heightPixel(24),
     },
+    eyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
+    },
     title: {
         fontSize: fontPixel(32),
         fontFamily: 'Bold',
@@ -151,9 +158,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Regular',
         lineHeight: fontPixel(22),
     },
-    header: {
-    //   marginBottom: heightPixel(8),
-    },  
     gap: {
         flexDirection: 'column',
         gap: heightPixel(16),

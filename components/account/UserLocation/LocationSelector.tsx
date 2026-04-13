@@ -14,7 +14,6 @@ import InputField from '@/components/ui/TextInput';
 import LocationMapPicker from './LocationMapPicker';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import BackButton from '@/components/ui/BackButton';
 import { selectUserLocation, selectUserLocationIsMapPickerOpen } from '@/redux/app/selector';
 import { actions } from '@/redux/app/slice';
 
@@ -86,23 +85,18 @@ export default function LocationSelector() {
         showsVerticalScrollIndicator={false}
       >
         <AccentScreenHeader
-          layout="accentToolbar"
-          paddingPreset="none"
-          containerStyle={styles.headerSection}
+          style={styles.headerSection}
           accentColor={accentColor}
-          afterAccent={
-            <View style={styles.header}>
-              <BackButton 
-                iconName='arrow-left'
-                onPress={() => router.back()}
-              />
-            </View>
-          }
-          label="YOUR LOCATION"
+          onBackPress={() => router.back()}
           title={
-            <ThemedText style={[styles.title, { color: textColor }]}>
-              Where are you located?
-            </ThemedText>
+            <View>
+              <ThemedText style={[styles.sectionEyebrow, { color: secondaryColor }]}>
+                YOUR LOCATION
+              </ThemedText>
+              <ThemedText style={[styles.title, { color: textColor }]}>
+                Where are you located?
+              </ThemedText>
+            </View>
           }
           subtitle={
             <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
@@ -199,8 +193,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: widthPixel(20),
     paddingBottom: heightPixel(20),
   },
-  header: {
-    // marginBottom: heightPixel(16),
+  sectionEyebrow: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 1.5,
+    marginBottom: heightPixel(8),
   },
   title: {
     fontSize: fontPixel(32),

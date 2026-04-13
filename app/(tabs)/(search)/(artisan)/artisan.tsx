@@ -3,7 +3,6 @@ import Portfolio from "@/components/portfolio/Portfolio";
 import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import EmptyList from "@/components/ui/EmptyList";
-import BackButton from "@/components/ui/BackButton";
 import IconButton from "@/components/ui/IconButton";
 import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
@@ -84,34 +83,32 @@ export default function ArtisanScreen() {
         return (
             <>
                 <AccentScreenHeader
-                    layout="accentToolbar"
-                    paddingPreset="none"
-                    afterAccent={
-                        <View style={styles.backButtonContainer}>
-                            <BackButton
-                                iconName="arrow-left"
-                                onPress={() => router.back()}
-                            />
-                            <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
-                                <IconButton 
-                                    style={styles.chatButton}
-                                    lightColor={colors.light.black}
-                                    darkColor={colors.dark.white}
-                                >
-                                    <Ionicons 
-                                        name="chatbox-ellipses-outline" 
-                                        size={24} 
-                                        color={isDark ? colors.dark.black : colors.light.white} 
-                                    />
-                                </IconButton>
-                            </Link>
-                        </View>
-                    }
-                    toolbarBottomGap={heightPixel(8)}
-                    accentSpacing="loose"
-                    containerStyle={styles.header}
+                    style={styles.header}
                     accentColor={accentColor}
-                    label="WORKER"
+                    accentSpacing="loose"
+                    toolbarBottomGap={heightPixel(8)}
+                    onBackPress={() => router.back()}
+                    trailing={
+                        <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
+                            <IconButton 
+                                style={styles.chatButton}
+                                lightColor={colors.light.black}
+                                darkColor={colors.dark.white}
+                            >
+                                <Ionicons 
+                                    name="chatbox-ellipses-outline" 
+                                    size={24} 
+                                    color={isDark ? colors.dark.black : colors.light.white} 
+                                />
+                            </IconButton>
+                        </Link>
+                    }
+                    title="WORKER"
+                    titleStyle={{
+                        fontSize: fontPixel(10),
+                        fontFamily: 'SemiBold',
+                        letterSpacing: 1.5,
+                    }}
                 />
 
                 {/* Basic Info Section */}
@@ -196,12 +193,6 @@ export default function ArtisanScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    backButtonContainer: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
     },
     content: {
         flex: 1,
