@@ -42,6 +42,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Searching from '@/components/search/Searching';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import AdditionalInfoSheet from './AdditionalInfoSheet';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 
 export interface AISearchFlowProps {
     onRequestClose: () => void;
@@ -781,7 +782,7 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
     );
 
     return (
-        <SafeAreaView style={[styles.screenRoot, { backgroundColor }]} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={[styles.screenRoot, { backgroundColor }]}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.keyboardView}
@@ -1046,7 +1047,7 @@ const styles = StyleSheet.create({
     footer: {
         paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(16),
-        paddingBottom: heightPixel(24),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
         borderTopWidth: 0.5,
     },
     searchButton: {
