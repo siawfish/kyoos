@@ -90,12 +90,12 @@ export default function PortfolioDetails() {
     <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
         style={{
-          paddingHorizontal: widthPixel(20),
-          paddingTop: heightPixel(32),
+          paddingHorizontal: widthPixel(16),
           paddingBottom: heightPixel(20),
         }}
         onBackPress={() => router.back()}
         toolbarBottomGap={heightPixel(8)}
+        accentSpacing='tight'
         title="PORTFOLIO DETAILS"
         titleStyle={{
           fontSize: fontPixel(10),
@@ -131,13 +131,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: heightPixel(200),
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
   },
   container: {
     flex: 1,
   },
   scrollView: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   commentsSection: {

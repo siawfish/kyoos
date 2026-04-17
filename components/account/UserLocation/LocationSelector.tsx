@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
+import { useGoogleAutocompleteProxy, GoogleLocationResult } from '@/hooks/useGoogleAutocompleteProxy';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/constants/theme/colors';
@@ -55,12 +55,10 @@ export default function LocationSelector() {
     dark: colors.dark.background + '95',
   }, 'background');
 
-  const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocomplete(
-    process.env.EXPO_PUBLIC_GOOGLE_API_KEY || '', {
-      components: 'country:gh',
-      language: 'en',
-    }
-  );
+  const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocompleteProxy({
+    components: 'country:gh',
+    language: 'en',
+  });
 
   const onLocationSelect = useCallback((item: GoogleLocationResult) => {
     searchDetails(item.place_id).then((result) => {
