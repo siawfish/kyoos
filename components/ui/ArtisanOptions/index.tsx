@@ -124,25 +124,25 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                         <AccentScreenHeader
                             style={styles.artisanModalHeader}
                             accentColor={accentColor}
-                            trailing={
-                                <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
-                            }
                             title={
-                                <View>
-                                    <ThemedText
-                                        style={[styles.artisanEyebrow, { color: secondaryColor }]}
-                                        lightColor={colors.light.secondary}
-                                        darkColor={colors.dark.secondary}
-                                    >
-                                        ARTISAN OPTIONS
-                                    </ThemedText>
-                                    <ThemedText
-                                        style={[styles.headerTitle, { color: textColor }]}
-                                        lightColor={colors.light.text}
-                                        darkColor={colors.dark.text}
-                                    >
-                                        {artisan?.name || 'Service Provider'}
-                                    </ThemedText>
+                                <View style={styles.titleContainer}>
+                                    <View style={styles.titleTextContainer}>
+                                        <ThemedText
+                                            style={[styles.artisanEyebrow, { color: secondaryColor }]}
+                                            lightColor={colors.light.secondary}
+                                            darkColor={colors.dark.secondary}
+                                        >
+                                            ARTISAN OPTIONS
+                                        </ThemedText>
+                                        <ThemedText
+                                            style={[styles.headerTitle, { color: textColor }]}
+                                            lightColor={colors.light.text}
+                                            darkColor={colors.dark.text}
+                                        >
+                                            {artisan?.name || 'Service Provider'}
+                                        </ThemedText>
+                                    </View>
+                                    <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
                                 </View>
                             }
                         />
@@ -212,9 +212,19 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingBottom: heightPixel(40),
     },
+    titleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: widthPixel(12),
+    },
+    titleTextContainer: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+    },
     artisanModalHeader: {
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(24),
     },
     artisanEyebrow: {

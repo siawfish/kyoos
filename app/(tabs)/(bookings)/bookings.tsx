@@ -165,6 +165,7 @@ export default function BookingsScreen() {
     () => (
       <AccentScreenHeader
         style={styles.bookingsHeader}
+        accentSpacing="tight"
         title={
           <View>
             <Text style={[styles.bookingsEyebrow, { color: secondaryColor }]}>BOOKINGS</Text>

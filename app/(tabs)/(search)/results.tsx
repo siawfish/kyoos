@@ -23,6 +23,7 @@ import { Marker } from 'react-native-maps';
 import { selectFormattedAgentPrice, selectClosestWorkers, selectMedia, selectRecommendedWorkers, selectRequiredSkills, selectSearch, selectSummary } from "../../../redux/search/selector";
 import { actions } from "../../../redux/search/slice";
 import { Skill, Worker } from "../../../redux/search/types";
+import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
 
 const INITIAL_REGION = {
   latitude: 5.5560,
@@ -377,7 +378,7 @@ export default function Results() {
     }, [selectedArtisan, unifiedWorkers]);
 
     return (
-        <ScreenLayout style={styles.container}>
+        <ThemedSafeAreaView lightColor={colors.light.background} darkColor={colors.dark.background} style={styles.container}>
             {/* Map Background */}
             <ThemedMapView
                 ref={mapRef}
@@ -611,7 +612,7 @@ export default function Results() {
                 confirmText="Confirm"
                 cancelText="Cancel"
             />
-        </ScreenLayout>
+        </ThemedSafeAreaView>
     );
 }
 
@@ -620,7 +621,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     map: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         zIndex: 0,
     },
     mapBlurOverlay: {

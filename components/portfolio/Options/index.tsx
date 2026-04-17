@@ -117,29 +117,29 @@ export function Options({
                             <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
                                 <AccentScreenHeader
                                     style={{
-                                        paddingHorizontal: widthPixel(20),
+                                        paddingHorizontal: widthPixel(16),
                                         paddingBottom: heightPixel(24),
                                     }}
                                     accentColor={borderColor}
-                                    trailing={
-                                        <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-                                    }
                                     title={
-                                        <View>
-                                            <ThemedText
-                                                style={[styles.optionsEyebrow, { color: secondaryColor }]}
-                                                lightColor={colors.light.secondary}
-                                                darkColor={colors.dark.secondary}
-                                            >
-                                                OPTIONS
-                                            </ThemedText>
-                                            <ThemedText
-                                                style={[styles.title, { color: textColor }]}
-                                                lightColor={colors.light.text}
-                                                darkColor={colors.dark.text}
-                                            >
-                                                {title}
-                                            </ThemedText>
+                                        <View style={styles.titleContainer}>
+                                            <View style={styles.titleTextContainer}>
+                                                <ThemedText
+                                                    style={[styles.optionsEyebrow, { color: secondaryColor }]}
+                                                    lightColor={colors.light.secondary}
+                                                    darkColor={colors.dark.secondary}
+                                                >
+                                                    OPTIONS
+                                                </ThemedText>
+                                                <ThemedText
+                                                    style={[styles.title, { color: textColor }]}
+                                                    lightColor={colors.light.text}
+                                                    darkColor={colors.dark.text}
+                                                >
+                                                    {title}
+                                                </ThemedText>
+                                            </View>
+                                            <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
                                         </View>
                                     }
                                 />
@@ -187,9 +187,19 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flex: 1,
-        paddingTop: heightPixel(20),
         paddingBottom: heightPixel(20),
         overflow: 'hidden',
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: widthPixel(12),
+    },
+    titleTextContainer: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
     },
     optionsEyebrow: {
         fontSize: fontPixel(10),

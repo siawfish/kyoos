@@ -93,6 +93,7 @@ const SettingsScreen = () => {
       >
         <AccentScreenHeader
           style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
+          accentSpacing="tight"
           title="SETTINGS"
           titleStyle={{
             fontSize: fontPixel(10),

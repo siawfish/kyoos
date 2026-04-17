@@ -7,7 +7,6 @@ import ArtisanCard from '@/components/search/ArtisanCard';
 import UserLocation from '@/components/search/UserLocation';
 import ArtisanOptions from '@/components/ui/ArtisanOptions';
 import EmptyList from '@/components/ui/EmptyList';
-import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import ThemedMapView from '@/components/ui/ThemedMapView';
@@ -57,6 +56,7 @@ import {
 } from 'react-native';
 import type MapView from 'react-native-maps';
 import { Marker, type Region } from 'react-native-maps';
+import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
 
 const SEARCH_BAR_TOP_FEED = heightPixel(120);
 /** Same targets as `searchBarContainer` top when booking preview is closed vs open */
@@ -531,7 +531,7 @@ export default function HomeScreen() {
     };
 
     return (
-        <ScreenLayout style={styles.container}>
+        <ThemedSafeAreaView lightColor={colors.light.background} darkColor={colors.dark.background} style={styles.container}>
             {/* Map Background */}
             <ThemedMapView
                 ref={mapRef}
@@ -576,7 +576,7 @@ export default function HomeScreen() {
                 <BlurView
                     intensity={40}
                     tint={blurTint as BlurTint}
-                    style={[StyleSheet.absoluteFillObject, styles.mapFeedOverlay]}
+                    style={[StyleSheet.absoluteFill, styles.mapFeedOverlay]}
                 />
             ) : null}
 
@@ -846,7 +846,7 @@ export default function HomeScreen() {
                     />
                 )}
             </ArtisanOptions>
-        </ScreenLayout>
+        </ThemedSafeAreaView>
     );
 }
 
@@ -855,11 +855,11 @@ const styles = StyleSheet.create({
       flex: 1,
     },
     map: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 0,
     },
     mapFeedOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 1,
       elevation: 1,
     },

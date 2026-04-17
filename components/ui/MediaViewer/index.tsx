@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     loaderOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: "center",
         alignItems: "center",
     },

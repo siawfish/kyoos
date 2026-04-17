@@ -81,7 +81,7 @@ export type AccentScreenHeaderProps = {
 export function AccentScreenHeader({
   style,
   containerStyle,
-  accentSpacing = 'default',
+  accentSpacing = 'tight',
   accentColor,
   accentBarStyle,
   onBackPress,

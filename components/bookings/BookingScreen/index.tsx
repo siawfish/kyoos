@@ -121,6 +121,7 @@ export default function BookingScreen() {
                 style={styles.header}
                 onBackPress={handleBackPress}
                 accentColor={accentColor}
+                accentSpacing="tight"
                 title="BOOK SERVICE"
                 titleStyle={{
                     fontSize: fontPixel(10),

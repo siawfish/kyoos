@@ -69,6 +69,7 @@ export default function MessagingScreen() {
       <AccentScreenHeader
         style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
         title="MESSAGES"
+        accentSpacing="tight"
         titleStyle={{
           fontSize: fontPixel(10),
           fontFamily: 'SemiBold',

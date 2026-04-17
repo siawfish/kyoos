@@ -45,6 +45,7 @@ const NotificationsScreen = () => {
       >
         <AccentScreenHeader
           style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
+          accentSpacing="tight"
           onBackPress={() => router.back()}
           trailing={null}
           title="NOTIFICATIONS"

@@ -1,11 +1,11 @@
+import { ScreenFooter } from '@/components/layout/ScreenFooter'
+import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
 import PhoneInput from '@/components/ui/PhoneInput'
-import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { validateGhanaianPhoneNumber } from '@/constants/helpers/validations'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
-import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { selectLoginFormIsLoading, selectLoginFormPhoneNumber } from '@/redux/auth/selector'
 import { actions } from '@/redux/auth/slice'
@@ -14,7 +14,6 @@ import React, { useEffect } from 'react'
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native'
 
 export default function Login() {
-  const androidKeyboardLift = useAndroidKeyboardFooterLift();
   const dispatch = useAppDispatch();
   const phoneNumber = useAppSelector(selectLoginFormPhoneNumber);
   const isLoading = useAppSelector(selectLoginFormIsLoading);
@@ -55,8 +54,8 @@ export default function Login() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[
           styles.keyboardAvoidingView,
-          androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
         ]}
+        keyboardVerticalOffset={heightPixel(60)}
       >
         <View style={styles.mainStyle}>
           <AccentScreenHeader
@@ -83,13 +82,15 @@ export default function Login() {
             error={phoneNumber.error}
           />
         </View>
-        <Button 
-          isLoading={isLoading}
-          onPress={handleContinue}
-          label='Continue'
-          style={styles.buttonStyle}
-          disabled={phoneNumber.error !== '' || phoneNumber.value.length !== 10}
-        />
+        <ScreenFooter hideBorder style={styles.footer}>
+          <Button 
+            isLoading={isLoading}
+            onPress={handleContinue}
+            label='Continue'
+            style={styles.buttonStyle}
+            disabled={phoneNumber.error !== '' || phoneNumber.value.length !== 10}
+          />
+        </ScreenFooter>
       </KeyboardAvoidingView>
     </ScreenLayout>
   )
@@ -104,11 +105,9 @@ const styles = StyleSheet.create({
   },
   mainStyle: {
     flex: 1,
-    marginTop: "15%",
-    marginBottom: "6%",
   },
   titleContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
   },
   loginEyebrow: {
     fontSize: fontPixel(11),
@@ -123,8 +122,10 @@ const styles = StyleSheet.create({
     marginBottom: heightPixel(16),
     lineHeight: fontPixel(42),
   },
+  footer: {
+    paddingHorizontal: widthPixel(16),
+  },
   buttonStyle: {
-    marginHorizontal: widthPixel(20),
-    marginBottom: heightPixel(20)
-  }
+    marginHorizontal: 0,
+  },
 })

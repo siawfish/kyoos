@@ -29,9 +29,6 @@ export default function ProfileForm({
 }) {
     const [, setIsDisabled] = useState(false);
 
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
@@ -40,7 +37,6 @@ export default function ProfileForm({
         light: colors.light.secondary,
         dark: colors.dark.secondary
     }, 'text');
-    const accentColor = isDark ? colors.dark.white : colors.light.black;
     const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
 
     const handleSave = () => {
@@ -58,16 +54,18 @@ export default function ProfileForm({
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.mainContainer}
+            keyboardVerticalOffset={heightPixel(60)}
         >
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
+                keyboardDismissMode='on-drag'
             >
                 <ThemedView style={styles.container}>
                     <AccentScreenHeader
                         style={styles.contentContainer}
-                        accentSpacing="loose"
+                        accentSpacing="tight"
                         toolbarBottomGap={heightPixel(8)}
                         onBackPress={() => router.back()}
                         title={
@@ -137,7 +135,6 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(24),
         marginBottom: heightPixel(24),
     },
     eyebrow: {

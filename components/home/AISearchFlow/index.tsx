@@ -24,27 +24,24 @@ import { Worker } from '@/redux/search/types';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
     Easing,
     Keyboard,
     KeyboardAvoidingView,
-    Modal,
     Platform,
     ScrollView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Searching from '@/components/search/Searching';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
+import AdditionalInfoSheet from './AdditionalInfoSheet';
 
 export interface AISearchFlowProps {
     onRequestClose: () => void;
@@ -81,7 +78,6 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
     const dispatch = useAppDispatch();
     const insets = useSafeAreaInsets();
     const inputRef = useRef<TextInput>(null);
-    const additionalInfoSheetRef = useRef<BottomSheet>(null);
     const marqueeAnim = useRef(new Animated.Value(0)).current;
     const [marqueeTrackWidth, setMarqueeTrackWidth] = useState(0);
     const theme = useAppTheme();
@@ -172,22 +168,9 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
         setShowAdditionalInfoSheet(false);
     }, [currentQuestion?.id]);
 
-    const additionalInfoSnapPoints = useMemo(() => ['55%', '85%'], []);
-
     const closeAdditionalInfoSheet = useCallback(() => {
-        Keyboard.dismiss();
         setShowAdditionalInfoSheet(false);
     }, []);
-
-    const handleAdditionalInfoSheetChange = useCallback(
-        (index: number) => {
-            if (index === -1) {
-                Keyboard.dismiss();
-                setShowAdditionalInfoSheet(false);
-            }
-        },
-        []
-    );
 
     useFocusEffect(
         useCallback(() => {
@@ -528,11 +511,9 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
     const renderFooterContent = useCallback(() => {
         if (currentView === 'loading') return null;
 
-        const footerPad = { paddingBottom: Math.max(insets.bottom, heightPixel(24)) };
-
         if (currentView === 'error') {
             return (
-                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }, footerPad]}>
+                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
                     <Button
                         label="TRY AGAIN"
                         onPress={handleRetry}
@@ -543,8 +524,8 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
         }
 
         if (currentView === 'question') {
-            return (
-                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }, footerPad]}>
+            return (                    
+                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
                     <View style={styles.questionButtonContainer}>
                         <Button
                             label={buttonLabel}
@@ -576,7 +557,7 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
         }
 
         return (
-            <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }, footerPad]}>
+            <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
                 <Button
                     label={buttonLabel}
                     onPress={handleSearch}
@@ -812,37 +793,37 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                         accentColor={accentColor}
                         accentSpacing="split"
                         title={
-                            <View>
-                                <ThemedText
-                                    style={[styles.headerEyebrow, { color: secondaryColor }]}
-                                    lightColor={colors.light.secondary}
-                                    darkColor={colors.dark.secondary}
-                                >
-                                    {currentView === 'question'
-                                        ? 'QUICK QUESTION'
-                                        : currentView === 'loading'
-                                          ? 'LOADING...'
-                                          : currentView === 'error'
-                                            ? 'ERROR'
-                                            : headerLabel}
-                                </ThemedText>
-                                <ThemedText
-                                    style={[styles.headerTitle, { color: textColor }]}
-                                    lightColor={colors.light.text}
-                                    darkColor={colors.dark.text}
-                                >
-                                    {headerTitle}
-                                </ThemedText>
+                            <View style={styles.titleContainer}>
+                                <View style={styles.titleTextContainer}>
+                                    <ThemedText
+                                        style={[styles.headerEyebrow, { color: secondaryColor }]}
+                                        lightColor={colors.light.secondary}
+                                        darkColor={colors.dark.secondary}
+                                    >
+                                        {currentView === 'question'
+                                            ? 'QUICK QUESTION'
+                                            : currentView === 'loading'
+                                            ? 'LOADING...'
+                                            : currentView === 'error'
+                                                ? 'ERROR'
+                                                : headerLabel}
+                                    </ThemedText>
+                                    <ThemedText
+                                        style={[styles.headerTitle, { color: textColor }]}
+                                        lightColor={colors.light.text}
+                                        darkColor={colors.dark.text}
+                                    >
+                                        {headerTitle}
+                                    </ThemedText>
+                                </View>
+                                {currentView !== 'loading' && currentView !== 'error' ? (
+                                    <BackButton
+                                        iconName="x"
+                                        onPress={agentIsLoading ? undefined : handleClose}
+                                        containerStyle={styles.closeButton}
+                                    />
+                                ) : undefined}
                             </View>
-                        }
-                        trailing={
-                            currentView !== 'loading' && currentView !== 'error' ? (
-                                <BackButton
-                                    iconName="x"
-                                    onPress={agentIsLoading ? undefined : handleClose}
-                                    containerStyle={styles.closeButton}
-                                />
-                            ) : undefined
                         }
                     />
                 )}
@@ -857,119 +838,12 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                 {renderFooterContent()}
             </KeyboardAvoidingView>
 
-            {showAdditionalInfoSheet && (
-                <Modal
-                    visible
-                    transparent
-                    animationType="fade"
-                    onRequestClose={closeAdditionalInfoSheet}
-                >
-                    <View style={styles.additionalSheetModalOverlay}>
-                        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-                        <TouchableWithoutFeedback onPress={closeAdditionalInfoSheet}>
-                            <View style={StyleSheet.absoluteFill} />
-                        </TouchableWithoutFeedback>
-                        <BottomSheet
-                            ref={additionalInfoSheetRef}
-                            index={0}
-                            snapPoints={additionalInfoSnapPoints}
-                            onChange={handleAdditionalInfoSheetChange}
-                            onClose={closeAdditionalInfoSheet}
-                            enablePanDownToClose
-                            enableDynamicSizing={false}
-                            keyboardBehavior="interactive"
-                            keyboardBlurBehavior="restore"
-                            bottomInset={insets.bottom}
-                            backgroundStyle={{
-                                backgroundColor,
-                                borderTopLeftRadius: 0,
-                                borderTopRightRadius: 0,
-                                borderTopWidth: 0.5,
-                                borderColor: accentColor,
-                            }}
-                        >
-                            <BottomSheetView
-                                style={[styles.additionalSheetContent, { backgroundColor }]}
-                            >
-                                <AccentScreenHeader
-                                    style={styles.additionalSheetHeader}
-                                    accentColor={accentColor}
-                                    trailing={
-                                        <BackButton
-                                            iconName="x"
-                                            onPress={closeAdditionalInfoSheet}
-                                            containerStyle={styles.additionalSheetCloseButton}
-                                        />
-                                    }
-                                    title={
-                                        <View>
-                                            <ThemedText
-                                                style={[styles.headerEyebrow, { color: secondaryColor }]}
-                                                lightColor={colors.light.secondary}
-                                                darkColor={colors.dark.secondary}
-                                            >
-                                                OPTIONAL
-                                            </ThemedText>
-                                            <ThemedText
-                                                style={[styles.additionalSheetTitle, { color: textColor }]}
-                                                lightColor={colors.light.text}
-                                                darkColor={colors.dark.text}
-                                            >
-                                                Additional information
-                                            </ThemedText>
-                                        </View>
-                                    }
-                                />
-                                <SmartTextArea
-                                    inputComponent={BottomSheetTextInput}
-                                    density="sheet"
-                                    borderColor={borderColor}
-                                    tintColor={tintColor}
-                                    textColor={textColor}
-                                    placeholderTextColor={secondaryColor + '80'}
-                                    selectionColor={tintColor}
-                                    placeholder="e.g., I need help with..."
-                                    value={questionTextInput}
-                                    onChangeText={setQuestionTextInput}
-                                    maxLength={255}
-                                    containerStyle={{
-                                        marginHorizontal: widthPixel(20),
-                                        marginBottom: 0,
-                                    }}
-                                    footer={
-                                        <View
-                                            style={[styles.inputFooter, { borderTopColor: borderColor }]}
-                                        >
-                                            <View
-                                                style={[styles.charCountContainer, { marginLeft: 'auto' }]}
-                                            >
-                                                <ThemedText
-                                                    style={[
-                                                        styles.charCount,
-                                                        {
-                                                            color:
-                                                                questionTextInput.length > 230
-                                                                    ? colors.light.danger
-                                                                    : secondaryColor,
-                                                        },
-                                                    ]}
-                                                >
-                                                    {questionTextInput.length}
-                                                </ThemedText>
-                                                <ThemedText
-                                                    style={[styles.charCountTotal, { color: secondaryColor }]}
-                                                >
-                                                    /255
-                                                </ThemedText>
-                                            </View>
-                                        </View>
-                                    }
-                                />
-                            </BottomSheetView>
-                        </BottomSheet>
-                    </View>
-                </Modal>
-            )}
+            <AdditionalInfoSheet
+                visible={showAdditionalInfoSheet}
+                value={questionTextInput}
+                onChangeText={setQuestionTextInput}
+                onClose={closeAdditionalInfoSheet}
+            />
 
             <ConfirmActionSheet
                 isOpen={showConfirmClose}
@@ -998,9 +872,18 @@ const styles = StyleSheet.create({
         minHeight: 0,
     },
     modalStackHeader: {
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(24),
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: widthPixel(12),
+    },
+    titleTextContainer: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
     },
     headerEyebrow: {
         fontSize: fontPixel(10),
@@ -1020,7 +903,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         minHeight: 0,
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(20),
     },
     inputHeader: {
@@ -1076,7 +959,7 @@ const styles = StyleSheet.create({
     },
     marqueeSection: {
         marginBottom: heightPixel(18),
-        marginHorizontal: -widthPixel(20),
+        marginHorizontal: -widthPixel(16),
     },
     marqueeClip: {
         overflow: 'hidden',
@@ -1161,9 +1044,9 @@ const styles = StyleSheet.create({
         lineHeight: fontPixel(20),
     },
     footer: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(16),
-        paddingBottom: heightPixel(40),
+        paddingBottom: heightPixel(24),
         borderTopWidth: 0.5,
     },
     searchButton: {
@@ -1182,7 +1065,7 @@ const styles = StyleSheet.create({
         minHeight: 0,
     },
     questionScrollContent: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(20),
     },
     searchQueryHeader: {
@@ -1291,7 +1174,7 @@ const styles = StyleSheet.create({
     },
     skipButton: {
         paddingVertical: heightPixel(14),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         borderWidth: 0.5,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1319,29 +1202,6 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(11),
         fontFamily: 'Medium',
     },
-    additionalSheetModalOverlay: {
-        flex: 1,
-        justifyContent: 'flex-end',
-    },
-    additionalSheetContent: {
-        flex: 1,
-        paddingTop: heightPixel(12),
-        paddingBottom: heightPixel(12),
-        overflow: 'hidden',
-    },
-    additionalSheetHeader: {
-        paddingHorizontal: widthPixel(20),
-        paddingBottom: heightPixel(16),
-    },
-    additionalSheetTitle: {
-        fontSize: fontPixel(22),
-        fontFamily: 'Bold',
-        letterSpacing: -0.5,
-        lineHeight: fontPixel(26),
-    },
-    additionalSheetCloseButton: {
-        marginTop: heightPixel(4),
-    },
     // Loading view styles
     loadingContainer: {
         flex: 1,
@@ -1360,7 +1220,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: heightPixel(40),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
     },
     errorTitle: {
         fontSize: fontPixel(18),

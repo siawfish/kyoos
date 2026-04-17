@@ -54,6 +54,7 @@ const AppearanceScreen = () => {
           style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
           onBackPress={() => router.back()}
           title="APPEARANCE"
+          accentSpacing="tight"
           titleStyle={{
             fontSize: fontPixel(10),
             fontFamily: 'SemiBold',

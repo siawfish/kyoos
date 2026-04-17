@@ -1,8 +1,9 @@
 import OtpField from '@/components/auth/Otp'
 import ResendOtp from '@/components/auth/ResendOtp'
+import { ScreenFooter } from '@/components/layout/ScreenFooter'
+import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader'
 import Button from '@/components/ui/Button'
-import { ScreenLayout } from '@/components/layout/ScreenLayout'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { selectLoginFormIsLoading, selectLoginFormIsResending, selectLoginFormOtp, selectLoginFormPhoneNumber, selectOtpPrefix, selectReferenceId } from '@/redux/auth/selector'
@@ -34,7 +35,6 @@ function hubtelOtpUssdTelUrls(): string[] {
 }
 
 const Otp = () => {
-    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const dispatch = useAppDispatch();
     const otp = useAppSelector(selectLoginFormOtp);
     const isLoading = useAppSelector(selectLoginFormIsLoading);
@@ -80,13 +80,13 @@ const Otp = () => {
         >
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.keyboardAvoid}
+                style={[
+                    styles.keyboardAvoid,
+                ]}
+                keyboardVerticalOffset={heightPixel(60)}
             >
                 <ScrollView 
-                    contentContainerStyle={[
-                        styles.scrollContent,
-                        androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
-                    ]}
+                    contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.mainStyle}>
@@ -145,6 +145,9 @@ const Otp = () => {
                         onResend={() => dispatch(actions.resendOtp())}
                         isLoading={isResending}
                     />
+                    <View style={styles.scrollFooterSpacer} />
+                </ScrollView>
+                <ScreenFooter hideBorder style={styles.footer}>
                     <Button 
                         label='Verify'
                         style={styles.continueButton}
@@ -154,7 +157,7 @@ const Otp = () => {
                         }}
                         isLoading={isLoading}
                     />
-                </ScrollView>
+                </ScreenFooter>
             </KeyboardAvoidingView>
         </ScreenLayout>
     )
@@ -173,9 +176,12 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         width: '100%',
     },
+    scrollFooterSpacer: {
+        flexGrow: 1,
+        minHeight: heightPixel(1),
+    },
     mainStyle: {
-        marginTop: "15%",
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
     },
     otpEyebrow: {
@@ -198,7 +204,7 @@ const styles = StyleSheet.create({
         flexWrap: 'nowrap',
         alignSelf: 'stretch',
         columnGap: widthPixel(14),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(12),
     },
     prefixGroup: {
@@ -238,9 +244,10 @@ const styles = StyleSheet.create({
         fontFamily: 'SemiBold',
         letterSpacing: 0.5,
     },
+    footer: {
+        paddingHorizontal: widthPixel(16),
+    },
     continueButton: {
-        marginTop: 'auto',
-        marginBottom: heightPixel(20),
-        marginHorizontal: widthPixel(20),
+        marginHorizontal: 0,
     },
 })
