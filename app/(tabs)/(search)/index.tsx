@@ -46,7 +46,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     Animated,
     Easing,
-    FlatList,
     NativeScrollEvent,
     NativeSyntheticEvent,
     RefreshControl,
@@ -54,6 +53,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import type MapView from 'react-native-maps';
 import { Marker, type Region } from 'react-native-maps';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
@@ -515,6 +515,75 @@ export default function HomeScreen() {
         ]).start();
     };
 
+    const feedKeyExtractor = useCallback((item: HomeFeedRow) => item.id, []);
+
+    const renderFeedItem = useCallback(
+        ({ item }: ListRenderItemInfo<HomeFeedRow>) => {
+            if ('isSkeleton' in item && item.isSkeleton) {
+                return (
+                    <View style={styles.portfolioRow}>
+                        <PortfolioSkeleton />
+                    </View>
+                );
+            }
+            return (
+                <View style={styles.portfolioRow}>
+                    <PortfolioItem portfolio={item as Portfolio} />
+                </View>
+            );
+        },
+        [],
+    );
+
+    const feedHeader = useMemo(
+        () => (
+            <View style={styles.feedHeader}>
+                <NearbyWorkersStrip
+                    workers={nearestWorkers}
+                    userLat={location?.lat ?? ACCRA_REGION.latitude}
+                    userLng={location?.lng ?? ACCRA_REGION.longitude}
+                    isLoadingNearby={isInitializing}
+                />
+                <ThemedText style={[styles.feedSectionTitle, { color: secondaryColor }]}>
+                    POPULAR
+                </ThemedText>
+            </View>
+        ),
+        [nearestWorkers, location?.lat, location?.lng, isInitializing, secondaryColor],
+    );
+
+    const feedEmpty = useMemo(
+        () =>
+            homePopularPortfolios.length === 0 && !isLoadingHomePopular ? (
+                <EmptyList
+                    message="No portfolio posts yet"
+                    containerStyle={styles.feedEmptyList}
+                />
+            ) : null,
+        [homePopularPortfolios.length, isLoadingHomePopular],
+    );
+
+    const feedFooter = useMemo(
+        () =>
+            isAppendingHomePopular ? (
+                <View style={styles.portfolioRow}>
+                    <PortfolioSkeleton />
+                </View>
+            ) : null,
+        [isAppendingHomePopular],
+    );
+
+    const feedRefreshControl = useMemo(
+        () => (
+            <RefreshControl
+                refreshing={isPullRefreshing}
+                onRefresh={onRefreshFeed}
+                tintColor={tintColor}
+            />
+        ),
+        [isPullRefreshing, onRefreshFeed, tintColor],
+    );
+
     const handleMarkerPress = (artisanId: string) => {
         dispatch(actions.setSelectedArtisan(artisanId));
         
@@ -734,76 +803,26 @@ export default function HomeScreen() {
                     ]}
                     pointerEvents="box-none"
                 >
-                    <BlurView
-                        intensity={50}
-                        tint={blurTint as 'light' | 'dark'}
-                        style={[styles.feedBlur, { backgroundColor, borderColor }]}
+                    <View
+                        style={[styles.feedPanel, { backgroundColor, borderColor }]}
                     >
-                        <FlatList
-                            style={styles.feedList}
+                        <FlashList
                             data={popularFeedData}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => {
-                                if ('isSkeleton' in item && item.isSkeleton) {
-                                    return (
-                                        <View style={styles.portfolioRow}>
-                                            <PortfolioSkeleton />
-                                        </View>
-                                    );
-                                }
-                                return (
-                                    <View style={styles.portfolioRow}>
-                                        <PortfolioItem portfolio={item as Portfolio} />
-                                    </View>
-                                );
-                            }}
-                            ListHeaderComponent={
-                                <View style={styles.feedHeader}>
-                                    <NearbyWorkersStrip
-                                        workers={nearestWorkers}
-                                        userLat={location?.lat ?? ACCRA_REGION.latitude}
-                                        userLng={location?.lng ?? ACCRA_REGION.longitude}
-                                        isLoadingNearby={isInitializing}
-                                    />
-                                    <ThemedText style={[styles.feedSectionTitle, { color: secondaryColor }]}>
-                                        POPULAR
-                                    </ThemedText>
-                                </View>
-                            }
-                            ListEmptyComponent={
-                                homePopularPortfolios.length === 0 &&
-                                !isLoadingHomePopular ? (
-                                    <EmptyList
-                                        message="No portfolio posts yet"
-                                        containerStyle={styles.feedEmptyList}
-                                    />
-                                ) : null
-                            }
-                            ListFooterComponent={
-                                isAppendingHomePopular ? (
-                                    <View style={styles.portfolioRow}>
-                                        <PortfolioSkeleton />
-                                    </View>
-                                ) : null
-                            }
-                            contentContainerStyle={[
-                                styles.feedListContent,
-                                { paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP },
-                            ]}
-                            refreshControl={
-                                <RefreshControl
-                                    refreshing={isPullRefreshing}
-                                    onRefresh={onRefreshFeed}
-                                    tintColor={tintColor}
-                                />
-                            }
+                            keyExtractor={feedKeyExtractor}
+                            renderItem={renderFeedItem}
+                            ListHeaderComponent={feedHeader}
+                            ListEmptyComponent={feedEmpty}
+                            ListFooterComponent={feedFooter}
+                            contentContainerStyle={styles.feedListContent}
+                            refreshControl={feedRefreshControl}
                             onEndReached={onEndReachedPopular}
                             onEndReachedThreshold={0.35}
                             showsVerticalScrollIndicator={false}
-                            scrollEventThrottle={32}
+                            scrollEventThrottle={16}
                             onScroll={onFeedScroll}
+                            drawDistance={200}
                         />
-                    </BlurView>
+                    </View>
                 </Animated.View>
             ) : null}
 
@@ -951,18 +970,15 @@ const styles = StyleSheet.create({
       zIndex: 2,
       elevation: 2,
     },
-    feedList: {
-      flex: 1,
-    },
-    feedBlur: {
+    feedPanel: {
       flex: 1,
       borderWidth: 0.5,
       overflow: 'hidden',
-      paddingBottom: heightPixel(80),
     },
     feedListContent: {
       paddingHorizontal: widthPixel(10),
       paddingTop: heightPixel(12),
+      paddingBottom: heightPixel(80) + TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     feedHeader: {
       marginBottom: heightPixel(8),

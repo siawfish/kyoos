@@ -9,7 +9,7 @@ import { Portfolio } from "@/redux/portfolio/types";
 import { Media } from "@/redux/app/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface ThumbnailsProps {
@@ -17,19 +17,24 @@ interface ThumbnailsProps {
     readonly onViewMore?: () => void;
     readonly containerStyle?: StyleProp<ViewStyle>;
     readonly portfolio?: Portfolio | null;
+    /**
+     * When false (default), video thumbnails render a static poster tile with a play icon
+     * instead of mounting a video player. Enable inside detail screens where playback matters.
+     */
+    readonly autoplayVideos?: boolean;
 }
 
 interface MediaThumbnailProps {
     readonly media: Media;
     readonly onPress?: () => void;
+    readonly autoplayVideos?: boolean;
 }
 
-const VideoThumbnail = ({ uri, onPress }: { uri: string; onPress?: () => void }) => {
-    const player = useVideoPlayer(uri, (player) => {
-        player.loop = true;
-        player.muted = true;
-        
-        player.play();
+const VideoPlayerThumbnail = ({ uri, onPress }: { uri: string; onPress?: () => void }) => {
+    const player = useVideoPlayer(uri, (p) => {
+        p.loop = true;
+        p.muted = true;
+        p.play();
     });
 
     return (
@@ -41,6 +46,14 @@ const VideoThumbnail = ({ uri, onPress }: { uri: string; onPress?: () => void })
         </TouchableOpacity>
     );
 };
+
+const StaticVideoThumbnail = ({ onPress }: { onPress?: () => void }) => (
+    <TouchableOpacity onPress={onPress} style={[styles.mediaContainer, styles.videoPoster]}>
+        <View style={styles.playOverlay}>
+            <Ionicons name="play-circle" size={36} color="#fff" />
+        </View>
+    </TouchableOpacity>
+);
 
 const DocumentThumbnail = ({ media, onPress }: { media: Media; onPress?: () => void }) => {
     return (
@@ -54,9 +67,8 @@ const DocumentThumbnail = ({ media, onPress }: { media: Media; onPress?: () => v
     );
 };
 
-const MediaThumbnail = ({ media, onPress }: MediaThumbnailProps) => {
+const MediaThumbnail = memo(({ media, onPress, autoplayVideos }: MediaThumbnailProps) => {
     if (!media.type) {
-        // Fallback to image if type is not specified
         return (
             <CustomImage
                 source={media.url}
@@ -79,14 +91,16 @@ const MediaThumbnail = ({ media, onPress }: MediaThumbnailProps) => {
     }
 
     if (isVideo(media.type)) {
-        return <VideoThumbnail uri={media.url} onPress={onPress} />;
+        if (autoplayVideos) {
+            return <VideoPlayerThumbnail uri={media.url ?? ''} onPress={onPress} />;
+        }
+        return <StaticVideoThumbnail onPress={onPress} />;
     }
 
     if (isDocument(media.type)) {
         return <DocumentThumbnail media={media} onPress={onPress} />;
     }
 
-    // Fallback to image for unknown types
     return (
         <CustomImage
             source={media.url}
@@ -95,13 +109,15 @@ const MediaThumbnail = ({ media, onPress }: MediaThumbnailProps) => {
             onPress={onPress}
         />
     );
-};
+});
+MediaThumbnail.displayName = 'MediaThumbnail';
 
 const Thumbnails = ({
     onPress,
     onViewMore,
     containerStyle,
     portfolio,
+    autoplayVideos = false,
 }:ThumbnailsProps) => {
     const data = portfolio?.assets || [];
     const backgroundColor = useThemeColor({ light: '', dark: '' }, 'background');
@@ -137,6 +153,7 @@ const Thumbnails = ({
                         <MediaThumbnail
                             media={data[0]}
                             onPress={() => handleMediaPress(data[0])}
+                            autoplayVideos={autoplayVideos}
                         />
                     </View>
                 }
@@ -149,6 +166,7 @@ const Thumbnails = ({
                                     <MediaThumbnail
                                         media={data[1]}
                                         onPress={() => handleMediaPress(data[1])}
+                                        autoplayVideos={autoplayVideos}
                                     />
                                 </View>
                             )
@@ -161,6 +179,7 @@ const Thumbnails = ({
                                             <MediaThumbnail
                                                 media={data[2]}
                                                 onPress={() => handleMediaPress(data[2])}
+                                                autoplayVideos={autoplayVideos}
                                             />
                                         )
                                     }
@@ -252,6 +271,11 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
+    },
+    videoPoster: {
+        backgroundColor: "#0b0b0b",
+        alignItems: "center",
+        justifyContent: "center",
     },
     playOverlay: {
         position: "absolute",

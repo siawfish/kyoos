@@ -62,6 +62,10 @@ export interface PortfolioState {
   homePopularPagination: Pagination;
   isLoadingHomePopular: boolean;
   isAppendingHomePopular: boolean;
+  /** Portfolio opened from a detail screen. Fetched by id to support deep-links and cache-miss navigation. */
+  selectedPortfolio: Portfolio | null;
+  isLoadingSelectedPortfolio: boolean;
+  selectedPortfolioError: string | null;
 }
 
 export interface CommentForm {
