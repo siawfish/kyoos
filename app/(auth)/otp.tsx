@@ -15,7 +15,6 @@ import { Link, Redirect } from 'expo-router'
 import React, { useCallback } from 'react'
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAppTheme } from '@/hooks/use-app-theme'
-import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift'
 import { useThemeColor } from '@/hooks/use-theme-color'
 
 const HUBTEL_OTP_USSD = '*713*90#'

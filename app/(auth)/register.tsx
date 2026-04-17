@@ -5,7 +5,6 @@ import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import BackButton from '@/components/ui/BackButton';
 import { heightPixel, widthPixel } from '@/constants/normalize';
 import { Link } from 'expo-router';
-import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift';
 import { usePermissionsRequestQueue } from '@/hooks/use-permissions-request-queue';
 import { PermissionRequestSheet } from '@/components/ui/PermissionRequestSheet';
 import { actions } from '@/redux/auth/slice';
@@ -20,7 +19,6 @@ import { useEffect, useCallback } from 'react';
 import { StoreName } from '@/redux/app/types';
 
 export default function RegisterScreen() {
-    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const dispatch = useAppDispatch();
     const registerForm = useAppSelector(selectRegisterForm);
     const isLoading = useAppSelector(selectRegisterFormIsLoading);
@@ -76,8 +74,8 @@ export default function RegisterScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={[
                     styles.keyboardAvoid,
-                    androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
                 ]}
+                keyboardVerticalOffset={heightPixel(60)}
             >
                 <Link asChild href="/(auth)">
                     <BackButton 
