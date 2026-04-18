@@ -23,7 +23,8 @@
       },
       "environment": "production",
       "ios": {
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "ascAppId": "6757015505"
       }
     }
   },
