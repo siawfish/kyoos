@@ -4,12 +4,12 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "env": "development"
+      "environment": "development"
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "env": "preview",
+      "environment": "preview",
       "ios": {
         "simulator": true
       }
@@ -21,7 +21,7 @@
       "android": {
         "buildType": "app-bundle"
       },
-      "env": "production",
+      "environment": "production",
       "ios": {
         "buildConfiguration": "Release"
       }
