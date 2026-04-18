@@ -33,7 +33,7 @@ const settingsSections = [
     title: 'Notifications',
     icon: 'notifications-outline',
     color: colors.light.tint,
-    href: '/(tabs)/(settings)/notifications',
+    href: '/(tabs)/(settings)/notification-settings',
   },
 ];
 

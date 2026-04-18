@@ -22,7 +22,7 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen 
-        name="notifications"
+        name="notification-settings"
         options={{
           headerShown: false
         }}
