@@ -4,16 +4,12 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
-      }
+      "environment": "development"
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
-      },
+      "environment": "preview",
       "ios": {
         "simulator": true
       }
@@ -25,11 +21,20 @@
       "android": {
         "buildType": "app-bundle"
       },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.kyoos.io"
-      },
+      "environment": "production",
       "ios": {
         "buildConfiguration": "Release"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "6757015505"
       }
     }
   },

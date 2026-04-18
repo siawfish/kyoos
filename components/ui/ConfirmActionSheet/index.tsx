@@ -166,30 +166,25 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
         >
           <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
             <AccentScreenHeader
-              style={{
-                paddingHorizontal: widthPixel(20),
-                paddingBottom: heightPixel(24),
-              }}
-              accentColor={borderColor}
-              trailing={
-                <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-              }
+              renderRight={() => <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
               title={
-                <View>
-                  <ThemedText
-                    style={styles.confirmEyebrow}
-                    lightColor={colors.light.secondary}
-                    darkColor={colors.dark.secondary}
-                  >
-                    CONFIRMATION
-                  </ThemedText>
-                  <ThemedText
-                    style={styles.confirmTitle}
-                    lightColor={colors.light.text}
-                    darkColor={colors.dark.text}
-                  >
-                    {title}
-                  </ThemedText>
+                <View style={styles.titleContainer}>
+                    <View style={styles.titleTextContainer}>
+                      <ThemedText
+                        style={styles.confirmEyebrow}
+                        lightColor={colors.light.secondary}
+                        darkColor={colors.dark.secondary}
+                      >
+                        CONFIRMATION
+                      </ThemedText>
+                      <ThemedText
+                        style={styles.confirmTitle}
+                        lightColor={colors.light.text}
+                        darkColor={colors.dark.text}
+                      >
+                        {title}
+                      </ThemedText>
+                  </View>
                 </View>
               }
             />
@@ -221,9 +216,19 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: heightPixel(20),
     paddingBottom: heightPixel(16),
     overflow: 'hidden',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: widthPixel(12),
+  },
+  titleTextContainer: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   closeButton: {
     marginTop: heightPixel(8),

@@ -1,5 +1,6 @@
-import Button from '@/components/ui/Button';
+import { ScreenFooter } from '@/components/layout/ScreenFooter';
 import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import Button from '@/components/ui/Button';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -176,13 +177,13 @@ export default function Onboarding() {
         ))}
       </View>
 
-      <View style={styles.footer}>
+      <ScreenFooter hideBorder style={styles.footer}>
         <Button
           label={currentIndex === slides.length - 1 ? "Get Started" : "Next"}
           onPress={handleNext}
           style={styles.button}
         />
-      </View>
+      </ScreenFooter>
     </ScreenLayout>
   );
 }
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     lineHeight: fontPixel(24),
   },
   footer: {
-    padding: widthPixel(16),
+    paddingHorizontal: widthPixel(16),
   },
   pagination: {
     flexDirection: 'row',
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: heightPixel(32),
   },
   button: {
-    marginBottom: heightPixel(16),
+    marginHorizontal: 0,
   },
 });
 

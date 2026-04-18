@@ -54,12 +54,7 @@ const Details = () => {
 
   const renderBookingDetailHeader = (b: Booking | null | undefined) => (
     <AccentScreenHeader
-      style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
-      accentColor={accentColor}
-      accentSpacing="split"
       onBackPress={handleBack}
-      toolbarBottomGap={heightPixel(10)}
-      trailing={null}
       title={
         b ? (
           <View>

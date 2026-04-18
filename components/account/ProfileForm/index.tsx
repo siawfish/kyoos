@@ -4,7 +4,6 @@ import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
@@ -13,6 +12,8 @@ import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
 import { router } from 'expo-router';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
+import BackButton from '@/components/ui/BackButton';
 
 export default function ProfileForm({
     registerForm,
@@ -29,9 +30,6 @@ export default function ProfileForm({
 }) {
     const [, setIsDisabled] = useState(false);
 
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
@@ -40,7 +38,6 @@ export default function ProfileForm({
         light: colors.light.secondary,
         dark: colors.dark.secondary
     }, 'text');
-    const accentColor = isDark ? colors.dark.white : colors.light.black;
     const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
 
     const handleSave = () => {
@@ -58,18 +55,17 @@ export default function ProfileForm({
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.mainContainer}
+            keyboardVerticalOffset={heightPixel(60)}
         >
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
+                keyboardDismissMode='on-drag'
             >
                 <ThemedView style={styles.container}>
                     <AccentScreenHeader
-                        style={styles.contentContainer}
-                        accentSpacing="loose"
-                        toolbarBottomGap={heightPixel(8)}
-                        onBackPress={() => router.back()}
+                        renderRight={()=><BackButton iconName="x" onPress={() => router.back()} />}
                         title={
                             <View>
                                 <ThemedText style={[styles.eyebrow, { color: subtitleColor }]}>
@@ -136,8 +132,7 @@ const styles = StyleSheet.create({
         paddingBottom: heightPixel(16),
     },
     contentContainer: {
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(24),
+        paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
     },
     eyebrow: {

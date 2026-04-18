@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 
 const Comment = () => {
     const dispatch = useAppDispatch();
@@ -83,7 +84,6 @@ const Comment = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <AccentScreenHeader
-                    style={styles.headerSection}
                     onBackPress={() => router.back()}
                     title={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
                     titleStyle={{
@@ -91,7 +91,7 @@ const Comment = () => {
                         fontFamily: 'SemiBold',
                         letterSpacing: 1.5,
                     }}
-                    trailing={
+                    renderRight={() => (
                         <Button 
                             style={styles.btn} 
                             label={comment ? "UPDATE" : "POST"}
@@ -102,7 +102,7 @@ const Comment = () => {
                             darkBackgroundColor={colors.dark.tint}
                             icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
                         />
-                    }
+                    )}
                 />
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>
@@ -170,11 +170,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: heightPixel(40),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(8),
   },
   btn: {
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   previewContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingVertical: heightPixel(16),
     marginBottom: heightPixel(20),
   },
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
     height: heightPixel(70),
   },
   commentContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(12),
   },
   commentText: {
@@ -239,6 +238,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Bold',
   },
   smartTextArea: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
   },
 })

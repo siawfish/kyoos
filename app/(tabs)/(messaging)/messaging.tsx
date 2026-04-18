@@ -15,6 +15,7 @@ import { Conversation } from '@/redux/messaging/types';
 import ConversationItem from '@/components/messaging/ConversationItem';
 import ConversationItemSkeleton from '@/components/messaging/ConversationItemSkeleton';
 import { useFocusEffect } from 'expo-router';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 export default function MessagingScreen() {
   const dispatch = useDispatch();
@@ -67,8 +68,8 @@ export default function MessagingScreen() {
   return (
     <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
-        style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
         title="MESSAGES"
+        renderRight={()=><HeaderNotificationButton />}
         titleStyle={{
           fontSize: fontPixel(10),
           fontFamily: 'SemiBold',

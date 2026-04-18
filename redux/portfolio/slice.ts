@@ -25,6 +25,9 @@ export const initialState: PortfolioState = {
   },
   isLoadingHomePopular: false,
   isAppendingHomePopular: false,
+  selectedPortfolio: null,
+  isLoadingSelectedPortfolio: false,
+  selectedPortfolioError: null,
   comments: [],
   commentForm: {
     comment: '',
@@ -34,6 +37,26 @@ export const initialState: PortfolioState = {
   isLoadingComments: false,
   isLoading: false,
   error: null,
+};
+
+const toggleLike = (portfolio: Portfolio): Portfolio => {
+  const nextHasLiked = !portfolio.hasLiked;
+  const delta = nextHasLiked ? 1 : -1;
+  return {
+    ...portfolio,
+    hasLiked: nextHasLiked,
+    likes: Math.max(0, (portfolio.likes ?? 0) + delta),
+  };
+};
+
+const applyLikeToggle = (state: PortfolioState, portfolioId: string) => {
+  state.portfolios = state.portfolios.map((p) => (p.id === portfolioId ? toggleLike(p) : p));
+  state.homePopularPortfolios = state.homePopularPortfolios.map((p) =>
+    p.id === portfolioId ? toggleLike(p) : p,
+  );
+  if (state.selectedPortfolio?.id === portfolioId) {
+    state.selectedPortfolio = toggleLike(state.selectedPortfolio);
+  }
 };
 
 interface RehydrateAction {
@@ -77,6 +100,25 @@ const portfolioSlice = createSlice({
       state.isLoadingHomePopular = false;
       state.isAppendingHomePopular = false;
     },
+    fetchPortfolioById: (state, action: PayloadAction<string>) => {
+      state.isLoadingSelectedPortfolio = true;
+      state.selectedPortfolioError = null;
+    },
+    setSelectedPortfolio: (state, action: PayloadAction<Portfolio>) => {
+      state.selectedPortfolio = action.payload;
+      state.isLoadingSelectedPortfolio = false;
+      state.selectedPortfolioError = null;
+    },
+    setSelectedPortfolioError: (state, action: PayloadAction<string>) => {
+      state.selectedPortfolio = null;
+      state.isLoadingSelectedPortfolio = false;
+      state.selectedPortfolioError = action.payload;
+    },
+    clearSelectedPortfolio: (state) => {
+      state.selectedPortfolio = null;
+      state.isLoadingSelectedPortfolio = false;
+      state.selectedPortfolioError = null;
+    },
     setPortfolios: (state, action: PayloadAction<{ portfolios: Portfolio[], pagination: Pagination }>) => {
       const pagination = action.payload.pagination;
       const portfolios = pagination.page === 1 ? action.payload.portfolios : [...state.portfolios, ...action.payload.portfolios];
@@ -90,6 +132,10 @@ const portfolioSlice = createSlice({
     },
     likePortfolio: (state, action: PayloadAction<string>) => {
       state.isLikingPortfolio = true;
+      applyLikeToggle(state, action.payload);
+    },
+    revertLikePortfolio: (state, action: PayloadAction<string>) => {
+      applyLikeToggle(state, action.payload);
     },
     setIsLikingPortfolio: (state, action: PayloadAction<boolean>) => {
       state.isLikingPortfolio = action.payload;

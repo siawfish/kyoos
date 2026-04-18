@@ -7,14 +7,10 @@ import { selectProfileForm, selectProfileFormIsLoading } from '@/redux/settings/
 import { actions } from '@/redux/settings/slice';
 import { useEffect, useMemo } from 'react';
 import { selectUser } from '@/redux/app/selector';
-import BackButton from '@/components/ui/BackButton';
-import { router } from 'expo-router';
-import { useAndroidKeyboardFooterLift } from '@/hooks/use-android-keyboard-footer-lift';
-import { widthPixel } from '@/constants/normalize';
+import { heightPixel, widthPixel } from '@/constants/normalize';
 import Button from '@/components/ui/Button';
 
 export default function ProfileScreen() {
-    const androidKeyboardLift = useAndroidKeyboardFooterLift();
     const isLoading = useAppSelector(selectProfileFormIsLoading);
     const formValues = useAppSelector(selectProfileForm);
     const user = useAppSelector(selectUser);
@@ -46,8 +42,8 @@ export default function ProfileScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={[
                     styles.keyboardAvoid,
-                    androidKeyboardLift > 0 && { paddingBottom: androidKeyboardLift },
                 ]}
+                keyboardVerticalOffset={heightPixel(60)}
             >
                 <View style={styles.formWrap}>
                     <ProfileForm 

@@ -13,6 +13,7 @@ import { useAppDispatch } from '@/store/hooks';
 import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 
 const settingsSections = [
@@ -32,7 +33,7 @@ const settingsSections = [
     title: 'Notifications',
     icon: 'notifications-outline',
     color: colors.light.tint,
-    href: '/(tabs)/(settings)/notifications',
+    href: '/(tabs)/(settings)/notification-settings',
   },
 ];
 
@@ -92,8 +93,8 @@ const SettingsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <AccentScreenHeader
-          style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
           title="SETTINGS"
+          renderRight={()=><HeaderNotificationButton />}
           titleStyle={{
             fontSize: fontPixel(10),
             fontFamily: 'SemiBold',
@@ -160,15 +161,18 @@ const SettingsScreen = () => {
             LOG OUT
           </ThemedText>
         </TouchableOpacity>
-
-        <ThemedText 
-          type="subtitle"
-          style={styles.versionText}
-          lightColor={colors.light.secondary}
-          darkColor={colors.dark.secondary}
-        >
-          Version {Constants.expoConfig?.version || '1.0.0'}
-        </ThemedText>
+          {
+            Constants.expoConfig?.version ? (
+              <ThemedText 
+                type="subtitle"
+                style={styles.versionText}
+                lightColor={colors.light.secondary}
+                darkColor={colors.dark.secondary}
+              >
+                Version {Constants.expoConfig?.version}
+              </ThemedText>
+            ) : null
+          }
       </ScrollView>
       <ConfirmActionSheet
         isOpen={isConfirmLogout}

@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   scanLinesContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
   },
   scanLine: {

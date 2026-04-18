@@ -1,24 +1,64 @@
 import IconButton from '@/components/ui/IconButton';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { selectNotificationsUnreadCount } from '@/redux/notifications/selector';
+import { useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function HeaderNotificationButton() {
+  const unreadCount = useAppSelector(selectNotificationsUnreadCount);
   const iconColor = useThemeColor(
+    { light: colors.light.white, dark: colors.dark.white },
+    'text'
+  );
+  const backgroundColor = useThemeColor(
     { light: colors.light.black, dark: colors.dark.black },
     'background'
   );
+  const badgeLabel = unreadCount > 99 ? '99+' : String(unreadCount);
 
   return (
     <IconButton
-      lightColor={colors.light.black}
+      lightColor={backgroundColor}
       darkColor={colors.dark.black}
-      onPress={() => router.push('/(tabs)/(settings)/notifications')}
+      onPress={() => router.push('/notifications')}
       accessibilityLabel="Notifications"
     >
-      <Feather name="bell" size={24} color={iconColor} />
+      <View style={styles.iconWrapper}>
+        <Feather name="bell" size={24} color={iconColor} />
+        {unreadCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badgeLabel}</Text>
+          </View>
+        )}
+      </View>
     </IconButton>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.light.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: colors.light.white,
+    fontSize: 10,
+    fontFamily: 'SemiBold',
+    lineHeight: 12,
+  },
+});

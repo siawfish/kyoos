@@ -222,14 +222,7 @@ export default function UploadProfilePhoto({
                         >
                             <BottomSheetView style={[styles.bottomSheetContent, { backgroundColor: bottomSheetBackgroundColor }]}>
                                 <AccentScreenHeader
-                                    style={{
-                                        paddingHorizontal: widthPixel(20),
-                                        paddingBottom: heightPixel(24),
-                                    }}
-                                    accentColor={borderColor}
-                                    trailing={
-                                        <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-                                    }
+                                    onBackPress={handleClose}
                                     title={
                                         <View>
                                             <ThemedText

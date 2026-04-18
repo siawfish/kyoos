@@ -73,3 +73,18 @@ export const selectIsAppendingHomePopular = createSelector(
   [selectDomain],
   (portfolio) => portfolio.isAppendingHomePopular ?? false,
 );
+
+export const selectSelectedPortfolio = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.selectedPortfolio ?? null,
+);
+
+export const selectIsLoadingSelectedPortfolio = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.isLoadingSelectedPortfolio ?? false,
+);
+
+export const selectSelectedPortfolioError = createSelector(
+  [selectDomain],
+  (portfolio) => portfolio.selectedPortfolioError ?? null,
+);

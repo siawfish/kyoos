@@ -21,6 +21,7 @@ export default function Main() {
     <Stack>
         <Stack.Protected guard={isAuthenticated}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="notifications" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated && hasSeenOnboarding}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />

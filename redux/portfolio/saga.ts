@@ -35,6 +35,22 @@ export function* fetchHomePopularPortfolios(action: PayloadAction<{ page?: numbe
   }
 }
 
+export function* fetchPortfolioById(action: PayloadAction<string>) {
+  try {
+    const response: ApiResponse<Portfolio> = yield call(request, {
+      method: 'GET',
+      url: `/api/users/portfolio/detail/${action.payload}`,
+    });
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while fetching portfolio');
+    }
+    yield put(actions.setSelectedPortfolio(response.data));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch portfolio';
+    yield put(actions.setSelectedPortfolioError(errorMessage));
+  }
+}
+
 export function* fetchPortfolios(action: PayloadAction<string>) {
   try {
     const response: ApiResponse<PortfoliosResponse> = yield call(request, {
@@ -126,10 +142,9 @@ export function* likePortfolio(action: PayloadAction<string>) {
     if (response.error) {
       throw new Error(response.message || response.error || 'An error occurred while liking portfolio');
     }
-    const selectedWorkerId: string = yield select(selectSelectedWorkerId);
-    yield put(actions.silentlyFetchPortfolios(selectedWorkerId));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to like portfolio';
+    yield put(actions.revertLikePortfolio(action.payload));
     yield put(actions.setError(errorMessage));
     Toast.show({
       type: 'error',
@@ -211,6 +226,7 @@ export function* updateComment(action: PayloadAction<{
 
 export function* portfolioSaga() {
   yield takeLatest(actions.fetchHomePopular.type, fetchHomePopularPortfolios);
+  yield takeLatest(actions.fetchPortfolioById.type, fetchPortfolioById);
   yield takeLatest(actions.fetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.silentlyFetchPortfolios.type, fetchPortfolios);
   yield takeLatest(actions.fetchComments.type, fetchComments);

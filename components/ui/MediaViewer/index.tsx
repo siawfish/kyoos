@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     },
     header: {
         position: "absolute",
-        top: heightPixel(70),
-        left: widthPixel(20),
+        top: heightPixel(40),
+        left: widthPixel(16),
         zIndex: 10,
     },
     carousel: {
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
         width: "100%",
         paddingTop: heightPixel(40),
         paddingBottom: heightPixel(40),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
     },
     overlayContent: {
         gap: heightPixel(12),
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     loaderOverlay: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: "center",
         alignItems: "center",
     },

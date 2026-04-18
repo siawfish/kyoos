@@ -1,9 +1,8 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
-import { BlurView } from 'expo-blur';
+import React, { useCallback, useMemo } from 'react';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
-import { FlashList } from '@shopify/flash-list';
+import { useGoogleAutocompleteProxy, GoogleLocationResult } from '@/hooks/useGoogleAutocompleteProxy';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/constants/theme/colors';
 import { heightPixel, widthPixel, fontPixel } from '@/constants/normalize';
@@ -25,7 +24,7 @@ export default function LocationSelector() {
   const theme = useAppTheme();
   const isDark = theme === 'dark';
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  
+
   const backgroundColor = useThemeColor({
     light: colors.light.background,
     dark: colors.dark.background,
@@ -56,14 +55,12 @@ export default function LocationSelector() {
     dark: colors.dark.background + '95',
   }, 'background');
 
-  const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocomplete(
-    process.env.EXPO_PUBLIC_GOOGLE_API_KEY || '', {
-      components: 'country:gh',
-      language: 'en',
-    }
-  );
+  const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocompleteProxy({
+    components: 'country:gh',
+    language: 'en',
+  });
 
-  const onLocationSelect = (item: GoogleLocationResult) => {
+  const onLocationSelect = useCallback((item: GoogleLocationResult) => {
     searchDetails(item.place_id).then((result) => {
       dispatch(actions.setLocation({
         lat: result.geometry.location.lat,
@@ -75,102 +72,121 @@ export default function LocationSelector() {
       }));
       setTerm('');
     });
-  }
+  }, [dispatch, searchDetails, setTerm]);
+
+  const renderItem: ListRenderItem<GoogleLocationResult> = useCallback(({ item }) => (
+    <TouchableOpacity
+      style={[styles.row, { borderBottomColor: borderColor, backgroundColor: inputBackground }]}
+      onPress={() => onLocationSelect(item)}
+      activeOpacity={0.7}
+    >
+      <Feather name="map-pin" size={16} color={secondaryColor} />
+      <ThemedText style={[styles.description, { color: textColor }]} numberOfLines={2}>
+        {item.description}
+      </ThemedText>
+    </TouchableOpacity>
+  ), [borderColor, inputBackground, secondaryColor, textColor, onLocationSelect]);
+
+  const ListHeader = useMemo(() => (
+    <View style={[styles.stickyHeader, { backgroundColor }]}>
+      <AccentScreenHeader
+        onBackPress={() => router.back()}
+        title={
+          <View>
+            <ThemedText style={[styles.sectionEyebrow, { color: secondaryColor }]}>
+              YOUR LOCATION
+            </ThemedText>
+            <ThemedText style={[styles.title, { color: textColor }]}>
+              Where are you located?
+            </ThemedText>
+          </View>
+        }
+        subtitle={
+          <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
+            This helps us connect you with nearby artisans
+          </ThemedText>
+        }
+      />
+
+      <View style={styles.inputSection}>
+        <InputField
+          label="SEARCH LOCATION"
+          isLoading={isSearching}
+          value={location?.address || ''}
+          clearButtonMode="never"
+          error={searchError?.message || location?.error}
+          onChangeText={(text) => {
+            dispatch(actions.setLocation({
+              ...location,
+              address: text,
+              error: '',
+            }));
+            setTerm(text);
+          }}
+          placeholder="Enter your location"
+          errorStyle={styles.error}
+          style={{ backgroundColor: inputBackground }}
+        />
+
+        <TouchableOpacity
+          style={styles.pickContainer}
+          onPress={() => dispatch(actions.openMapPicker())}
+          activeOpacity={0.7}
+        >
+          <View style={styles.pickContent}>
+            <Feather name="map-pin" size={20} color={tintColor} />
+            <ThemedText style={[styles.pickText, { color: textColor }]}>
+              Pick location on map
+            </ThemedText>
+          </View>
+          <Feather name="chevron-right" size={18} color={secondaryColor} />
+        </TouchableOpacity>
+      </View>
+
+      {locationResults.length > 0 && (
+        <View style={[styles.stickyDivider, { backgroundColor: borderColor }]} />
+      )}
+    </View>
+  ), [
+    backgroundColor,
+    accentColor,
+    router,
+    secondaryColor,
+    textColor,
+    isSearching,
+    location,
+    searchError,
+    dispatch,
+    setTerm,
+    inputBackground,
+    tintColor,
+    locationResults.length,
+    borderColor,
+  ]);
+
+  const ItemSeparator = useCallback(() => (
+    <View style={[styles.separator, { backgroundColor: borderColor }]} />
+  ), [borderColor]);
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+      <FlashList
+        data={locationResults}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.place_id}
+        ListHeaderComponent={ListHeader}
+        ItemSeparatorComponent={ItemSeparator}
+        contentContainerStyle={styles.listContent}
+        stickyHeaderIndices={[0]}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-      >
-        <AccentScreenHeader
-          style={styles.headerSection}
-          accentColor={accentColor}
-          onBackPress={() => router.back()}
-          title={
-            <View>
-              <ThemedText style={[styles.sectionEyebrow, { color: secondaryColor }]}>
-                YOUR LOCATION
-              </ThemedText>
-              <ThemedText style={[styles.title, { color: textColor }]}>
-                Where are you located?
-              </ThemedText>
-            </View>
-          }
-          subtitle={
-            <ThemedText style={[styles.subtitle, { color: secondaryColor }]}>
-              This helps us connect you with nearby artisans
-            </ThemedText>
-          }
-        />
-
-        {/* Input Section */}
-        <View style={styles.inputSection}>
-          <InputField
-            label="SEARCH LOCATION"
-            isLoading={isSearching}
-            value={location?.address || ''}
-            clearButtonMode="never"
-            error={searchError?.message || location?.error}
-            onChangeText={(text) => {
-              dispatch(actions.setLocation({
-                ...location,
-                address: text,
-                error: '',
-              }));
-              setTerm(text);
-            }}
-            placeholder="Enter your location"
-            errorStyle={styles.error}
-            style={{ backgroundColor: inputBackground }}
-          />
-          
-          <TouchableOpacity 
-            style={styles.pickContainer} 
-            onPress={() => dispatch(actions.openMapPicker())}
-            activeOpacity={0.7}
-          >
-            <View style={styles.pickContent}>
-              <Feather name="map-pin" size={20} color={tintColor} />
-              <ThemedText style={[styles.pickText, { color: textColor }]}>
-                Pick location on map
-              </ThemedText>
-            </View>
-            <Feather name="chevron-right" size={18} color={secondaryColor} />
-          </TouchableOpacity>
-          
-          {locationResults.length > 0 && (
-            <BlurView 
-              intensity={80} 
-              tint={isDark ? 'dark' : 'light'} 
-              style={[styles.listView, { backgroundColor: inputBackground, borderColor }]}
-            >
-              <FlashList
-                data={locationResults}
-                renderItem={({ item }) => (
-                  <TouchableOpacity 
-                    style={[styles.row, { borderBottomColor: borderColor }]}
-                    onPress={() => onLocationSelect(item)}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="map-pin" size={16} color={secondaryColor} />
-                    <ThemedText style={[styles.description, { color: textColor }]} numberOfLines={2}>
-                      {item.description}
-                    </ThemedText>
-                  </TouchableOpacity>
-                )}
-                keyExtractor={(item) => item.place_id}
-              />
-            </BlurView>
-          )}
-        </View>
-      </ScrollView>
+      />
 
       <LocationMapPicker
         isOpen={isMapPickerOpen}
         handleSheetChanges={(change) => {
-          if(change === -1){
+          if (change === -1) {
             dispatch(actions.closeMapPicker());
           }
         }}
@@ -183,14 +199,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  listContent: {
     paddingBottom: heightPixel(40),
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingBottom: heightPixel(20),
   },
   sectionEyebrow: {
@@ -211,14 +224,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Regular',
     lineHeight: fontPixel(22),
   },
-  inputSection: {
-    // gap: heightPixel(12),
-  },
+  inputSection: {},
   pickContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: widthPixel(16),
-    // paddingVertical: heightPixel(16),
   },
   pickContent: {
     flex: 1,
@@ -230,25 +240,25 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(14),
     fontFamily: 'Medium',
   },
-  listView: {
+  stickyHeader: {
+    paddingBottom: heightPixel(8),
+  },
+  stickyDivider: {
+    marginTop: heightPixel(12),
+    height: StyleSheet.hairlineWidth,
     width: '100%',
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
-    overflow: 'hidden',
-    marginTop: heightPixel(4),
-    maxHeight: heightPixel(300),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
+    opacity: 0.6,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: widthPixel(12),
     padding: widthPixel(16),
-    borderBottomWidth: 0.5,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    width: '100%',
+    opacity: 0.6,
   },
   description: {
     flex: 1,
@@ -257,5 +267,5 @@ const styles = StyleSheet.create({
   },
   error: {
     right: widthPixel(16),
-  }
-}); 
+  },
+});

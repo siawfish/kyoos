@@ -1,8 +1,9 @@
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState, memo } from 'react';
-import { ActivityIndicator, DimensionValue, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import React, { useCallback, useState, memo } from 'react';
+import { DimensionValue, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface CustomImageProps {
     readonly source?: string;
@@ -17,10 +18,13 @@ const CustomImage = ({
     height,
     onPress,
 }:CustomImageProps) => {
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const color = useThemeColor({ light: colors.light.white, dark: colors.dark.white }, 'text');
     const backgroundColor = useThemeColor({ light: colors.light.grey, dark: colors.dark.grey }, 'background');
+
+    const handleError = useCallback(() => setError(true), []);
+    const handleLoad = useCallback(() => setError(false), []);
+
     return (
         <TouchableOpacity
             style={{
@@ -30,30 +34,22 @@ const CustomImage = ({
                 backgroundColor,
             }}
             onPress={onPress}
+            activeOpacity={onPress ? 0.8 : 1}
         >
-            {
-                loading && (
-                    <View style={styles.center}>
-                        <ActivityIndicator size="small" />
-                    </View>
-                )
-            }
-            {
-                error && (
-                    <View style={styles.center}>
-                        <MaterialIcons name="broken-image" size={24} color={color} />
-                    </View>
-                )
-            }
+            {error && (
+                <View style={styles.center}>
+                    <MaterialIcons name="broken-image" size={24} color={color} />
+                </View>
+            )}
             <Image
                 style={styles.img}
-                source={{uri: source}}
-                onLoadStart={() => {
-                    setLoading(true);
-                    setError(false);
-                }}
-                onLoadEnd={() => setLoading(false)}
-                onError={() => setError(true)}
+                source={source}
+                onError={handleError}
+                onLoad={handleLoad}
+                cachePolicy="memory-disk"
+                transition={120}
+                contentFit="cover"
+                recyclingKey={source}
             />
         </TouchableOpacity>
     )

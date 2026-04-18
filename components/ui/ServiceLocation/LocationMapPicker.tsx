@@ -159,21 +159,13 @@ const LocationMapPicker = ({
                 >
                   <View style={[styles.line, { backgroundColor: borderColor }]} />
                   <AccentScreenHeader
-                    style={styles.bottomSheetHeader}
-                    accentColor={accentColor}
-                    trailing={
-                      <BackButton 
-                        iconName="x"
-                        onPress={() => {
-                          translateY.value = withSpring(0, { damping: 50 });
-                          active.value = false;
-                          if (handleSheetChanges) {
-                            handleSheetChanges(-1);
-                          }
-                        }}
-                        containerStyle={styles.closeButton}
-                      />
-                    }
+                    onBackPress={() => {
+                      translateY.value = withSpring(0, { damping: 50 });
+                      active.value = false;
+                      if (handleSheetChanges) {
+                        handleSheetChanges(-1);
+                      }
+                    }}
                     title={
                       <View>
                         <ThemedText style={[styles.mapEyebrow, { color: secondaryColor }]}>

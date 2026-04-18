@@ -14,6 +14,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import BackButton from "@/components/ui/BackButton";
 
 
 const AppearanceScreen = () => {
@@ -51,8 +52,7 @@ const AppearanceScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <AccentScreenHeader
-          style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
-          onBackPress={() => router.back()}
+          renderRight={()=><BackButton iconName="x" onPress={() => router.back()} />}
           title="APPEARANCE"
           titleStyle={{
             fontSize: fontPixel(10),
@@ -97,14 +97,14 @@ const styles = StyleSheet.create({
     paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   settingsGroup: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
     marginBottom: heightPixel(16),
     borderWidth: 0.5,
     borderRadius: 0,
     overflow: 'hidden',
   },
   descriptionGroup: {
-    marginHorizontal: widthPixel(20),
+    marginHorizontal: widthPixel(16),
     marginBottom: heightPixel(16),
     borderWidth: 0.5,
     borderRadius: 0,

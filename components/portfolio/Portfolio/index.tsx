@@ -7,7 +7,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Portfolio } from '@/redux/portfolio/types';
 import { Link, router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { Options } from '../Options';
 import User from '../User';
@@ -36,36 +36,35 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
         dark: colors.dark.text
     }, 'text');
 
-    const handleReport = () => {
-        console.log('report');
-    };
-
-    const handleShare = () => {
+    const handleShare = useCallback(() => {
         share(`${process.env.EXPO_PUBLIC_API_URL}/portfolio/${portfolio.id}`);
-    };
+    }, [share, portfolio.id]);
 
-    const handleAddComment = () => {
+    const handleAddComment = useCallback(() => {
         router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`);
-    };
+    }, [portfolio.id]);
 
-    const options = [
-        {
-            label: 'Add comment',
-            icon: OptionIcons.COMMENT,
-            onPress: handleAddComment,
-        },
-        {
-            label: 'Share',
-            icon: OptionIcons.SHARE,
-            onPress: handleShare,
-        },
-        {
-            label: 'Report',
-            icon: OptionIcons.FLAG,
-            onPress: handleReport,
-            isDanger: true,
-        },
-    ];
+    const options = useMemo(
+        () => [
+            {
+                label: 'Add comment',
+                icon: OptionIcons.COMMENT,
+                onPress: handleAddComment,
+            },
+            {
+                label: 'Share',
+                icon: OptionIcons.SHARE,
+                onPress: handleShare,
+            },
+            {
+                label: 'Report',
+                icon: OptionIcons.FLAG,
+                onPress: () => {},
+                isDanger: true,
+            },
+        ],
+        [handleAddComment, handleShare],
+    );
 
     const portfolioContent = () => {
         return (
@@ -85,6 +84,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                         portfolio?.assets?.length > 0 &&
                         <Thumbnails 
                             portfolio={portfolio}
+                            autoplayVideos={!clickable}
                         />
                     }
                     <ThemedText 
@@ -122,24 +122,48 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                     </View>
                 )
             }
-            <ConfirmActionSheet
-                isOpen={isDeleteConfirmationOpen}
-                isOpenChange={setIsDeleteConfirmationOpen}
-                title="Delete Portfolio"
-                description="Are you sure you want to delete this portfolio? This action cannot be undone."
-                onConfirm={() => {}}
-                icon={<Image source={require('@/assets/images/danger.png')} style={styles.icon} />}
-                onCancel={() => setIsDeleteConfirmationOpen(false)}
-                confirmButtonStyle={{
-                    backgroundColor: colors.light.danger,
-                }}
-                confirmText='Yes, Delete'
-            />
+            {isDeleteConfirmationOpen && (
+                <ConfirmActionSheet
+                    isOpen={isDeleteConfirmationOpen}
+                    isOpenChange={setIsDeleteConfirmationOpen}
+                    title="Delete Portfolio"
+                    description="Are you sure you want to delete this portfolio? This action cannot be undone."
+                    onConfirm={() => {}}
+                    icon={<Image source={require('@/assets/images/danger.png')} style={styles.icon} />}
+                    onCancel={() => setIsDeleteConfirmationOpen(false)}
+                    confirmButtonStyle={{
+                        backgroundColor: colors.light.danger,
+                    }}
+                    confirmText='Yes, Delete'
+                />
+            )}
         </>
     )
 }
 
-export default PortfolioItem;
+const arePropsEqual = (prev: PortfolioProps, next: PortfolioProps) => {
+    if (prev.clickable !== next.clickable) return false;
+    const a = prev.portfolio;
+    const b = next.portfolio;
+    if (a === b) return true;
+    if (!a || !b) return false;
+    return (
+        a.id === b.id &&
+        a.description === b.description &&
+        a.likes === b.likes &&
+        a.comments === b.comments &&
+        a.hasLiked === b.hasLiked &&
+        a.hasCommented === b.hasCommented &&
+        a.createdAt === b.createdAt &&
+        a.assets?.length === b.assets?.length &&
+        a.skills?.length === b.skills?.length &&
+        a.createdBy?.id === b.createdBy?.id &&
+        a.createdBy?.name === b.createdBy?.name &&
+        a.createdBy?.avatar === b.createdBy?.avatar
+    );
+};
+
+export default memo(PortfolioItem, arePropsEqual);
 
 const styles = StyleSheet.create({
     container: {

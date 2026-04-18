@@ -234,12 +234,6 @@ export const MenuItems = [
     iconOutline: 'chat-outline'
   },
   {
-    name: 'notifications',
-    title: 'Notifications',
-    icon: 'bell',
-    iconOutline: 'bell-outline'
-  },
-  {
     name: '(settings)',
     title: 'Settings',
     icon: 'cog',
