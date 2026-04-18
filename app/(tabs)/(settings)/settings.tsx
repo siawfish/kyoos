@@ -161,15 +161,18 @@ const SettingsScreen = () => {
             LOG OUT
           </ThemedText>
         </TouchableOpacity>
-
-        <ThemedText 
-          type="subtitle"
-          style={styles.versionText}
-          lightColor={colors.light.secondary}
-          darkColor={colors.dark.secondary}
-        >
-          Version {Constants.expoConfig?.version || '1.0.0'}
-        </ThemedText>
+          {
+            Constants.expoConfig?.version ? (
+              <ThemedText 
+                type="subtitle"
+                style={styles.versionText}
+                lightColor={colors.light.secondary}
+                darkColor={colors.dark.secondary}
+              >
+                Version {Constants.expoConfig?.version}
+              </ThemedText>
+            ) : null
+          }
       </ScrollView>
       <ConfirmActionSheet
         isOpen={isConfirmLogout}

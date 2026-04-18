@@ -27,6 +27,17 @@
       }
     }
   },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "6757015505"
+      }
+    }
+  },
   "cli": {
     "appVersionSource": "remote"
   }
