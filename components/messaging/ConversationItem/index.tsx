@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   conversationItem: {
     width: '100%',
     flexDirection: 'row',
-    marginBottom: heightPixel(16),
+    marginBottom: heightPixel(11),
     borderWidth: 0.5,
     borderLeftWidth: 0,
     overflow: 'hidden',
@@ -138,19 +138,20 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: widthPixel(16),
+    paddingVertical: heightPixel(10),
+    paddingHorizontal: widthPixel(12),
   },
   topRow: {
     flexDirection: 'row',
-    gap: widthPixel(12),
+    gap: widthPixel(8),
   },
   avatarContainer: {
-    width: widthPixel(50),
-    height: heightPixel(50),
+    width: widthPixel(42),
+    height: heightPixel(42),
   },
   avatar: {
-    width: widthPixel(50),
-    height: heightPixel(50),
+    width: widthPixel(42),
+    height: heightPixel(42),
     borderRadius: 0,
   },
   avatarPlaceholder: {
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
   },
   avatarText: {
-    fontSize: fontPixel(20),
+    fontSize: fontPixel(16),
     fontFamily: 'Bold',
   },
   messageContent: {
@@ -169,10 +170,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: heightPixel(8),
+    marginBottom: heightPixel(5),
   },
   senderName: {
-    fontSize: fontPixel(15),
+    fontSize: fontPixel(14),
     fontFamily: 'Bold',
     letterSpacing: 0.5,
     flex: 1,
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     gap: widthPixel(8),
   },
   lastMessage: {
-    fontSize: fontPixel(15),
+    fontSize: fontPixel(14),
     fontFamily: 'Regular',
     flex: 1,
   },
@@ -191,30 +192,30 @@ const styles = StyleSheet.create({
     fontFamily: 'SemiBold',
   },
   timestamp: {
-    fontSize: fontPixel(12),
+    fontSize: fontPixel(11),
     fontFamily: 'Regular',
   },
   unreadBadge: {
     borderRadius: 0,
-    minWidth: widthPixel(20),
-    height: heightPixel(20),
+    minWidth: widthPixel(18),
+    height: heightPixel(18),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: widthPixel(6),
+    paddingHorizontal: widthPixel(5),
   },
   unreadCount: {
-    fontSize: fontPixel(11),
+    fontSize: fontPixel(10),
     fontFamily: 'Bold',
   },
   bookingContext: {
-    marginTop: heightPixel(10),
-    paddingTop: heightPixel(10),
+    marginTop: heightPixel(7),
+    paddingTop: heightPixel(7),
     borderTopWidth: 0.5,
   },
   bookingDescription: {
-    fontSize: fontPixel(13),
+    fontSize: fontPixel(12),
     fontFamily: 'Regular',
-    marginBottom: heightPixel(6),
+    marginBottom: heightPixel(4),
   },
   bookingMeta: {
     flexDirection: 'row',
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
     gap: widthPixel(8),
   },
   bookingDateTime: {
-    fontSize: fontPixel(12),
+    fontSize: fontPixel(11),
     fontFamily: 'Regular',
     flex: 1,
   },

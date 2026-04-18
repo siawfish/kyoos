@@ -11,7 +11,7 @@ import { ServiceLocationType } from '@/redux/booking/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectServiceLocation, selectIsMapPickerOpen } from '@/redux/booking/selector';
 import { actions } from '@/redux/booking/slice';
-import { useGoogleAutocomplete, GoogleLocationResult } from '@appandflow/react-native-google-autocomplete';
+import { useGoogleAutocompleteProxy, GoogleLocationResult } from '@/hooks/useGoogleAutocompleteProxy';
 import { FlashList } from '@shopify/flash-list';
 import { BlurView } from 'expo-blur';
 import LocationMapPicker from './LocationMapPicker';
@@ -29,12 +29,10 @@ export default function ServiceLocation({ scrollViewRef, serviceLocationType, se
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     
-    const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocomplete(
-        process.env.EXPO_PUBLIC_GOOGLE_API_KEY || '', {
-            components: 'country:gh',
-            language: 'en',
-        }
-    );
+    const { locationResults, setTerm, isSearching, searchError, searchDetails } = useGoogleAutocompleteProxy({
+        components: 'country:gh',
+        language: 'en',
+    });
 
     const textColor = useThemeColor({
         light: colors.light.text,

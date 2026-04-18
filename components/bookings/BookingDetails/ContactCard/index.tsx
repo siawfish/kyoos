@@ -4,9 +4,12 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { Booking } from '@/redux/booking/types';
+import { actions as messagingActions } from '@/redux/messaging/slice';
+import { selectFetchingConversation } from '@/redux/messaging/selector';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import OverlayLoader from '@/components/ui/OverlayLoader';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useBookingStatus } from "@/hooks/useBookingStatus";
 
@@ -17,6 +20,8 @@ interface ContactCardProps {
 const ContactCard = ({ booking }: ContactCardProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
+    const dispatch = useAppDispatch();
+    const isLoadingMessaging = useAppSelector(selectFetchingConversation);
     const { canChat } = useBookingStatus(booking);
     const cardBg = isDark ? colors.dark.background : colors.light.background;
     const borderColor = isDark ? colors.dark.white : colors.light.black;
@@ -24,11 +29,12 @@ const ContactCard = ({ booking }: ContactCardProps) => {
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
 
     const handleChatWorker = () => {
-      if(!booking) return;
-      router.push(`/(tabs)/(messaging)/${booking.id}`);
+        if (!booking) return;
+        dispatch(messagingActions.fetchOrCreateConversationByBooking(booking.id));
     };
 
     return (
+        <Fragment>
         <View style={[styles.container, { backgroundColor: cardBg, borderColor }]}>
             <View style={[styles.topAccent, { backgroundColor: borderColor }]} />
             <View style={styles.content}>
@@ -62,6 +68,8 @@ const ContactCard = ({ booking }: ContactCardProps) => {
                 </View>
             </View>
         </View>
+        {isLoadingMessaging && <OverlayLoader />}
+        </Fragment>
     )
 }
 

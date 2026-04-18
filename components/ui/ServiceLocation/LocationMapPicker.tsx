@@ -7,6 +7,7 @@ import { Portal } from '@gorhom/portal';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { BlurView } from 'expo-blur';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import Animated, {
   useSharedValue,
@@ -157,31 +158,30 @@ const LocationMapPicker = ({
                     ]}
                 >
                   <View style={[styles.line, { backgroundColor: borderColor }]} />
-                  <View style={styles.bottomSheetHeader}>
-                    <View style={styles.headerLeft}>
-                      <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                      <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                        MAP PICKER
-                      </ThemedText>
-                      <ThemedText style={[styles.bottomSheetTitle, { color: textColor }]}>
-                        Select Location
-                      </ThemedText>
+                  <AccentScreenHeader
+                    onBackPress={() => {
+                      translateY.value = withSpring(0, { damping: 50 });
+                      active.value = false;
+                      if (handleSheetChanges) {
+                        handleSheetChanges(-1);
+                      }
+                    }}
+                    title={
+                      <View>
+                        <ThemedText style={[styles.mapEyebrow, { color: secondaryColor }]}>
+                          MAP PICKER
+                        </ThemedText>
+                        <ThemedText style={[styles.bottomSheetTitle, { color: textColor }]}>
+                          Select Location
+                        </ThemedText>
+                      </View>
+                    }
+                    subtitle={
                       <ThemedText style={[styles.helperText, { color: secondaryColor }]}>
                         Tap on the map to select your location
                       </ThemedText>
-                    </View>
-                    <BackButton 
-                      iconName="x"
-                      onPress={() => {
-                        translateY.value = withSpring(0, { damping: 50 });
-                        active.value = false;
-                        if (handleSheetChanges) {
-                          handleSheetChanges(-1);
-                        }
-                      }}
-                      containerStyle={styles.closeButton}
-                    />
-                  </View>
+                    }
+                  />
                   <View style={styles.mapContainer}>
                     <ThemedMapView
                       style={styles.map}
@@ -239,22 +239,11 @@ const styles = StyleSheet.create({
         marginVertical: heightPixel(12),
     },
     bottomSheetHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
         paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(24),
     },
-    headerLeft: {
-        flex: 1,
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerLabel: {
+    mapEyebrow: {
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,

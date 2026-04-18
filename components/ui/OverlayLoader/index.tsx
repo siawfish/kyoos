@@ -30,7 +30,7 @@ export default function OverlayLoader() {
 
 const styles = StyleSheet.create({
     loaderContainer: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -1,13 +1,13 @@
 import { FlashList } from '@shopify/flash-list';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import EmptyList from '@/components/ui/EmptyList';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
-import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectIsLoading, selectConversations, selectIsRefreshing } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
@@ -15,15 +15,13 @@ import { Conversation } from '@/redux/messaging/types';
 import ConversationItem from '@/components/messaging/ConversationItem';
 import ConversationItemSkeleton from '@/components/messaging/ConversationItemSkeleton';
 import { useFocusEffect } from 'expo-router';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 export default function MessagingScreen() {
   const dispatch = useDispatch();
   const conversations = useSelector(selectConversations);
   const isLoading = useSelector(selectIsLoading);
   const isRefreshing = useSelector(selectIsRefreshing);
-  const theme = useAppTheme();
-  const isDark = theme === 'dark';
-
   useFocusEffect(() => {
     dispatch(actions.fetchConversations());
   });
@@ -32,12 +30,6 @@ export default function MessagingScreen() {
     light: colors.light.background,
     dark: colors.dark.background
   }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
-
   const renderEmptyList = () => {
     return (
       <EmptyList
@@ -74,11 +66,16 @@ export default function MessagingScreen() {
   };
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <ThemedText style={[styles.label, { color: labelColor }]}>MESSAGES</ThemedText>
-      </View>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
+      <AccentScreenHeader
+        title="MESSAGES"
+        renderRight={()=><HeaderNotificationButton />}
+        titleStyle={{
+          fontSize: fontPixel(10),
+          fontFamily: 'SemiBold',
+          letterSpacing: 1.5,
+        }}
+      />
       <FlashList
         data={listData}
         renderItem={renderItem}
@@ -94,7 +91,7 @@ export default function MessagingScreen() {
         showsVerticalScrollIndicator={false}
         onRefresh={() => dispatch(actions.refreshConversations())}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 
@@ -102,23 +99,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerSection: {
-    paddingBottom: heightPixel(20),
-    paddingHorizontal: widthPixel(16),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-  },
   listContainer: {
     paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   emptyList: {
     flex: 1,

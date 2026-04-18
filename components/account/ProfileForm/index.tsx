@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform, Text } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
+import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
+import { router } from 'expo-router';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
+import BackButton from '@/components/ui/BackButton';
 
 export default function ProfileForm({
     registerForm,
@@ -26,9 +30,6 @@ export default function ProfileForm({
 }) {
     const [, setIsDisabled] = useState(false);
 
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
-
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
@@ -37,7 +38,6 @@ export default function ProfileForm({
         light: colors.light.secondary,
         dark: colors.dark.secondary
     }, 'text');
-    const accentColor = isDark ? colors.dark.white : colors.light.black;
     const inputBackground = useThemeColor({light: colors.light.white, dark: colors.dark.black}, 'background');
 
     const handleSave = () => {
@@ -55,25 +55,30 @@ export default function ProfileForm({
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.mainContainer}
+            keyboardVerticalOffset={heightPixel(60)}
         >
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
+                keyboardDismissMode='on-drag'
             >
                 <ThemedView style={styles.container}>
-                    <View style={styles.contentContainer}>
-                        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                        <Text style={[styles.label, { color: subtitleColor }]}>
-                            REGISTER
-                        </Text>
-                        <Text style={[styles.title, { color: textColor }]}>
-                            Profile info
-                        </Text>
-                        <Text style={[styles.subtitle, { color: subtitleColor }]}>
-                            Please provide your name and an optional profile photo
-                        </Text>
-                    </View>
+                    <AccentScreenHeader
+                        renderRight={()=><BackButton iconName="x" onPress={() => router.back()} />}
+                        title={
+                            <View>
+                                <ThemedText style={[styles.eyebrow, { color: subtitleColor }]}>
+                                    USER PROFILE
+                                </ThemedText>
+                                <ThemedText style={[styles.title, { color: textColor }]}>
+                                    Profile info
+                                </ThemedText>
+                            </View>
+                        }
+                        subtitle="Please provide your name and an optional profile photo"
+                        subtitleStyle={[styles.subtitle, { color: subtitleColor }]}
+                    />
 
                     <View style={styles.gap}>
                         <UploadProfilePhoto 
@@ -127,14 +132,14 @@ const styles = StyleSheet.create({
         paddingBottom: heightPixel(16),
     },
     contentContainer: {
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(24),
+        paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
     },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
+    eyebrow: {
+        fontSize: fontPixel(10),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     title: {
         fontSize: fontPixel(32),
@@ -160,11 +165,5 @@ const styles = StyleSheet.create({
         backgroundColor: colors.light.grey,
         borderRadius: widthPixel(16),
         marginBottom: heightPixel(12),
-    },
-    label: {
-        fontSize: fontPixel(11),
-        fontFamily: 'SemiBold',
-        letterSpacing: 2,
-        marginBottom: heightPixel(8),
     },
 });

@@ -1,31 +1,54 @@
 import CommentItem from '@/components/portfolio/CommentItem';
 import CommentItemSkeletonLoader from '@/components/portfolio/Loaders/CommentItemSkeletonLoader';
+import PortfolioSkeleton from '@/components/portfolio/Loaders/PortfolioSkeleton';
 import Portfolio from '@/components/portfolio/Portfolio';
-import BackButton from '@/components/ui/BackButton';
+import { AccentBar, AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import Button from '@/components/ui/Button';
 import EmptyList from '@/components/ui/EmptyList';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectCommentFormIsLoading, selectComments, selectCommentsIsLoading, selectPortfolios } from '@/redux/portfolio/selector';
+import {
+  selectCommentFormIsLoading,
+  selectComments,
+  selectCommentsIsLoading,
+  selectHomePopularPortfolios,
+  selectIsLoadingSelectedPortfolio,
+  selectPortfolios,
+  selectSelectedPortfolio,
+} from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function PortfolioDetails() {
   const { id } = useLocalSearchParams();
+  const portfolioId = Array.isArray(id) ? id[0] : id;
   const portfolios = useAppSelector(selectPortfolios);
+  const homePopularPortfolios = useAppSelector(selectHomePopularPortfolios);
+  const selectedPortfolio = useAppSelector(selectSelectedPortfolio);
+  const isLoadingSelectedPortfolio = useAppSelector(selectIsLoadingSelectedPortfolio);
   const comments = useAppSelector(selectComments);
   const isLoading = useAppSelector(selectCommentsIsLoading);
   const isSubmittingComment = useAppSelector(selectCommentFormIsLoading);
   const dispatch = useAppDispatch();
-  const portfolio = portfolios.find((portfolio) => portfolio.id === id);
+
+  const portfolio = useMemo(() => {
+    if (!portfolioId) return undefined;
+    if (selectedPortfolio?.id === portfolioId) return selectedPortfolio;
+    return (
+      portfolios.find((p) => p.id === portfolioId) ??
+      homePopularPortfolios.find((p) => p.id === portfolioId)
+    );
+  }, [portfolioId, selectedPortfolio, portfolios, homePopularPortfolios]);
+
   const colorScheme = useAppTheme();
   const isDark = colorScheme === 'dark';
 
@@ -34,19 +57,19 @@ export default function PortfolioDetails() {
     dark: colors.dark.background
   }, 'background');
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const labelColor = useThemeColor({
-    light: colors.light.secondary,
-    dark: colors.dark.secondary
-  }, 'text');
   const textColor = useThemeColor({
     light: colors.light.text,
     dark: colors.dark.text
   }, 'text');
 
-  useEffect(()=>{
-    if(!id) return;
-    dispatch(actions.fetchComments(id as string));
-  },[id, dispatch])
+  useEffect(() => {
+    if (!portfolioId) return;
+    dispatch(actions.fetchPortfolioById(portfolioId));
+    dispatch(actions.fetchComments(portfolioId));
+    return () => {
+      dispatch(actions.clearSelectedPortfolio());
+    };
+  }, [portfolioId, dispatch]);
 
   const renderEmptyList = () => {
     if (isLoading || isSubmittingComment) return;
@@ -56,7 +79,7 @@ export default function PortfolioDetails() {
         message="No comments yet. Be the first to comment."
       >
         <Button
-          onPress={() => router.push(`/(tabs)/(portfolio)/addComment?id=${id}`)}
+          onPress={() => router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolioId}`)}
           label="ADD COMMENT"
           labelStyle={styles.buttonLabel}
           style={styles.addCommentButton}
@@ -73,8 +96,8 @@ export default function PortfolioDetails() {
           clickable={false}
         />
         <View style={styles.commentsSection}>
-          <View>
-            <View style={[styles.commentsAccentBar, { backgroundColor: accentColor }]} />
+          <View style={styles.commentsHeader}>
+            <AccentBar />
             <ThemedText type="title" style={[styles.commentsTitle, { color: textColor }]}>
               COMMENTS
             </ThemedText>
@@ -88,79 +111,74 @@ export default function PortfolioDetails() {
         </View>
       </View>
     )
-  }, [portfolio, accentColor, textColor, isLoading, isSubmittingComment]);
-  return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <View style={styles.header}>
-          <BackButton onPress={() => router.back()} iconName="arrow-left" />
+  }, [portfolio, textColor, isLoading, isSubmittingComment]);
+
+  const renderBody = () => {
+    if (portfolio) {
+      return (
+        <FlashList
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          data={comments}
+          renderItem={({ item }) => <CommentItem item={item} />}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyList}
+          contentContainerStyle={styles.scrollView}
+        />
+      );
+    }
+    if (isLoadingSelectedPortfolio) {
+      return (
+        <View style={styles.scrollView}>
+          <PortfolioSkeleton />
         </View>
-        <Text style={[styles.label, { color: labelColor }]}>PORTFOLIO DETAILS</Text>
-      </View>
-      {
-        portfolio ? (
-          <FlashList
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={renderHeader}
-            data={comments}
-            renderItem={({ item }) => <CommentItem item={item} />}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={renderEmptyList}
-            contentContainerStyle={styles.scrollView}
-          />
-        ) : (
-          <EmptyList
-            containerStyle={styles.emptyList}
-            message="The portfolio you are looking for does not exist."
-          />
-        )
-      }
-    </ThemedSafeAreaView>
+      );
+    }
+    return (
+      <EmptyList
+        containerStyle={styles.emptyList}
+        message="The portfolio you are looking for does not exist."
+      />
+    );
+  };
+
+  return (
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
+      <AccentScreenHeader
+        onBackPress={() => router.back()}
+        title="PORTFOLIO DETAILS"
+        titleStyle={{
+          fontSize: fontPixel(10),
+          fontFamily: 'SemiBold',
+          letterSpacing: 1.5,
+        }}
+      />
+      {renderBody()}
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  commentsHeader: {
+    gap: widthPixel(8),
+  },
   emptyList: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: heightPixel(200),
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
   },
   container: {
     flex: 1,
   },
-  headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  header: {
-    marginBottom: heightPixel(8),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-  },
   scrollView: {
-    paddingHorizontal: widthPixel(20),
-    paddingBottom: heightPixel(100),
+    paddingHorizontal: widthPixel(16),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   commentsSection: {
-    marginTop: heightPixel(24),
+    marginTop: heightPixel(8),
     paddingBottom: heightPixel(20),
-  },
-  commentsAccentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(12),
   },
   commentsTitle: {
     fontSize: fontPixel(14),

@@ -1,3 +1,4 @@
+import SmartTextArea from '@/components/ui/SmartTextArea';
 import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import MediaViewer from '@/components/ui/MediaViewer';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -14,7 +15,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
   ViewStyle,
@@ -241,7 +241,9 @@ function MessageInput({
               },
             ]}
           >
-            <TextInput
+            <SmartTextArea
+              variant="unframed"
+              density="composer"
               value={inputText}
               onChangeText={(text) => {
                 onInputChange(text);
@@ -250,12 +252,11 @@ function MessageInput({
               onBlur={() => onTypingStop?.()}
               placeholder={placeholder}
               placeholderTextColor={subTextColor}
-              style={[styles.textInput, { color: textColor }]}
-              multiline
-              scrollEnabled
+              textColor={textColor}
               selectionColor={primaryColor}
               cursorColor={primaryColor}
               editable={!disabled}
+              style={styles.textInput}
             />
           </View>
 

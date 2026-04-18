@@ -4,6 +4,8 @@ export interface AuthState {
   loginForm: LoginForm;
   registerForm: RegisterForm;
   referenceId: string;
+  /** Hubtel OTP 4-character prefix shown in SMS */
+  otpPrefix: string;
   credentials: Credentials;
 }
 
@@ -60,6 +62,7 @@ export interface Location {
 export interface VerifyPhoneNumberResponse {
   referenceId: string;
   phoneNumber: string;
+  prefix: string;
 }
 
 export interface LoginResponse {

@@ -1,20 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Image, ActivityIndicator, View } from "react-native";
+import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import BookingDetails from "@/components/bookings/BookingDetails";
-import Header from "@/components/bookings/BookingDetails/Header";
 import Actions from "@/components/bookings/BookingDetails/Actions";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectBooking, selectBookings, selectIsLoading } from "@/redux/bookings/selector";
 import { actions } from "@/redux/bookings/slice";
 import { Booking } from "@/redux/booking/types";
-import { BookingStatuses } from "@/redux/app/types";
 import EmptyList from "@/components/ui/EmptyList";
 
 const Details = () => {
@@ -29,7 +27,6 @@ const Details = () => {
   const [showReschedule, setShowReschedule] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [showRebookConfirm, setShowRebookConfirm] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
 
@@ -48,25 +45,48 @@ const Details = () => {
   }, [dispatch, stateBooking, id]);
   
   const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const backgroundColor = useThemeColor({
-    light: colors.light.background,
-    dark: colors.dark.background
-  }, 'background');
-  const borderColor = isDark ? colors.dark.white : colors.light.black;
+  const textColor = isDark ? colors.dark.text : colors.light.text;
+  const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
 
   const handleBack = () => {
     router.back();
   };
 
+  const renderBookingDetailHeader = (b: Booking | null | undefined) => (
+    <AccentScreenHeader
+      onBackPress={handleBack}
+      title={
+        b ? (
+          <View>
+            <Text style={[styles.detailSectionLabel, { color: labelColor }]}>
+              BOOKING DETAILS
+            </Text>
+            <Text style={[styles.detailTitle, { color: textColor }]}>{b.description}</Text>
+            <View style={styles.clientRow}>
+              <Text style={[styles.withText, { color: labelColor }]}>with</Text>
+              <Image
+                source={{ uri: b.worker?.avatar }}
+                style={[styles.avatar, { backgroundColor: labelColor }]}
+              />
+              <Text style={[styles.clientName, { color: textColor }]}>
+                {b.worker?.name}
+              </Text>
+            </View>
+          </View>
+        ) : undefined
+      }
+    />
+  );
+
   // Loading state
   if (isLoading && !booking) {
     return (
-      <ThemedSafeAreaView style={styles.container}>
-        <Header onBack={handleBack} />
+      <ScreenLayout style={styles.container}>
+        {renderBookingDetailHeader(undefined)}
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={accentColor} />
         </View>
-      </ThemedSafeAreaView>
+      </ScreenLayout>
     );
   }
 
@@ -106,20 +126,6 @@ const Details = () => {
     dispatch(actions.deleteBooking(booking.id));
   };
 
-  const handleComplete = () => {
-    setShowCompleteConfirm(true);
-  };
-
-  const handleConfirmComplete = () => {
-    if(!booking) return;
-    setShowCompleteConfirm(false);
-    dispatch(actions.completeBooking(booking.id));
-  };
-
-  const handleRebook = () => {
-    setShowRebookConfirm(true);
-  };
-
   const handleConfirmRebook = () => {
     if(!booking) return;
     setShowRebookConfirm(false);
@@ -142,64 +148,31 @@ const Details = () => {
     dispatch(actions.reportBooking(booking.id));
   };
 
-  const determineRescheduleAction = () => {
-    if(booking?.status === BookingStatuses.PENDING) {
-      return {
-        onPress: handleReschedule,
-        label: 'RESCHEDULE',
-      };
-    }
-    if(booking?.status === BookingStatuses.ACCEPTED) {
-      return {
-        onPress: handleReschedule,
-        label: 'RESCHEDULE',
-      };
-    }
-    if(booking?.status === BookingStatuses.COMPLETED) {
-      return {
-        onPress: handleRebook,
-        label: 'REBOOK',
-      };
-    }
-    return undefined;
-  };
-
   // Booking not found state
   if (!booking) {
     return (
-      <ThemedSafeAreaView style={styles.container}>
-        <Header onReschedule={determineRescheduleAction()} onBack={handleBack} />
+      <ScreenLayout style={styles.container}>
+        {renderBookingDetailHeader(undefined)}
         <EmptyList
           containerStyle={styles.notFoundContainer}
           message="The booking you're looking for doesn't exist or has been removed."
         />
-      </ThemedSafeAreaView>
+      </ScreenLayout>
     );
   }
 
   return (
-    <ThemedSafeAreaView style={styles.container}>
-      <Header 
-        onReschedule={determineRescheduleAction()} 
-        onBack={handleBack} 
-      />
+    <ScreenLayout style={styles.container}>
+      {renderBookingDetailHeader(booking)}
       <View style={styles.contentContainer}>
         <BookingDetails booking={booking} />
       </View>
-      <View style={[
-        styles.fixedActions, 
-        { 
-          backgroundColor,
-          borderTopColor: borderColor,
-        }
-      ]}>
         <Actions 
           onCancel={handleCancel} 
-          onComplete={handleComplete} 
           onReport={handleReport} 
           onDelete={handleDelete} 
+          onReschedule={handleReschedule}
         />
-      </View>
         {showReschedule && (
             <ConfirmActionSheet 
                 isOpen={showReschedule} 
@@ -236,18 +209,6 @@ const Details = () => {
                 cancelText="Cancel"
             />
         )}
-        {showCompleteConfirm && (
-            <ConfirmActionSheet 
-                isOpen={showCompleteConfirm} 
-                isOpenChange={setShowCompleteConfirm} 
-                onConfirm={handleConfirmComplete} 
-                title="Complete Booking?" 
-                icon={<Image source={require('@/assets/images/success.png')} style={styles.dangerIcon} />}
-                description="Can you confirm that the booking has been completed?"
-                confirmText="Yes, Complete Booking"
-                cancelText="Cancel"
-            />
-        )}
         {showRebookConfirm && (
             <ConfirmActionSheet 
                 isOpen={showRebookConfirm} 
@@ -272,7 +233,7 @@ const Details = () => {
               cancelText="Cancel"
             />
         )}
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 };
 
@@ -283,11 +244,35 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
   },
-  fixedActions: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-    paddingTop: heightPixel(12),
-    borderTopWidth: 0.5,
+  detailSectionLabel: {
+    fontSize: fontPixel(10),
+    fontFamily: 'SemiBold',
+    letterSpacing: 2,
+    marginBottom: heightPixel(8),
+  },
+  detailTitle: {
+    fontSize: fontPixel(28),
+    fontFamily: 'Bold',
+    letterSpacing: -0.5,
+    marginBottom: heightPixel(12),
+  },
+  clientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(8),
+  },
+  withText: {
+    fontSize: fontPixel(14),
+    fontFamily: 'Regular',
+  },
+  avatar: {
+    width: widthPixel(24),
+    height: widthPixel(24),
+    borderRadius: 0,
+  },
+  clientName: {
+    fontSize: fontPixel(14),
+    fontFamily: 'SemiBold',
   },
   dangerIcon: {
     width: widthPixel(60),

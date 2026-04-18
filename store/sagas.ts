@@ -12,8 +12,7 @@ import { bookingsSaga } from '@/redux/bookings/saga';
 import { settingsSaga } from '@/redux/settings/saga';
 import { portfolioSaga } from '@/redux/portfolio/saga';
 import { messagingSaga } from '@/redux/messaging/saga';
-
-// export default [loginSaga];
+import { notificationsSaga } from '@/redux/notifications/saga';
 
 export default function* rootSaga() {
   yield all([
@@ -25,5 +24,6 @@ export default function* rootSaga() {
     settingsSaga(),
     portfolioSaga(),
     messagingSaga(),
+    notificationsSaga(),
   ]);
 }

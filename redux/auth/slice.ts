@@ -26,6 +26,7 @@ export const initialState: AuthState = {
     isResending: false,
   },
   referenceId: '',
+  otpPrefix: '',
   registerForm: {
     name: {
       value: '',
@@ -73,8 +74,12 @@ const authSlice = createSlice({
     verifyPhoneNumber: (state) => {
       state.loginForm.isLoading = true;
     },
-    verifyPhoneNumberSuccess: (state, action: PayloadAction<string>) => {
-      state.referenceId = action.payload;
+    verifyPhoneNumberSuccess: (
+      state,
+      action: PayloadAction<{ referenceId: string; prefix: string }>
+    ) => {
+      state.referenceId = action.payload.referenceId;
+      state.otpPrefix = action.payload.prefix;
       state.loginForm.isLoading = false;
     },
     verifyPhoneNumberError: (state) => {
@@ -128,6 +133,7 @@ const authSlice = createSlice({
       state.loginForm = initialState.loginForm;
       state.registerForm = initialState.registerForm;
       state.referenceId = '';
+      state.otpPrefix = '';
       state.credentials = initialState.credentials;
     },
     setCredentials: (state, action: PayloadAction<{token: string, user: User}>) => {

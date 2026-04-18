@@ -1,5 +1,5 @@
 import BackButton from "@/components/ui/BackButton";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -20,7 +20,7 @@ export default function KyoosNotFoundScreen() {
     }, 'secondary');
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             <View style={styles.header}>
                 <BackButton
                     iconName="arrow-left"
@@ -38,10 +38,10 @@ export default function KyoosNotFoundScreen() {
                     Artisan Not Found
                 </ThemedText>
                 <ThemedText style={[styles.message, { color: secondaryColor }]} type="subtitle">
-                    The artisan you're looking for doesn't exist or is no longer available.
+                    The artisan you&apos;re looking for doesn&apos;t exist or is no longer available.
                 </ThemedText>
             </View>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 

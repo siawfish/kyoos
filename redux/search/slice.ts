@@ -23,12 +23,12 @@ export const initialState: SearchState = {
   recommendedWorkers: [],
   closestWorkers: [],
   nearestWorkers: [],
-  totalNearbyWorkers: 0,
   searchReferenceId: '',
   isUpdatingLocation: false,
   searchModalVisible: false,
   selectedArtisan: null,
   descriptionModalVisible: false,
+  aiSearchBookingWorker: null,
   // Agent conversation initial state
   agentConversationVisible: false,
   agentConversation: {
@@ -57,12 +57,29 @@ const searchSlice = createSlice({
     onInitialize: (state, action: PayloadAction<{lat: number, lng: number}>) => {
       state.isInitializing = true;
     },
+    /** Dispatched when the map viewport center changes; saga loads workers without resetting search state. */
+    fetchMapRegionWorkers: (_state, _action: PayloadAction<{ lat: number; lng: number }>) => {},
     onInitializeCompleted: (state) => {
       state.isInitializing = false;
     },
-    setNearestWorkers: (state, action: PayloadAction<{workers: Worker[], total: number}>) => {
+    /** Like resetState but keeps isInitializing true — used by onInitialize saga after workers are cleared */
+    resetForInitialize: () => {
+      return {
+        ...initialState,
+        isInitializing: true,
+      };
+    },
+    setNearestWorkers: (state, action: PayloadAction<{ workers: Worker[] }>) => {
       state.nearestWorkers = action.payload.workers;
-      state.totalNearbyWorkers = action.payload.total;
+    },
+    appendNearestWorkers: (state, action: PayloadAction<{ workers: Worker[] }>) => {
+      const seen = new Set(state.nearestWorkers.map((w) => w.id));
+      for (const w of action.payload.workers) {
+        if (!seen.has(w.id)) {
+          seen.add(w.id);
+          state.nearestWorkers.push(w);
+        }
+      }
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -93,6 +110,9 @@ const searchSlice = createSlice({
     },
     setDescriptionModalVisible: (state, action: PayloadAction<boolean>) => {
       state.descriptionModalVisible = action.payload;
+    },
+    setAiSearchBookingWorker: (state, action: PayloadAction<Worker | null>) => {
+      state.aiSearchBookingWorker = action.payload;
     },
     saveUserLocation: (state) => {
       state.isUpdatingLocation = true;
@@ -125,13 +145,11 @@ const searchSlice = createSlice({
       state.agentConversation.isLoading = false;
       state.agentConversation.error = null;
       
-      // The unified AISearchModal handles all states (loading, question, error) internally
-      // Only close the modals when conversation is completed with results
       if (action.payload.status === ConversationStatus.COMPLETED && action.payload.results) {
-        // Close both search and description modals when conversation completes
         state.searchModalVisible = false;
         state.descriptionModalVisible = false;
         state.agentConversationVisible = false;
+        state.aiSearchBookingWorker = null;
       }
       
       // Update legacy state if we have results

@@ -1,9 +1,9 @@
-import BackButton from '@/components/ui/BackButton';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { BookingStatuses, Media, MimeType } from '@/redux/app/types';
@@ -43,12 +43,9 @@ function getVideoMimeType(mime: string | undefined): MimeType {
 }
 
 export default function ConversationScreen() {
-  const appTheme = useAppTheme();
-  const isDark = appTheme === 'dark';
   const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
   const conversations = useAppSelector(selectConversations);
   const conversationMessages = useAppSelector(selectCurrentConversationMessages);
   const [inputText, setInputText] = useState('');
@@ -67,6 +64,14 @@ export default function ConversationScreen() {
   const { sendTypingIndicator, stopTypingIndicator } = useMessaging(id as string);
 
   const { canChat } = useBookingStatus(conversation?.booking);
+
+  useEffect(() => {
+    if (!id || typeof id !== 'string') return;
+    const inList = conversations.some((c) => c.id === id);
+    if (!inList) {
+      dispatch(actions.fetchConversations());
+    }
+  }, [id, conversations, dispatch]);
 
   // Fetch messages for this conversation
   useEffect(() => {
@@ -328,27 +333,15 @@ export default function ConversationScreen() {
 
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.headerSection}>
-        <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-        <View style={styles.header}>
-          <BackButton onPress={() => router.back()} iconName="arrow-left" />
-          <View style={styles.headerRight}>
-            {/* {otherParticipant?.avatar ? (
-              <Image source={{ uri: otherParticipant.avatar }} style={styles.headerAvatar} />
-            ) : (
-              <View style={[styles.headerAvatar, styles.headerAvatarPlaceholder, { backgroundColor: primaryColor }]}>
-                <ThemedText style={[styles.headerAvatarText, { color: whiteColor }]}>
-                  {otherParticipant?.name?.charAt(0).toUpperCase() || '?'}
-                </ThemedText>
-              </View>
-            )} */}
-            <TouchableOpacity onPress={handleBookingPress}>
-              <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
+      <AccentScreenHeader
+        onBackPress={() => router.back()}
+        renderRight={() => (
+          <TouchableOpacity onPress={handleBookingPress}>
+            <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
+          </TouchableOpacity>
+        )}
+      />
       
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -411,34 +404,13 @@ export default function ConversationScreen() {
         onSelectDocument={pickDocument}
         onTakePhoto={takePhoto}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  headerSection: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(10),
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: widthPixel(12),
-    flex: 1,
-    justifyContent: 'flex-end',
   },
   headerAvatar: {
     width: widthPixel(32),
@@ -457,7 +429,7 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingVertical: heightPixel(20),
     paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(100),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   typingIndicator: {
     flexDirection: 'row',

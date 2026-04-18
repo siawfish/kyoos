@@ -6,14 +6,14 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { selectCommentFormIsLoading, selectIsLikingPortfolio } from '@/redux/portfolio/selector';
 import { actions } from '@/redux/portfolio/slice';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch } from '@/store/hooks';
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import { Portfolio } from "@/redux/portfolio/types";
+
+const LIKE_COOLDOWN_MS = 400;
 
 const Actions = ({
     portfolio,
@@ -23,8 +23,8 @@ const Actions = ({
     onComment?: () => void;
 }) => {
     const dispatch = useAppDispatch();
-    const isLikingPortfolio = useAppSelector(selectIsLikingPortfolio);
-    const isCommentingPortfolio = useAppSelector(selectCommentFormIsLoading);
+    const [isLikeCooldown, setIsLikeCooldown] = useState(false);
+    const likeCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const borderTopColor = useThemeColor(
         {
@@ -47,31 +47,18 @@ const Actions = ({
         dark: colors.dark.secondary
     }, 'text');
 
-    const scale = useSharedValue(1);
+    const handleLikePress = useCallback(() => {
+        if (isLikeCooldown) return;
+        setIsLikeCooldown(true);
+        if (likeCooldownRef.current) clearTimeout(likeCooldownRef.current);
+        likeCooldownRef.current = setTimeout(() => setIsLikeCooldown(false), LIKE_COOLDOWN_MS);
+        dispatch(actions.likePortfolio(portfolio.id));
+    }, [dispatch, portfolio.id, isLikeCooldown]);
 
-    useEffect(() => {
-        if (isLikingPortfolio) {
-            scale.value = withRepeat(
-                withTiming(1.2, { 
-                    duration: 600, 
-                    easing: Easing.inOut(Easing.ease) 
-                }),
-                -1,
-                true
-            );
-        } else {
-            scale.value = withTiming(1, { duration: 200 });
-        }
-    }, [isLikingPortfolio, scale]);
-
-    const iconAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
-    }));
-
-    const handleCommentPress = () => {
+    const handleCommentPress = useCallback(() => {
         onComment?.();
-        router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`)
-    }
+        router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`);
+    }, [onComment, portfolio.id]);
 
     return (
         <>
@@ -79,9 +66,9 @@ const Actions = ({
                 {portfolio.skills.length > 0 && (
                     <View style={styles.skillsRow}>
                     {
-                        portfolio.skills.slice(0, 3).map((skill) => (
+                        portfolio.skills.slice(0, 3).map((skill, index) => (
                                 <View 
-                                    key={skill?.id} 
+                                    key={skill?.id || index} 
                                     style={[styles.skill, { backgroundColor: skillBgColor, borderColor: skillBorderColor }]}
                                 >
                                     <ThemedText 
@@ -106,33 +93,32 @@ const Actions = ({
                 </View>
                 )}
                 <View style={styles.actionsRow}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.actionBtn}
-                        disabled={isLikingPortfolio}
-                        onPress={() => dispatch(actions.likePortfolio(portfolio.id))}
+                        disabled={isLikeCooldown}
+                        onPress={handleLikePress}
                     >
-                        <Animated.Image 
-                            source={portfolio.hasLiked ? likeActive : like} 
-                            style={[styles.actionIcon, iconAnimatedStyle]} 
+                        <Image
+                            source={portfolio.hasLiked ? likeActive : like}
+                            style={styles.actionIcon}
                         />
-                        <ThemedText 
-                            style={[styles.actionCount, { color: portfolio.hasLiked ? skillTextColor : labelColor }]} 
+                        <ThemedText
+                            style={[styles.actionCount, { color: portfolio.hasLiked ? skillTextColor : labelColor }]}
                             type='subtitle'
                         >
                             {portfolio.likes}
                         </ThemedText>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.actionBtn}
-                        disabled={isCommentingPortfolio}
                         onPress={handleCommentPress}
                     >
-                        <Animated.Image 
-                            source={portfolio.hasCommented ? commentActive : comment} 
-                            style={styles.actionIcon} 
+                        <Image
+                            source={portfolio.hasCommented ? commentActive : comment}
+                            style={styles.actionIcon}
                         />
-                        <ThemedText 
-                            style={[styles.actionCount, { color: portfolio.hasCommented ? skillTextColor : labelColor }]} 
+                        <ThemedText
+                            style={[styles.actionCount, { color: portfolio.hasCommented ? skillTextColor : labelColor }]}
                             type='subtitle'
                         >
                             {portfolio.comments}
@@ -144,7 +130,25 @@ const Actions = ({
     )
 }
 
-export default Actions
+const areActionsPropsEqual = (
+    prev: { portfolio: Portfolio; onComment?: () => void },
+    next: { portfolio: Portfolio; onComment?: () => void },
+) => {
+    if (prev.onComment !== next.onComment) return false;
+    const a = prev.portfolio;
+    const b = next.portfolio;
+    if (a === b) return true;
+    return (
+        a.id === b.id &&
+        a.likes === b.likes &&
+        a.comments === b.comments &&
+        a.hasLiked === b.hasLiked &&
+        a.hasCommented === b.hasCommented &&
+        a.skills?.length === b.skills?.length
+    );
+};
+
+export default memo(Actions, areActionsPropsEqual);
 
 const styles = StyleSheet.create({
     container: {

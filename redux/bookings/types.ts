@@ -4,6 +4,8 @@ import { Booking } from "../booking/types";
 export interface BookingsState {
     bookings: Booking[];
     booking: Booking | null;
+    /** Single ACCEPTED/ONGOING booking for home header — from GET /bookings/active */
+    homeActiveBooking: Booking | null;
     isLoading: boolean;
     selectedDate: string;
     currentWeekStart: string;
@@ -12,8 +14,9 @@ export interface BookingsState {
 }
 
 export enum AuxStatus {
-    PASSED = 'PASSED',
+    MISSED = 'MISSED',
     DUE = 'DUE',
+    
 }
 
 export interface Service {

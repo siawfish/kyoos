@@ -46,15 +46,15 @@ const sizeStyles: Record<BadgeSize, { container: ViewStyle; text: TextStyle }> =
 
 const AuxStatuses = ({
     size = 'medium',
-    type = AuxStatus.PASSED,
+    type = AuxStatus.MISSED,
 }: AuxStatusesProps) => {
     const dangerColor = useThemeColor({ light: colors.light.danger, dark: colors.dark.danger }, 'danger');
     const dueColor = useThemeColor({ light: colors.light.orange, dark: colors.dark.orange }, 'orange');
     const sizeStyle = sizeStyles[size];
 
     return (
-        <View style={[styles.container, sizeStyle.container, { borderColor: type === AuxStatus.PASSED ? dangerColor : dueColor }]}>
-            <Text style={[styles.text, sizeStyle.text, { color: type === AuxStatus.PASSED ? dangerColor : dueColor }]}>
+        <View style={[styles.container, sizeStyle.container, { borderColor: type === AuxStatus.MISSED ? dangerColor : dueColor }]}>
+            <Text style={[styles.text, sizeStyle.text, { color: type === AuxStatus.MISSED ? dangerColor : dueColor }]}>
                 {type}
             </Text>
         </View>

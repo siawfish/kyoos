@@ -1,12 +1,13 @@
 import { Booking } from '@/redux/booking/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { startOfWeek } from 'date-fns';
+import { isSameDay, startOfWeek } from 'date-fns';
 import { REHYDRATE } from 'redux-persist';
 import { BookingsState } from './types';
 
 export const initialState: BookingsState = {
   bookings: [],
   booking: null,
+  homeActiveBooking: null,
   isLoading: false,
   selectedDate: new Date().toISOString(),
   currentWeekStart: startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
@@ -48,6 +49,10 @@ const bookingsSlice = createSlice({
       state.isLoading = false;
       state.isRefreshing = false;
     },
+    fetchHomeActiveBooking: () => {},
+    setHomeActiveBooking: (state, action: PayloadAction<Booking | null>) => {
+      state.homeActiveBooking = action.payload;
+    },
     rescheduleBooking: (state, action: PayloadAction<string>) => {},
     fetchBooking: (state, action: PayloadAction<string>) => {
       state.isLoading = true;
@@ -66,9 +71,6 @@ const bookingsSlice = createSlice({
     cancelBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },
-    completeBooking: (state, action: PayloadAction<string>) => {
-      state.isUpdatingBooking = true;
-    },
     reportBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },
@@ -80,19 +82,28 @@ const bookingsSlice = createSlice({
     },
     resetBookings: (state) => {
       state.bookings = [];
+      state.homeActiveBooking = null;
     },
   },
   extraReducers: (builder) => {
     builder.addCase(REHYDRATE, (state, action: RehydrateAction) => {
       if (action.payload?.bookings) {
-        return {
+        const merged = {
           ...state,
           ...action.payload.bookings,
-          // Reset loading states on rehydrate to prevent stuck loading
           isLoading: false,
           isUpdatingBooking: false,
           isRefreshing: false,
         };
+        const now = new Date();
+        if (!isSameDay(new Date(merged.selectedDate), now)) {
+          return {
+            ...merged,
+            selectedDate: now.toISOString(),
+            currentWeekStart: startOfWeek(now, { weekStartsOn: 1 }).toISOString(),
+          };
+        }
+        return merged;
       }
       return state;
     });

@@ -80,11 +80,6 @@ export const selectAllWorkers = createSelector(
     (recommendedWorkers, closestWorkers, nearestWorkers) => [...(recommendedWorkers || []), ...(closestWorkers || []), ...(nearestWorkers || [])].filter(Boolean),
 );
 
-export const selectTotalNearbyWorkers = createSelector(
-    [selectDomain],
-    (search) => search?.totalNearbyWorkers || 0,
-);
-
 export const selectSearchReferenceId = createSelector(
     [selectDomain],
     (search) => search?.searchReferenceId || '',
@@ -103,6 +98,11 @@ export const selectSelectedArtisan = createSelector(
 export const selectDescriptionModalVisible = createSelector(
     [selectDomain],
     (search) => search?.descriptionModalVisible || false,
+);
+
+export const selectAiSearchBookingWorker = createSelector(
+    [selectDomain],
+    (search) => search?.aiSearchBookingWorker ?? null,
 );
 
 // Agent conversation selectors

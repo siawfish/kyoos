@@ -6,6 +6,7 @@ import { reducer as bookingsReducer } from '@/redux/bookings/slice';
 import { reducer as settingsReducer } from '@/redux/settings/slice';
 import { reducer as portfolioReducer } from '@/redux/portfolio/slice';
 import { reducer as messagingReducer } from '@/redux/messaging/slice';
+import { reducer as notificationsReducer } from '@/redux/notifications/slice';
 
 const reducers = {
   app: appReducer,
@@ -16,6 +17,7 @@ const reducers = {
   settings: settingsReducer,
   portfolio: portfolioReducer,  
   messaging: messagingReducer,
+  notifications: notificationsReducer,
 };
 
 export default reducers;

@@ -1,8 +1,8 @@
 import User from '@/components/portfolio/User';
-import BackButton from '@/components/ui/BackButton';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import Button from '@/components/ui/Button';
-import InputField from '@/components/ui/TextInput';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import SmartTextArea from '@/components/ui/SmartTextArea';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 
 const Comment = () => {
     const dispatch = useAppDispatch();
@@ -29,12 +30,9 @@ const Comment = () => {
     const colorScheme = useAppTheme();
     const isDark = colorScheme === 'dark';
 
-    const inputBackgroundColor = useThemeColor(
-      {
-        light: colors.light.white,
-        dark: colors.dark.black,
-      },
-      "background"
+    const borderColor = useThemeColor(
+        { light: colors.light.grey, dark: colors.dark.grey },
+        'grey'
     );
     const backgroundColor = useThemeColor({
         light: colors.light.background,
@@ -79,32 +77,33 @@ const Comment = () => {
     }, [dispatch, id, commentForm.comment, comment]);
 
     return (
-        <ThemedSafeAreaView style={[styles.containerStyle, { backgroundColor }]}>
+        <ScreenLayout style={[styles.containerStyle, { backgroundColor }]}>
             <ScrollView 
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.headerSection}>
-                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>
-                        {comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
-                    </Text>
-                </View>
-
-                <View style={styles.header}>
-                    <BackButton onPress={() => router.back()} iconName="arrow-left" />
-                    <Button 
-                        style={styles.btn} 
-                        label={comment ? "UPDATE" : "POST"}
-                        labelStyle={styles.buttonLabel}
-                        disabled={commentForm.comment.length === 0 || isLoading}
-                        onPress={comment ? handleUpdate : handleSubmit}
-                        lightBackgroundColor={colors.light.tint}
-                        darkBackgroundColor={colors.dark.tint}
-                        icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
-                    />
-                </View>
+                <AccentScreenHeader
+                    onBackPress={() => router.back()}
+                    title={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
+                    titleStyle={{
+                        fontSize: fontPixel(10),
+                        fontFamily: 'SemiBold',
+                        letterSpacing: 1.5,
+                    }}
+                    renderRight={() => (
+                        <Button 
+                            style={styles.btn} 
+                            label={comment ? "UPDATE" : "POST"}
+                            labelStyle={styles.buttonLabel}
+                            disabled={commentForm.comment.length === 0 || isLoading}
+                            onPress={comment ? handleUpdate : handleSubmit}
+                            lightBackgroundColor={colors.light.tint}
+                            darkBackgroundColor={colors.dark.tint}
+                            icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
+                        />
+                    )}
+                />
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>
                     <User
@@ -140,17 +139,24 @@ const Comment = () => {
                     </ThemedText>
                 </View>
 
-                <InputField
+                <SmartTextArea
                     placeholder="Write your comment here..."
-                    multiline
                     value={commentForm.comment}
                     onChangeText={(text) => dispatch(actions.setCommentFormValue(text))}
                     autoFocus
-                    style={[styles.input, { backgroundColor: inputBackgroundColor }]}
                     editable={!isLoading}
+                    density="searchSimple"
+                    minHeight={heightPixel(120)}
+                    maxHeight={heightPixel(220)}
+                    borderColor={borderColor}
+                    tintColor={tintColor}
+                    textColor={textColor}
+                    placeholderTextColor={`${labelColor}80`}
+                    selectionColor={tintColor}
+                    containerStyle={styles.smartTextArea}
                 />
             </ScrollView>
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 };
 
@@ -164,30 +170,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: heightPixel(40),
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   headerSection: {
-    paddingHorizontal: widthPixel(20),
-    paddingTop: heightPixel(32),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(8),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
-  },
-  header: {
-    paddingHorizontal: widthPixel(20),
-    gap: widthPixel(10),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: heightPixel(20),
   },
   btn: {
     minWidth: widthPixel(100),
@@ -202,7 +189,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   previewContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     paddingVertical: heightPixel(16),
     marginBottom: heightPixel(20),
   },
@@ -238,7 +225,7 @@ const styles = StyleSheet.create({
     height: heightPixel(70),
   },
   commentContainer: {
-    paddingHorizontal: widthPixel(20),
+    paddingHorizontal: widthPixel(16),
     marginBottom: heightPixel(12),
   },
   commentText: {
@@ -250,8 +237,7 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(14),
     fontFamily: 'Bold',
   },
-  input: {
-    minHeight: heightPixel(120),
-    textAlignVertical: 'top',
-  }
+  smartTextArea: {
+    marginHorizontal: widthPixel(16),
+  },
 })

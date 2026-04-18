@@ -12,26 +12,30 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { selectUserLocation } from '../app/selector';
+import {
+    MAP_SEARCH_PAGE_LIMIT,
+    MAP_SEARCH_RADIUS_METERS,
+} from '@/constants/mapSearch';
 
 export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>) {
     try {
         yield put(bookingActions.resetState());
-        yield put(actions.resetState());
+        yield put(actions.resetForInitialize());
         const { data, error, message } : ApiResponse<InitializeResponse> = yield call(request, {
             method: 'GET',
             url: '/api/users/search',
             params: {
                 lat: action.payload.lat,
                 lng: action.payload.lng,
-                limit: 1000
+                limit: MAP_SEARCH_PAGE_LIMIT,
+                radiusMeters: MAP_SEARCH_RADIUS_METERS,
             },
         });
         if (error || !data) {
             throw new Error(error || message || 'An error occurred while initializing');
         }
         yield put(actions.setNearestWorkers({
-            workers: data.workers, 
-            total: data.pagination.total
+            workers: data.workers,
         }));
     } catch (error:unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred while initializing';
@@ -45,6 +49,34 @@ export function* onInitialize(action: PayloadAction<{lat: number, lng: number}>)
     }
 }
 
+export function* fetchMapRegionWorkersSaga(action: PayloadAction<{ lat: number; lng: number }>) {
+    try {
+        const { data, error, message }: ApiResponse<InitializeResponse> = yield call(request, {
+            method: 'GET',
+            url: '/api/users/search',
+            params: {
+                lat: action.payload.lat,
+                lng: action.payload.lng,
+                limit: MAP_SEARCH_PAGE_LIMIT,
+                page: 1,
+                radiusMeters: MAP_SEARCH_RADIUS_METERS,
+                // Query string must be "false" — axios may omit boolean false from params
+                saveHistory: 'false',
+            },
+        });
+        if (error || !data) {
+            return;
+        }
+        yield put(
+            actions.appendNearestWorkers({
+                workers: data.workers,
+            }),
+        );
+    } catch {
+        // Map exploration: avoid toasts on transient failures
+    }
+}
+
 export function* resetState() {
     yield put(portfolioActions.resetState());
     yield put(bookingActions.resetState());
@@ -55,17 +87,17 @@ export function* resetState() {
  */
 function* handleAgentComplete(data: AgentResponse) {
     const selectedArtisan: string | null = yield select(selectSelectedArtisan);
-    
+
     if (selectedArtisan && data.results) {
-        // If there's a selected artisan, go to booking
         yield put(actions.setDescriptionModalVisible(false));
+        yield put(actions.setAiSearchBookingWorker(null));
         yield put(bookingActions.initializeBooking(selectedArtisan));
         yield put(actions.setSelectedArtisan(null));
-        router.push('/(tabs)/(search)/(booking)/booking');
+        router.replace('/(tabs)/(search)/(booking)/booking');
     } else {
-        // Otherwise go to results
-        router.push('/(tabs)/(search)/results');
+        router.replace('/(tabs)/(search)/results');
     }
+    yield put(actions.resetAgentConversation());
 }
 
 /**
@@ -160,6 +192,8 @@ export function* continueAgentConversation(action: PayloadAction<{
         // If conversation completed, handle navigation
         if (data.status === ConversationStatus.COMPLETED && data.results) {
             yield* handleAgentComplete(data);
+        } else if (data.status === ConversationStatus.IN_PROGRESS && data.message?.question) {
+            console.log('[Agent] Follow-up question after continue');
         }
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'An error occurred';
@@ -174,6 +208,7 @@ export function* continueAgentConversation(action: PayloadAction<{
 
 export function* searchSaga() {
     yield takeLatest(actions.onInitialize, onInitialize);
+    yield takeLatest(actions.fetchMapRegionWorkers, fetchMapRegionWorkersSaga);
     yield takeLatest(actions.resetState, resetState);
     yield takeLatest(actions.startAgentConversation, startAgentConversation);
     yield takeLatest(actions.continueAgentConversation, continueAgentConversation);

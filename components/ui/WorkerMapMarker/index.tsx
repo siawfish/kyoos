@@ -6,7 +6,6 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
 import { Worker } from '@/redux/search/types';
 import { useAppSelector } from '@/store/hooks';
-import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -19,142 +18,194 @@ interface WorkerMapMarkerProps {
     displayCost?: boolean;
 }
 
-export default function WorkerMapMarker({ worker, pinColor, estimatedDuration, onPress, displayCost = true }: WorkerMapMarkerProps) {
+function avatarSource(avatar: string | undefined) {
+    if (!avatar) return null;
+    if (avatar.startsWith('http') || avatar.startsWith('file')) {
+        return { uri: avatar };
+    }
+    return avatar;
+}
+
+/**
+ * Flat black & white map pin — theme surfaces, square geometry, no accent fills.
+ * `pinColor` is accepted for call-site compatibility but not used (monochrome UI).
+ */
+export default function WorkerMapMarker({
+    worker,
+    pinColor: _pinColor,
+    estimatedDuration,
+    onPress,
+    displayCost = true,
+}: WorkerMapMarkerProps) {
     const user = useAppSelector(selectUser);
     const currency = user?.settings?.currency || 'GHS';
-    
-    const tintColor = useThemeColor({
-        light: colors.light.tint,
-        dark: colors.dark.tint,
-    }, 'tint');
 
-    const backgroundColor = useThemeColor({
-        light: colors.light.background + 'F0',
-        dark: colors.dark.background + 'F0',
-    }, 'background');
+    const surface = useThemeColor(
+        {
+            light: colors.light.white,
+            dark: colors.dark.background,
+        },
+        'background',
+    );
 
-    const blurTint = useThemeColor({
-        light: 'light',
-        dark: 'dark',
-    }, 'background');
+    const border = useThemeColor(
+        {
+            light: colors.light.black,
+            dark: colors.dark.white,
+        },
+        'text',
+    );
 
-    const textColor = useThemeColor({
-        light: colors.light.text,
-        dark: colors.dark.text,
-    }, 'text');
+    const textColor = useThemeColor(
+        {
+            light: colors.light.text,
+            dark: colors.dark.text,
+        },
+        'text',
+    );
 
-    const borderColor = useThemeColor({
-        light: colors.light.grey,
-        dark: colors.dark.grey,
-    }, 'grey');
+    const muted = useThemeColor(
+        {
+            light: colors.light.secondary,
+            dark: colors.dark.secondary,
+        },
+        'secondary',
+    );
 
-    const bgColor = useThemeColor({
-        light: colors.light.white,
-        dark: colors.dark.white,
-    }, 'white');
+    const divider = useThemeColor(
+        {
+            light: colors.light.grey,
+            dark: colors.dark.grey,
+        },
+        'grey',
+    );
 
-    // Use provided pinColor or default to tint color
-    const finalPinColor = pinColor || tintColor;
-
-    // Calculate worker's individual cost
     const workerCost = useMemo(() => {
-        return calculateWorkerCost(worker, estimatedDuration || 0)
-    }, [worker, estimatedDuration]);
+        if (!displayCost) {
+            return 0;
+        }
+        return calculateWorkerCost(worker, estimatedDuration || 0);
+    }, [displayCost, worker, estimatedDuration]);
+
+    const initial = useMemo(() => {
+        const n = worker.name?.trim();
+        return n ? n.charAt(0).toUpperCase() : '?';
+    }, [worker.name]);
+
+    const resolvedAvatar = avatarSource(worker.avatar);
 
     return (
-        <TouchableOpacity onPress={() => onPress?.(worker.id)} style={styles.container} activeOpacity={0.8}>
-            {/* Pin Indicator */}
-            <View style={[styles.pinIndicator, { backgroundColor: finalPinColor }]} />
-            
-            {/* Marker Card */}
-            <BlurView 
-                intensity={40} 
-                tint={blurTint as 'light' | 'dark'} 
-                style={[styles.markerCard, { backgroundColor, borderColor }]}
-            >
-                <View style={[styles.priceAccent, { backgroundColor: finalPinColor }]} />
-                <View style={styles.priceContent}>
-                    {
-                        displayCost ? (
-                            <>
-                                <ThemedText style={[styles.currency, { color: textColor }]}>{currency}</ThemedText>
-                                <ThemedText style={[styles.price, { color: textColor }]}>
-                                    {formatPrice(workerCost)}
-                                </ThemedText>
-                            </>
-                        ) : (
-                            <>
-                                {
-                                    worker.skills?.[0]?.icon && (
-                                        <View style={[styles.skillIconContainer, { backgroundColor: bgColor }]}>
-                                            <Image source={worker.skills?.[0]?.icon} style={styles.skillIcon} />
-                                        </View>
-                                    )
-                                }
-                                <ThemedText style={[styles.price, { color: textColor }]}>{worker.skills?.[0]?.name ?? "Worker"}</ThemedText>
-                            </>
-                        )
-                    }
+        <TouchableOpacity onPress={() => onPress?.(worker.id)} style={styles.container} activeOpacity={0.9}>
+            <View style={[styles.bubble, { backgroundColor: surface, borderColor: border }]}>
+                <View style={[styles.avatarCell, { borderRightColor: divider }]}>
+                    {resolvedAvatar ? (
+                        <Image source={resolvedAvatar} style={styles.avatarImg} />
+                    ) : (
+                        <View style={[styles.avatarFallback, { backgroundColor: surface }]}>
+                            <ThemedText style={[styles.avatarInitial, { color: textColor }]}>{initial}</ThemedText>
+                        </View>
+                    )}
                 </View>
-            </BlurView>
+                <View style={styles.bubbleBody}>
+                    {displayCost ? (
+                        <>
+                            <ThemedText style={[styles.currency, { color: muted }]}>{currency}</ThemedText>
+                            <ThemedText style={[styles.price, { color: textColor }]}>{formatPrice(workerCost)}</ThemedText>
+                        </>
+                    ) : (
+                        <>
+                            {worker.skills?.[0]?.icon ? (
+                                <View style={[styles.skillIconWrap, { borderColor: border }]}>
+                                    <Image source={worker.skills[0].icon} style={styles.skillIcon} />
+                                </View>
+                            ) : null}
+                            <ThemedText style={[styles.skillLabel, { color: textColor }]} numberOfLines={1}>
+                                {worker.skills?.[0]?.name ?? 'Worker'}
+                            </ThemedText>
+                        </>
+                    )}
+                </View>
+            </View>
+            <View style={[styles.mapFoot, { backgroundColor: border }]} />
         </TouchableOpacity>
     );
 }
+
+const AVATAR = widthPixel(32);
 
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
     },
-    pinIndicator: {
-        width: widthPixel(12),
-        height: widthPixel(12),
-        marginBottom: heightPixel(-2),
-        zIndex: 2,
-    },
-    markerCard: {
+    bubble: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 0.5,
-        // overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 0,
-        elevation: 6,
+        borderWidth: widthPixel(1.5),
+        maxWidth: widthPixel(200),
+        // flat — no radius
+        borderRadius: 0,
     },
-    priceAccent: {
-        width: widthPixel(4),
-        height: '100%',
+    avatarCell: {
+        width: AVATAR,
+        height: AVATAR,
+        borderRightWidth: widthPixel(1),
+        overflow: 'hidden',
     },
-    priceContent: {
+    avatarImg: {
+        width: AVATAR,
+        height: AVATAR,
+    },
+    avatarFallback: {
+        width: AVATAR,
+        height: AVATAR,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    avatarInitial: {
+        fontSize: fontPixel(14),
+        fontFamily: 'Bold',
+    },
+    bubbleBody: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: widthPixel(4),
+        gap: widthPixel(6),
         paddingHorizontal: widthPixel(10),
-        paddingVertical: heightPixel(8),
+        // paddingVertical: heightPixel(8),
+        flexShrink: 1,
     },
     currency: {
         fontSize: fontPixel(9),
         fontFamily: 'SemiBold',
         letterSpacing: 0.5,
+        textTransform: 'uppercase',
     },
     price: {
         fontSize: fontPixel(14),
         fontFamily: 'Bold',
-        letterSpacing: -0.3,
+        letterSpacing: -0.2,
     },
-    skillIcon: {
-        width: widthPixel(16),
-        height: widthPixel(16),
+    skillLabel: {
+        fontSize: fontPixel(11),
+        fontFamily: 'SemiBold',
+        maxWidth: widthPixel(110),
+        letterSpacing: 0.2,
     },
-    skillIconContainer: {
-        width: widthPixel(20),
-        height: widthPixel(20),
+    skillIconWrap: {
+        width: widthPixel(22),
+        height: widthPixel(22),
+        borderWidth: widthPixel(1),
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+        backgroundColor: 'white',
     },
-}); 
+    skillIcon: {
+        width: widthPixel(14),
+        height: widthPixel(14),
+    },
+    mapFoot: {
+        width: widthPixel(12),
+        height: heightPixel(5),
+        marginTop: heightPixel(-1),
+    },
+});

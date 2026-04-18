@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     maskContainer: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -364,6 +364,14 @@ function MessageBubbleInner({
             </View>
           )}
 
+          {!isOwnMessage && (
+            <View style={styles.recipientTimeContainer}>
+              <ThemedText style={[styles.timeText, { color: textColor }]}>
+                {formatTime(message.sentAt)}
+              </ThemedText>
+            </View>
+          )}
+
           {isOwnMessage && (
             <View style={styles.messageStatusContainer}>
               {renderMessageStatus()}
@@ -423,6 +431,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: heightPixel(4),
     gap: widthPixel(4),
+  },
+  recipientTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: heightPixel(4),
   },
   messageStatus: {
     flexDirection: 'row',

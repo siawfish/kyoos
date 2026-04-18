@@ -24,6 +24,7 @@ module.exports = {
         NSMicrophoneUsageDescription: "Allow $(PRODUCT_NAME) to use the microphone.",
         NSCameraUsageDescription: "Allow $(PRODUCT_NAME) to access your camera",
         ITSAppUsesNonExemptEncryption: false,
+        LSApplicationQueriesSchemes: ["tel"],
       },
       bundleIdentifier: "com.divsandviews.kyoos",
       icon: {
@@ -33,9 +34,6 @@ module.exports = {
       },
       buildNumber: "1.0.0",
       versionCode: 1,
-      config: {
-        googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
-      },
     },
     android: {
       adaptiveIcon: {
@@ -51,17 +49,17 @@ module.exports = {
       package: "com.divsandviews.kyoos",
       buildNumber: "1.0.0",
       versionCode: 1,
-      config: {
-        googleMaps: {
-          apiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
-        },
-      },
+      googleServicesFile: "./google-services.json",
     },
     web: {
       output: "static",
       favicon: "./assets/images/icon.png",
     },
     plugins: [
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser",
       "expo-router",
       [
         "expo-splash-screen",
@@ -81,8 +79,16 @@ module.exports = {
       "expo-speech-recognition",
       "expo-video",
       "@react-native-community/datetimepicker",
+      [
+        "react-native-maps",
+        {
+          iosGoogleMapsApiKey: process.env.GOOGLE_API_KEY,
+          androidGoogleMapsApiKey: process.env.GOOGLE_API_KEY,
+        },
+      ],
       "react-native-vision-camera",
       "expo-notifications",
+      "expo-task-manager",
       "expo-location"
     ],
     experiments: {

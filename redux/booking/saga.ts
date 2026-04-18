@@ -1,4 +1,4 @@
-import { FormElement, Media } from '@/redux/app/types';
+import { BookingStatuses, FormElement, Media } from '@/redux/app/types';
 import { actions } from '@/redux/booking/slice';
 import { Summary, Worker } from '@/redux/search/types';
 import { request } from '@/services/api';
@@ -147,7 +147,6 @@ export function* submitUpdateBooking(action: PayloadAction<string>) {
         booking.serviceType = serviceLocationType;
     }
     const existingBooking: Booking = yield select(selectBooking);
-    const startTime = formatStartTime(date?.value, time?.value);
     if (existingBooking && existingBooking.date === date?.value && existingBooking.startTime === time?.value) {
       throw new Error('Selected date and time are the same as the existing booking');
     }
@@ -163,10 +162,13 @@ export function* submitUpdateBooking(action: PayloadAction<string>) {
     yield put(bookingsActions.fetchBookingSuccess(response.data));
     yield put(bookingsActions.setSelectedDate(response.data.date));
     router.dismissTo(action.payload as RelativePathString);
+    const pendingAgain = response.data.status === BookingStatuses.PENDING;
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: 'Booking details have been updated successfully',
+      text2: pendingAgain
+        ? 'Update saved. Your booking is pending confirmation from the worker.'
+        : 'Booking details have been updated successfully',
     });
   }  catch (error:unknown) {
     console.log(error);

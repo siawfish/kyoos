@@ -60,6 +60,11 @@ export const selectReferenceId = createSelector(
     (auth) => auth?.referenceId,
 );
 
+export const selectOtpPrefix = createSelector(
+    [selectDomain],
+    (auth) => auth?.otpPrefix,
+);
+
 export const selectRegisterForm = createSelector(
     [selectDomain],
     (auth) => auth?.registerForm,

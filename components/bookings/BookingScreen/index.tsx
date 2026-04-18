@@ -1,11 +1,12 @@
 import AppointmentDateTimeSelector from "@/components/ui/AppointmentDateTimeSelector";
-import BackButton from "@/components/ui/BackButton";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import Button from "@/components/ui/Button";
 import { ConfirmActionSheet } from "@/components/ui/ConfirmActionSheet";
 import JobSummary from "@/components/ui/JobSummary";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import ServiceLocation from "@/components/ui/ServiceLocation";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -115,41 +116,42 @@ export default function BookingScreen() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.headerContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={handleBackPress}
-                />
-            </View>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.label, { color: labelColor }]}>BOOK SERVICE</Text>
-                <View style={styles.headerSubtitle}>
-                    <ThemedText 
-                        type="defaultSemiBold" 
-                        style={styles.subtitleText}
-                        darkColor={colors.dark.secondary}
-                        lightColor={colors.light.secondary}
-                    >
-                        with
-                    </ThemedText>
-                    <Image 
-                        source={{ uri: artisan?.avatar }} 
-                        style={[styles.avatar, { backgroundColor: cardBg }]}
-                        resizeMode="cover"
-                    />
-                    <ThemedText 
-                        type="defaultSemiBold"
-                        style={styles.artisanName}
-                        darkColor={colors.dark.text}
-                        lightColor={colors.light.text}
-                    >
-                        {artisan?.name}
-                    </ThemedText>
-                </View>
-            </View>
+        <ScreenLayout style={styles.container}>
+            <AccentScreenHeader
+                onBackPress={handleBackPress}
+                title="BOOK SERVICE"
+                titleStyle={{
+                    fontSize: fontPixel(10),
+                    fontFamily: 'SemiBold',
+                    letterSpacing: 1.5,
+                    marginBottom: heightPixel(12),
+                }}
+                subtitle={
+                    <View style={styles.headerSubtitle}>
+                        <ThemedText 
+                            type="defaultSemiBold" 
+                            style={styles.subtitleText}
+                            darkColor={colors.dark.secondary}
+                            lightColor={colors.light.secondary}
+                        >
+                            with
+                        </ThemedText>
+                        <Image 
+                            source={{ uri: artisan?.avatar }} 
+                            style={[styles.avatar, { backgroundColor: cardBg }]}
+                            resizeMode="cover"
+                        />
+                        <ThemedText 
+                            type="defaultSemiBold"
+                            style={styles.artisanName}
+                            darkColor={colors.dark.text}
+                            lightColor={colors.light.text}
+                        >
+                            {artisan?.name}
+                        </ThemedText>
+                    </View>
+                }
+            />
 
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -270,7 +272,7 @@ export default function BookingScreen() {
                 confirmText="Yes, Cancel"
                 cancelText="Continue Booking"
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 
@@ -285,17 +287,6 @@ const styles = StyleSheet.create({
     header: {
         paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
-        marginBottom: heightPixel(12),
     },
     headerSubtitle: {
         flexDirection: 'row',
@@ -322,7 +313,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     section: {
         marginBottom: heightPixel(24),

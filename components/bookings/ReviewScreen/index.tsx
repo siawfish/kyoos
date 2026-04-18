@@ -1,8 +1,9 @@
-import BackButton from "@/components/ui/BackButton";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import Button from "@/components/ui/Button";
 import MediaPreviews from "@/components/ui/MediaPreviews";
 import SuccessOverlay from "@/components/ui/SuccessOverlay";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { convertFromMillisecondsToHours, formatDate } from "@/constants/helpers";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
@@ -152,14 +153,13 @@ export default function ReviewBooking() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ScreenLayout style={styles.container}>
             <View style={styles.headerContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={() => router.back()}
+                <AccentScreenHeader
+                    onBackPress={() => router.back()}
+                    title="REVIEW BOOKING"
+                    titleStyle={[styles.pageTitle, { color: labelColor }]}
                 />
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.pageTitle, { color: labelColor }]}>REVIEW BOOKING</Text>
             </View>
 
             <ScrollView 
@@ -397,7 +397,7 @@ export default function ReviewBooking() {
                     />
                 </>
             )}
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     );
 }
 
@@ -410,10 +410,8 @@ const styles = StyleSheet.create({
         paddingBottom: heightPixel(8),
         gap: heightPixel(8),
     },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(3),
-        marginBottom: heightPixel(16),
+    reviewAccentHeader: {
+        paddingHorizontal: 0,
     },
     Title: {
         fontSize: fontPixel(10),
@@ -425,7 +423,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     section: {
         marginBottom: heightPixel(24),

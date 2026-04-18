@@ -1,11 +1,79 @@
 import { io, Socket } from 'socket.io-client';
 import { getItemFromStorage } from './asyncStorage';
+import { refreshUserSession } from './authRefresh';
 
 const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+
+/** Align with jools-server `authenticateSocket` error messages that a fresh access token may fix */
+const RECOVERABLE_AUTH_MESSAGES = new Set([
+    'Authentication failed',
+    'Invalid token',
+    'Token is invalid',
+    'Authentication token required',
+]);
+
+const MAX_AUTH_RECOVERY_ATTEMPTS = 3;
 
 class SocketService {
     private socket: Socket | null = null;
     private isConnecting = false;
+    private authFailurePending = false;
+    private recoveryInProgress = false;
+    private authRecoveryAttempts = 0;
+
+    private attachAuthHealHandlers(socket: Socket) {
+        socket.io.on('reconnect_attempt', async () => {
+            const t = await getItemFromStorage('token');
+            if (t) {
+                socket.auth = { ...socket.auth, token: t };
+            }
+        });
+
+        socket.on('error', (error: { message?: string }) => {
+            const msg = typeof error?.message === 'string' ? error.message : '';
+            if (RECOVERABLE_AUTH_MESSAGES.has(msg)) {
+                this.authFailurePending = true;
+            }
+            console.log('Socket error:', error);
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log('Socket disconnected:', reason);
+            if (reason === 'io server disconnect' && this.authFailurePending) {
+                this.authFailurePending = false;
+                void this.recoverFromAuthFailure();
+            }
+        });
+    }
+
+    private async recoverFromAuthFailure() {
+        if (this.recoveryInProgress || !this.socket) {
+            return;
+        }
+        if (this.authRecoveryAttempts >= MAX_AUTH_RECOVERY_ATTEMPTS) {
+            console.log('Socket: auth recovery max attempts reached');
+            return;
+        }
+
+        this.recoveryInProgress = true;
+        this.authRecoveryAttempts += 1;
+
+        const delayMs = Math.min(400 * this.authRecoveryAttempts, 2000);
+        await new Promise((r) => setTimeout(r, delayMs));
+
+        try {
+            const accessToken = await refreshUserSession();
+            if (!accessToken || !this.socket) {
+                return;
+            }
+            this.socket.auth = { token: accessToken };
+            this.socket.connect();
+        } catch (e) {
+            console.log('Socket auth recovery failed:', e);
+        } finally {
+            this.recoveryInProgress = false;
+        }
+    }
 
     /**
      * Initialize and connect to the socket server
@@ -38,7 +106,7 @@ class SocketService {
             const token = await getItemFromStorage('token');
 
             if (!token) {
-                console.error('No auth token found');
+                console.log('No auth token found');
                 this.isConnecting = false;
                 return null;
             }
@@ -54,21 +122,17 @@ class SocketService {
                 reconnectionAttempts: 5,
             });
 
-            // Setup event listeners
+            this.authRecoveryAttempts = 0;
+            this.authFailurePending = false;
+
+            this.attachAuthHealHandlers(this.socket);
+
             this.socket.on('connect', () => {
                 console.log('Socket connected:', this.socket?.id);
             });
 
-            this.socket.on('disconnect', (reason) => {
-                console.log('Socket disconnected:', reason);
-            });
-
-            this.socket.on('error', (error) => {
-                console.error('Socket error:', error);
-            });
-
             this.socket.on('connect_error', (error) => {
-                console.error('Socket connection error:', error);
+                console.log('Socket connection error:', error);
             });
 
             // Wait for connection
@@ -77,21 +141,21 @@ class SocketService {
                     reject(new Error('Connection timeout'));
                 }, 10000);
 
-                this.socket?.on('connect', () => {
+                this.socket?.once('connect', () => {
                     clearTimeout(timeout);
                     resolve();
                 });
 
-                this.socket?.on('connect_error', (error) => {
+                this.socket?.once('connect_error', (err) => {
                     clearTimeout(timeout);
-                    reject(error);
+                    reject(err);
                 });
             });
 
             this.isConnecting = false;
             return this.socket;
         } catch (error) {
-            console.error('Failed to connect socket:', error);
+            console.log('Failed to connect socket:', error);
             this.isConnecting = false;
             this.socket = null;
             return null;
@@ -106,6 +170,8 @@ class SocketService {
             this.socket.disconnect();
             this.socket = null;
         }
+        this.authFailurePending = false;
+        this.authRecoveryAttempts = 0;
     }
 
     /**

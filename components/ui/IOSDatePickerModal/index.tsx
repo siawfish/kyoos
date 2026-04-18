@@ -4,7 +4,6 @@ import {
     View,
     Modal,
     TouchableWithoutFeedback,
-    Text,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -13,6 +12,7 @@ import { colors } from '@/constants/theme/colors';
 import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { AccentScreenHeader } from '../AccentScreenHeader';
 import BackButton from '../BackButton';
 
 interface IOSDatePickerModalProps {
@@ -43,10 +43,6 @@ const IOSDatePickerModal = ({
     );
     const accentColor = isDark ? colors.dark.white : colors.light.black;
     const borderColor = accentColor;
-    const labelColor = useThemeColor({
-        light: colors.light.secondary,
-        dark: colors.dark.secondary
-    }, 'text');
     const textColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
@@ -96,13 +92,15 @@ const IOSDatePickerModal = ({
                     }}
                 >
                     <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
-                        <View style={styles.header}>
-                            <View style={styles.headerLeft}>
-                                <View style={[styles.accentBar, { backgroundColor: borderColor }]} />
-                                <Text style={[styles.label, { color: labelColor }]}>SELECT DATE</Text>
-                            </View>
-                            <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-                        </View>
+                        <AccentScreenHeader
+                            onBackPress={handleClose}
+                            title="SELECT DATE"
+                            titleStyle={{
+                                fontSize: fontPixel(10),
+                                fontFamily: 'SemiBold',
+                                letterSpacing: 1.5,
+                            }}
+                        />
 
                         <View style={styles.pickerContainer}>
                             <DateTimePicker
@@ -131,26 +129,6 @@ const styles = StyleSheet.create({
         paddingTop: heightPixel(20),
         paddingBottom: heightPixel(20),
         overflow: 'hidden',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingBottom: heightPixel(24),
-    },
-    headerLeft: {
-        flex: 1,
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
     },
     closeButton: {
         marginTop: heightPixel(8),

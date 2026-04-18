@@ -1,5 +1,7 @@
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import BackButton from '@/components/ui/BackButton';
 import Button from '@/components/ui/Button';
+import SmartTextArea from '@/components/ui/SmartTextArea';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -22,30 +24,30 @@ import { Worker } from '@/redux/search/types';
 import { actions } from '@/redux/search/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
-import BottomSheet, { BottomSheetFooter, BottomSheetTextInput, BottomSheetView, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
-import { BlurView } from 'expo-blur';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
+    Easing,
     Keyboard,
-    Modal,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
     StyleSheet,
+    TextInput,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Searching from '@/components/search/Searching';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
-import Toast from 'react-native-toast-message';
-import { createToastConfig } from '@/components/ui/Toast';
+import AdditionalInfoSheet from './AdditionalInfoSheet';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 
-interface AISearchModalProps {
-    visible: boolean;
-    onClose: () => void;
-    // New props for booking mode
+export interface AISearchFlowProps {
+    onRequestClose: () => void;
     mode?: 'search' | 'booking';
-    artisan?: Worker;
+    artisan?: Worker | null;
 }
 
 const suggestions = [
@@ -59,12 +61,13 @@ const suggestions = [
 
 type ViewState = 'search' | 'question' | 'loading' | 'error';
 
-const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchModalProps) => {
+const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlowProps) => {
     const [localSearch, setLocalSearch] = useState('');
     const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
     const [questionTextInput, setQuestionTextInput] = useState('');
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
     const [showConfirmClose, setShowConfirmClose] = useState(false);
+    const [showAdditionalInfoSheet, setShowAdditionalInfoSheet] = useState(false);
     
     const search = useAppSelector(selectSearch);
     const agentIsLoading = useAppSelector(selectAgentIsLoading);
@@ -74,11 +77,10 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
     const agentError = useAppSelector(selectAgentError);
     
     const dispatch = useAppDispatch();
-    const inputRef = useRef<any>(null);
-    const questionInputRef = useRef<any>(null);
-    const questionScrollRef = useRef<any>(null);
-    const bottomSheetRef = useRef<BottomSheet>(null);
-    const pulseAnim = useRef(new Animated.Value(1)).current;
+    const insets = useSafeAreaInsets();
+    const inputRef = useRef<TextInput>(null);
+    const marqueeAnim = useRef(new Animated.Value(0)).current;
+    const [marqueeTrackWidth, setMarqueeTrackWidth] = useState(0);
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const accentColor = isDark ? colors.dark.white : colors.light.black;
@@ -91,25 +93,16 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         return 'search';
     }, [agentError, agentIsLoading, currentQuestion, conversationStatus]);
 
-    // Auto-close modal when conversation completes with results
-    // This handles the case when the modal is opened from a screen using local state
-    const agentResults = useAppSelector((state) => state.search.agentConversation.results);
-    useEffect(() => {
-        if (visible && conversationStatus === ConversationStatus.COMPLETED && agentResults) {
-            // Reset agent conversation state and close modal
-            dispatch(actions.resetAgentConversation());
-            onClose();
-        }
-    }, [visible, conversationStatus, agentResults, dispatch, onClose]);
-
     // Mode-based content
     const headerLabel = mode === 'booking' ? 'BOOKING REQUEST' : 'SMART SEARCH';
     const headerTitle = useMemo(() => {
         if (currentView === 'question' && currentQuestion) {
             return currentQuestion.text;
         }
-        return mode === 'booking' ? 'Describe Your Issue' : 'Find a Service Provider';
+        return mode === 'booking' ? 'Describe Your Issue' : 'What do you need?';
     }, [mode, currentView, currentQuestion]);
+
+    const isSimpleSearchHome = mode === 'search' && currentView === 'search';
     
     const buttonLabel = useMemo(() => {
         if (currentView === 'question') return 'CONTINUE';
@@ -152,64 +145,46 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         dark: colors.dark.black,
     }, 'text');
 
-    // Pulse animation for AI indicator
     useEffect(() => {
-        const pulse = Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulseAnim, {
-                    toValue: 0.6,
-                    duration: 1000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(pulseAnim, {
-                    toValue: 1,
-                    duration: 1000,
-                    useNativeDriver: true,
-                }),
-            ])
+        if (mode !== 'search' || marqueeTrackWidth <= 0) return;
+        marqueeAnim.setValue(0);
+        const duration = Math.min(45000, Math.max(12000, marqueeTrackWidth * 35));
+        const loop = Animated.loop(
+            Animated.timing(marqueeAnim, {
+                toValue: -marqueeTrackWidth,
+                duration,
+                easing: Easing.linear,
+                // Native-driver transforms break hit-testing for children; chips must stay tappable.
+                useNativeDriver: false,
+            })
         );
-        pulse.start();
-        return () => pulse.stop();
-    }, [pulseAnim]);
+        loop.start();
+        return () => loop.stop();
+    }, [marqueeAnim, marqueeTrackWidth, mode]);
 
     // Reset question state when question changes
     useEffect(() => {
         setSelectedOptions([]);
         setQuestionTextInput('');
+        setShowAdditionalInfoSheet(false);
     }, [currentQuestion?.id]);
 
-    const handleSheetChanges = useCallback((index: number) => {
-        if (index === -1) {
-            // Prevent closing during loading
-            if (agentIsLoading) {
-                bottomSheetRef.current?.expand();
-                return;
-            }
-            // Prevent closing during question view - show confirmation instead
-            if (currentView === 'question') {
-                bottomSheetRef.current?.expand();
-                setShowConfirmClose(true);
-                return;
-            }
-            onClose();
-        }
-    }, [onClose, agentIsLoading, currentView]);
+    const closeAdditionalInfoSheet = useCallback(() => {
+        setShowAdditionalInfoSheet(false);
+    }, []);
 
-    useEffect(() => {
-        if (visible) {
+    useFocusEffect(
+        useCallback(() => {
             setLocalSearch(search);
             setSelectedSuggestion(null);
-            bottomSheetRef.current?.expand();
-            // Only focus input in search view
-            if (currentView === 'search') {
-                setTimeout(() => {
+            const t = setTimeout(() => {
+                if (!conversationId) {
                     inputRef.current?.focus();
-                }, 300);
-            }
-        } else {
-            bottomSheetRef.current?.close();
-        }
-    }, [visible, search, currentView]);
+                }
+            }, 300);
+            return () => clearTimeout(t);
+        }, [search, conversationId])
+    );
 
     // Handle search submission
     const handleSearch = useCallback(() => {
@@ -350,20 +325,19 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         Keyboard.dismiss();
         dispatch(actions.resetAgentConversation());
         setShowConfirmClose(false);
-        onClose();
-    }, [dispatch, onClose]);
+        onRequestClose();
+    }, [dispatch, onRequestClose]);
 
     const handleClose = useCallback(() => {
         if (agentIsLoading) return;
-        // If in question view, show confirmation instead of closing
         if (currentView === 'question') {
             setShowConfirmClose(true);
             return;
         }
         Keyboard.dismiss();
         dispatch(actions.resetAgentConversation());
-        onClose();
-    }, [agentIsLoading, currentView, dispatch, onClose]);
+        onRequestClose();
+    }, [agentIsLoading, currentView, dispatch, onRequestClose]);
 
     const handleClearInput = () => {
         setLocalSearch('');
@@ -375,21 +349,8 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
     const renderOptions = () => {
         if (!currentQuestion?.options) return null;
 
-        const hasTextInput = currentQuestion.allowAdditionalText || 
-                            currentQuestion.type === QuestionType.TEXT_INPUT ||
-                            currentQuestion.type === QuestionType.NUMBER_INPUT;
-
         return (
             <View style={styles.optionsContainer}>
-                {hasTextInput && (
-                    <View style={styles.additionalTextSection}>
-                        <View style={[styles.sectionDivider, { backgroundColor: borderColor }]} />
-                        <ThemedText style={[styles.additionalTextLabel, { color: secondaryColor }]}>
-                            OR SELECT AN OPTION
-                        </ThemedText>
-                        <View style={[styles.sectionDivider, { backgroundColor: borderColor }]} />
-                    </View>
-                )}
                 {currentQuestion.options.map((option: QuestionOption) => {
                     const isSelected = selectedOptions.includes(option.id);
                     return (
@@ -455,178 +416,261 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         );
     };
 
-    // Render question text input
+    // Hybrid: entry button opens sheet. TEXT_INPUT / NUMBER_INPUT: inline field only.
     const renderQuestionTextInput = () => {
         if (!currentQuestion) return null;
-        
-        const isTextInput = currentQuestion.type === QuestionType.TEXT_INPUT || 
-                           currentQuestion.type === QuestionType.NUMBER_INPUT;
-        
-        const isHybridQuestion = (currentQuestion.type === QuestionType.SINGLE_SELECT || 
-                                 currentQuestion.type === QuestionType.MULTI_SELECT) && 
-                                currentQuestion.allowAdditionalText;
-        
+
+        const isTextInput =
+            currentQuestion.type === QuestionType.TEXT_INPUT ||
+            currentQuestion.type === QuestionType.NUMBER_INPUT;
+
+        const isHybridQuestion =
+            (currentQuestion.type === QuestionType.SINGLE_SELECT ||
+                currentQuestion.type === QuestionType.MULTI_SELECT) &&
+            currentQuestion.allowAdditionalText;
+
         if (!isTextInput && !isHybridQuestion) return null;
 
-        // Determine placeholder based on context
-        let placeholder = "Type your answer...";
         if (isHybridQuestion) {
-            placeholder = "e.g., I need help with...";
-        } else if (currentQuestion.validation?.placeholder) {
+            const hasAdditional = questionTextInput.trim().length > 0;
+            return (
+                <TouchableOpacity
+                    style={[
+                        styles.additionalInfoButton,
+                        {
+                            borderColor: hasAdditional ? tintColor : borderColor,
+                            backgroundColor: hasAdditional ? miscColor : 'transparent',
+                        },
+                    ]}
+                    onPress={() => setShowAdditionalInfoSheet(true)}
+                    activeOpacity={0.7}
+                >
+                    <Feather name="plus" size={18} color={hasAdditional ? tintColor : secondaryColor} />
+                    <ThemedText
+                        style={[
+                            styles.additionalInfoButtonLabel,
+                            { color: hasAdditional ? tintColor : textColor },
+                        ]}
+                    >
+                        Additional Information
+                    </ThemedText>
+                    {hasAdditional && (
+                        <ThemedText style={[styles.additionalInfoButtonHint, { color: secondaryColor }]}>
+                            Added
+                        </ThemedText>
+                    )}
+                </TouchableOpacity>
+            );
+        }
+
+        let placeholder = 'Type your answer...';
+        if (currentQuestion.validation?.placeholder) {
             placeholder = currentQuestion.validation.placeholder;
         }
 
         return (
-            <>
-                <View 
-                    style={[styles.inputWrapper, { borderColor }]}
-                    ref={questionInputRef}
-                >
-                    <View style={[styles.inputAccent, { backgroundColor: tintColor }]} />
-                    <View style={styles.inputInner}>
-                        {isHybridQuestion && (
-                            <View style={styles.inputHeader}>
-                                <ThemedText style={[styles.inputLabel, { color: secondaryColor }]}>
-                                    DESCRIBE YOUR NEED
-                                </ThemedText>
-                            </View>
-                        )}
-                        <BottomSheetTextInput
-                            style={[styles.textInput, { color: textColor }]}
-                            placeholder={placeholder}
-                            placeholderTextColor={secondaryColor + '80'}
-                            value={questionTextInput}
-                            onChangeText={setQuestionTextInput}
-                            keyboardType={currentQuestion.type === QuestionType.NUMBER_INPUT ? 'numeric' : 'default'}
-                            multiline={isTextInput || isHybridQuestion}
-                            textAlignVertical={isTextInput || isHybridQuestion ? 'top' : 'center'}
-                            selectionColor={tintColor}
-                            maxLength={255}
-                        />
-                        <View style={[styles.inputFooter, { borderTopColor: borderColor }]}>
-                            <View style={[styles.charCountContainer, { marginLeft: 'auto' }]}>
-                                <ThemedText style={[
-                                    styles.charCount, 
-                                    { color: questionTextInput.length > 230 ? colors.light.danger : secondaryColor }
-                                ]}>
-                                    {questionTextInput.length}
-                                </ThemedText>
-                                <ThemedText style={[styles.charCountTotal, { color: secondaryColor }]}>
-                                    /255
-                                </ThemedText>
-                            </View>
+            <SmartTextArea
+                density="compact"
+                borderColor={borderColor}
+                tintColor={tintColor}
+                textColor={textColor}
+                placeholderTextColor={secondaryColor + '80'}
+                selectionColor={tintColor}
+                placeholder={placeholder}
+                value={questionTextInput}
+                onChangeText={setQuestionTextInput}
+                keyboardType={
+                    currentQuestion.type === QuestionType.NUMBER_INPUT ? 'numeric' : 'default'
+                }
+                maxLength={255}
+                footer={
+                    <View style={[styles.inputFooter, { borderTopColor: borderColor }]}>
+                        <View style={[styles.charCountContainer, { marginLeft: 'auto' }]}>
+                            <ThemedText
+                                style={[
+                                    styles.charCount,
+                                    {
+                                        color:
+                                            questionTextInput.length > 230
+                                                ? colors.light.danger
+                                                : secondaryColor,
+                                    },
+                                ]}
+                            >
+                                {questionTextInput.length}
+                            </ThemedText>
+                            <ThemedText style={[styles.charCountTotal, { color: secondaryColor }]}>
+                                /255
+                            </ThemedText>
                         </View>
                     </View>
-                </View>
-            </>
+                }
+            />
         );
     };
 
-    // Render footer based on current view
-    const renderFooter = useCallback(
-        (props: BottomSheetDefaultFooterProps) => {
-            if (currentView === 'loading') return null;
-            
-            if (currentView === 'error') {
-                return (
-                    <BottomSheetFooter {...props}>
-                        <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
-                            <Button
-                                label="TRY AGAIN"
-                                onPress={handleRetry}
-                                style={styles.searchButton}
-                            />
-                        </View>
-                    </BottomSheetFooter>
-                );
-            }
+    const renderFooterContent = useCallback(() => {
+        if (currentView === 'loading') return null;
 
-            if (currentView === 'question') {
-                return (
-                    <BottomSheetFooter {...props}>
-                        <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
-                            <View style={styles.questionButtonContainer}>
-                                <Button
-                                    label={buttonLabel}
-                                    onPress={handleQuestionSubmit}
-                                    disabled={!canSubmitQuestion()}
-                                    isLoading={agentIsLoading}
-                                    style={styles.questionSubmitButton}
-                                />
-                                {currentQuestion?.optional && (
-                                    <TouchableOpacity 
-                                        style={[styles.skipButton, { borderColor }]}
-                                        onPress={() => {
-                                            if (conversationId) {
-                                                dispatch(actions.continueAgentConversation({
-                                                    conversationId,
-                                                    message: 'skip',
-                                                }));
-                                            }
-                                        }}
-                                    >
-                                        <ThemedText style={[styles.skipText, { color: textColor }]}>
-                                            SKIP
-                                        </ThemedText>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </View>
-                    </BottomSheetFooter>
-                );
-            }
-
-            // Search view footer
+        if (currentView === 'error') {
             return (
-                <BottomSheetFooter {...props}>
-                    <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
+                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
+                    <Button
+                        label="TRY AGAIN"
+                        onPress={handleRetry}
+                        style={styles.searchButton}
+                    />
+                </View>
+            );
+        }
+
+        if (currentView === 'question') {
+            return (                    
+                <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
+                    <View style={styles.questionButtonContainer}>
                         <Button
                             label={buttonLabel}
-                            onPress={handleSearch}
-                            disabled={!localSearch.trim() || agentIsLoading}
+                            onPress={handleQuestionSubmit}
+                            disabled={!canSubmitQuestion()}
                             isLoading={agentIsLoading}
-                            style={styles.searchButton}
-                            icon={!agentIsLoading ? (
-                                <Feather 
-                                    name={mode === 'booking' ? 'arrow-right' : 'search'} 
-                                    size={18} 
-                                    color={iconColor} 
-                                />
-                            ) : undefined}
+                            style={styles.questionSubmitButton}
                         />
-                        <ThemedText style={[styles.footerHint, { color: secondaryColor }]}>
-                            {mode === 'booking' 
-                                ? 'Provide details about the service you need'
-                                : 'AI assistant will help you find the perfect match'
-                            }
-                        </ThemedText>
+                        {currentQuestion?.optional && (
+                            <TouchableOpacity
+                                style={[styles.skipButton, { borderColor }]}
+                                onPress={() => {
+                                    if (conversationId) {
+                                        dispatch(actions.continueAgentConversation({
+                                            conversationId,
+                                            message: 'skip',
+                                        }));
+                                    }
+                                }}
+                            >
+                                <ThemedText style={[styles.skipText, { color: textColor }]}>
+                                    SKIP
+                                </ThemedText>
+                            </TouchableOpacity>
+                        )}
                     </View>
-                </BottomSheetFooter>
+                </View>
             );
-        },
-        [currentView, localSearch, agentIsLoading, borderColor, backgroundColor, secondaryColor, 
-         handleSearch, handleQuestionSubmit, canSubmitQuestion, buttonLabel, mode, iconColor,
-         currentQuestion?.optional, conversationId, dispatch, textColor, handleRetry]
-    );
+        }
+
+        return (
+            <View style={[styles.footer, { borderTopColor: borderColor, backgroundColor }]}>
+                <Button
+                    label={buttonLabel}
+                    onPress={handleSearch}
+                    disabled={!localSearch.trim() || agentIsLoading}
+                    isLoading={agentIsLoading}
+                    style={styles.searchButton}
+                    icon={!agentIsLoading ? (
+                        <Feather
+                            name={mode === 'booking' ? 'arrow-right' : 'search'}
+                            size={18}
+                            color={iconColor}
+                        />
+                    ) : undefined}
+                />
+                {!isSimpleSearchHome && (
+                    <ThemedText style={[styles.footerHint, { color: secondaryColor }]}>
+                        {mode === 'booking'
+                            ? 'Provide details about the service you need'
+                            : 'We’ll match you with providers that fit your request'}
+                    </ThemedText>
+                )}
+            </View>
+        );
+    }, [
+        currentView, localSearch, agentIsLoading, borderColor, backgroundColor, secondaryColor,
+        handleSearch, handleQuestionSubmit, canSubmitQuestion, buttonLabel, mode, iconColor,
+        currentQuestion?.optional, conversationId, dispatch, textColor, handleRetry, insets.bottom,
+        isSimpleSearchHome,
+    ]);
+
+    const renderSuggestionChip = (suggestion: (typeof suggestions)[0], index: number, keyPrefix: string) => {
+        const logicalIndex = index % suggestions.length;
+        const isSelected = selectedSuggestion === logicalIndex;
+        return (
+            <TouchableOpacity
+                key={`${keyPrefix}-${index}`}
+                style={[
+                    styles.suggestionMarqueeChip,
+                    {
+                        borderColor: isSelected ? tintColor : borderColor,
+                        backgroundColor: isSelected ? miscColor : 'transparent',
+                    },
+                ]}
+                onPress={() => handleSuggestionPress(suggestion.text, logicalIndex)}
+                activeOpacity={0.7}
+            >
+                <Feather
+                    name={suggestion.icon as React.ComponentProps<typeof Feather>['name']}
+                    size={12}
+                    color={isSelected ? tintColor : secondaryColor}
+                />
+                <ThemedText
+                    style={[styles.suggestionMarqueeText, { color: isSelected ? tintColor : textColor }]}
+                >
+                    {suggestion.text}
+                </ThemedText>
+            </TouchableOpacity>
+        );
+    };
 
     // Render search view content
     const renderSearchContent = () => (
-        <BottomSheetScrollView 
+        <ScrollView
             style={styles.content}
-            keyboardShouldPersistTaps="never"
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             keyboardDismissMode="on-drag"
         >
-            {/* Search Input */}
-            <View style={[styles.inputWrapper, { borderColor }]}>
-                <View style={[styles.inputAccent, { backgroundColor: tintColor }]} />
-                <View style={styles.inputInner}>
-                    <View style={styles.inputHeader}>
-                        <ThemedText style={[styles.inputLabel, { color: secondaryColor }]}>
-                            {mode === 'booking' ? 'DESCRIPTION' : 'YOUR REQUEST'}
-                        </ThemedText>
-                        {localSearch.length > 0 && (
-                            <TouchableOpacity 
+            <SmartTextArea
+                ref={inputRef}
+                density={mode === 'search' ? 'searchSimple' : 'search'}
+                borderColor={borderColor}
+                tintColor={tintColor}
+                textColor={textColor}
+                placeholderTextColor={secondaryColor + '80'}
+                selectionColor={tintColor}
+                value={localSearch}
+                onChangeText={(text) => {
+                    setLocalSearch(text);
+                    setSelectedSuggestion(null);
+                }}
+                maxLength={255}
+                placeholder={
+                    mode === 'booking'
+                        ? "e.g., I need someone to fix my kitchen sink that's been leaking for a week..."
+                        : 'What work do you need? Add how much (rooms, items, size) and if it’s a quick fix or bigger job.'
+                }
+                header={
+                    mode === 'booking' ? (
+                        <View style={styles.inputHeader}>
+                            <ThemedText style={[styles.inputLabel, { color: secondaryColor }]}>
+                                DESCRIPTION
+                            </ThemedText>
+                            {localSearch.length > 0 && (
+                                <TouchableOpacity
+                                    onPress={handleClearInput}
+                                    style={styles.clearButton}
+                                    activeOpacity={0.7}
+                                >
+                                    <Feather name="x" size={14} color={secondaryColor} />
+                                    <ThemedText style={[styles.clearText, { color: secondaryColor }]}>
+                                        Clear
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    ) : undefined
+                }
+                footer={
+                    <View style={[styles.inputFooter, { borderTopColor: borderColor }]}>
+                        {mode === 'search' && localSearch.length > 0 ? (
+                            <TouchableOpacity
                                 onPress={handleClearInput}
                                 style={styles.clearButton}
                                 activeOpacity={0.7}
@@ -636,37 +680,16 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                                     Clear
                                 </ThemedText>
                             </TouchableOpacity>
+                        ) : (
+                            <View />
                         )}
-                    </View>
-                    <BottomSheetTextInput
-                        ref={inputRef}
-                        style={[styles.textInput, { color: textColor }]}
-                        placeholder="e.g., I need someone to fix my kitchen sink that's been leaking for a week..."
-                        placeholderTextColor={secondaryColor + '80'}
-                        multiline
-                        value={localSearch}
-                        onChangeText={(text) => {
-                            setLocalSearch(text);
-                            setSelectedSuggestion(null);
-                        }}
-                        textAlignVertical="top"
-                        selectionColor={tintColor}
-                        maxLength={255}
-                    />
-                    <View style={[styles.inputFooter, { borderTopColor: borderColor }]}>
-                        {mode === 'search' && (
-                            <View style={styles.inputHint}>
-                                <Feather name="message-circle" size={14} color={secondaryColor} />
-                                <ThemedText style={[styles.inputHintText, { color: secondaryColor }]}>
-                                    AI will ask follow-up questions if needed
-                                </ThemedText>
-                            </View>
-                        )}
-                        <View style={[styles.charCountContainer, mode === 'booking' && { marginLeft: 'auto' }]}>
-                            <ThemedText style={[
-                                styles.charCount, 
-                                { color: localSearch.length > 230 ? colors.light.danger : secondaryColor }
-                            ]}>
+                        <View style={styles.charCountContainer}>
+                            <ThemedText
+                                style={[
+                                    styles.charCount,
+                                    { color: localSearch.length > 230 ? colors.light.danger : secondaryColor },
+                                ]}
+                            >
                                 {localSearch.length}
                             </ThemedText>
                             <ThemedText style={[styles.charCountTotal, { color: secondaryColor }]}>
@@ -674,55 +697,34 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                             </ThemedText>
                         </View>
                     </View>
-                </View>
-            </View>
+                }
+            />
 
-            {/* Suggestions Section - only in search mode */}
             {mode === 'search' && (
-                <View style={styles.suggestionsSection}>
-                    <View style={styles.suggestionsTitleRow}>
-                        <View style={[styles.sectionDivider, { backgroundColor: borderColor }]} />
-                        <ThemedText style={[styles.suggestionsLabel, { color: secondaryColor }]}>
-                            QUICK SUGGESTIONS
-                        </ThemedText>
-                        <View style={[styles.sectionDivider, { backgroundColor: borderColor }]} />
-                    </View>
-                    
-                    <View style={styles.suggestionsGrid}>
-                        {suggestions.map((suggestion, index) => {
-                            const isSelected = selectedSuggestion === index;
-                            return (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={[
-                                        styles.suggestionChip,
-                                        { 
-                                            borderColor: isSelected ? tintColor : borderColor,
-                                            backgroundColor: isSelected ? miscColor : 'transparent',
-                                        }
-                                    ]}
-                                    onPress={() => handleSuggestionPress(suggestion.text, index)}
-                                    activeOpacity={0.7}
-                                >
-                                    <Feather 
-                                        name={suggestion.icon as any} 
-                                        size={14} 
-                                        color={isSelected ? tintColor : secondaryColor} 
-                                    />
-                                    <ThemedText style={[
-                                        styles.suggestionText, 
-                                        { color: isSelected ? tintColor : textColor }
-                                    ]}>
-                                        {suggestion.text}
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            );
-                        })}
+                <View style={styles.marqueeSection}>
+                    <View style={styles.marqueeClip}>
+                        <Animated.View
+                            style={[
+                                styles.marqueeRow,
+                                { transform: [{ translateX: marqueeAnim }] },
+                            ]}
+                        >
+                            <View
+                                style={styles.marqueeTrack}
+                                onLayout={(e) => setMarqueeTrackWidth(e.nativeEvent.layout.width)}
+                            >
+                                {suggestions.map((s, i) => renderSuggestionChip(s, i, 'm1'))}
+                            </View>
+                            <View style={styles.marqueeTrack}>
+                                {suggestions.map((s, i) =>
+                                    renderSuggestionChip(s, i + suggestions.length, 'm2')
+                                )}
+                            </View>
+                        </Animated.View>
                     </View>
                 </View>
             )}
 
-            {/* Tips Section */}
             <View style={[styles.tipsContainer, { backgroundColor: miscColor }]}>
                 <View style={styles.tipHeader}>
                     <Feather name="info" size={14} color={secondaryColor} />
@@ -731,16 +733,16 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                     </ThemedText>
                 </View>
                 <ThemedText style={[styles.tipText, { color: textColor }]}>
-                    Be specific about location, urgency, and any special requirements for better matches.
+                    {mode === 'booking'
+                        ? 'Say what needs doing, how much is involved (rooms, items, or area), and whether it’s a small repair or larger work — that’s what the assistant uses to estimate time and match providers.'
+                        : 'Include three things: what task (repair, install, clean, etc.), how much (quantity, rooms, or size), and complexity (quick fix vs. major work). That means fewer follow-ups and better price estimates.'}
                 </ThemedText>
             </View>
-        </BottomSheetScrollView>
+        </ScrollView>
     );
 
-    // Render question view content
     const renderQuestionContent = () => (
-        <BottomSheetScrollView 
-            ref={questionScrollRef}
+        <ScrollView
             style={styles.questionContent}
             contentContainerStyle={styles.questionScrollContent}
             keyboardShouldPersistTaps="handled"
@@ -754,12 +756,11 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                 </ThemedText>
             )}
 
-            {/* Text Input FIRST (so keyboard doesn't cover it) */}
-            {renderQuestionTextInput()}
-            
             {/* Then Options */}
             {renderOptions()}
-        </BottomSheetScrollView>
+
+            {renderQuestionTextInput()}
+        </ScrollView>
     );
 
     // Render loading view content
@@ -780,62 +781,32 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
         </View>
     );
 
-    if (!visible) return null;
-
     return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="fade"
-            onRequestClose={handleClose}
-        >
-            <View style={styles.modalOverlay}>
-                <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-                <TouchableWithoutFeedback onPress={agentIsLoading || currentView === 'question' ? undefined : handleClose}>
-                    <View style={StyleSheet.absoluteFill} />
-                </TouchableWithoutFeedback>
-                <BottomSheet
-                    ref={bottomSheetRef}
-                    snapPoints={['100%']}
-                    index={0}
-                    onChange={handleSheetChanges}
-                    onClose={handleClose}
-                    enablePanDownToClose={!agentIsLoading && currentView !== 'question'}
-                    enableDynamicSizing={false}
-                    keyboardBehavior="extend"
-                    keyboardBlurBehavior="restore"
-                    android_keyboardInputMode="adjustResize"
-                    enableContentPanningGesture={true}
-                    handleIndicatorStyle={{ backgroundColor: borderColor, width: widthPixel(40) }}
-                    backgroundStyle={{
-                        backgroundColor,
-                        borderTopLeftRadius: 0,
-                        borderTopRightRadius: 0,
-                    }}
-                    footerComponent={renderFooter}
-                >
-                    <BottomSheetView style={styles.bottomSheetContent}>
-                        {/* Header - show for search and question views */}
-                        {(currentView === 'search' || currentView === 'question' || currentView === 'loading' || currentView === 'error') && (
-                            <View style={styles.header}>
-                                <View style={styles.headerLeft}>
-                                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                                    <View style={styles.headerLabelRow}>
-                                        <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                                            {currentView === 'question' ? 'QUICK QUESTION' : currentView === 'loading' ? 'LOADING...' : currentView === 'error' ? 'ERROR' : headerLabel}
-                                        </ThemedText>
-                                        {mode === 'search' && currentView === 'search' && (
-                                            <View style={[styles.aiBadge, { borderColor: tintColor }]}>
-                                                <Animated.View style={{ opacity: pulseAnim }}>
-                                                    <Feather name="zap" size={10} color={tintColor} />
-                                                </Animated.View>
-                                                <ThemedText style={[styles.aiBadgeText, { color: tintColor }]}>
-                                                    AI
-                                                </ThemedText>
-                                            </View>
-                                        )}
-                                    </View>
-                                    <ThemedText 
+        <SafeAreaView style={[styles.screenRoot, { backgroundColor }]}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={styles.keyboardView}
+                keyboardVerticalOffset={0}
+            >
+                {(currentView === 'search' || currentView === 'question' || currentView === 'loading' || currentView === 'error') && (
+                    <AccentScreenHeader
+                        title={
+                            <View style={styles.titleContainer}>
+                                <View style={styles.titleTextContainer}>
+                                    <ThemedText
+                                        style={[styles.headerEyebrow, { color: secondaryColor }]}
+                                        lightColor={colors.light.secondary}
+                                        darkColor={colors.dark.secondary}
+                                    >
+                                        {currentView === 'question'
+                                            ? 'QUICK QUESTION'
+                                            : currentView === 'loading'
+                                            ? 'LOADING...'
+                                            : currentView === 'error'
+                                                ? 'ERROR'
+                                                : headerLabel}
+                                    </ThemedText>
+                                    <ThemedText
                                         style={[styles.headerTitle, { color: textColor }]}
                                         lightColor={colors.light.text}
                                         darkColor={colors.dark.text}
@@ -843,26 +814,35 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                                         {headerTitle}
                                     </ThemedText>
                                 </View>
-                                {
-                                    currentView !== 'loading' && currentView !== 'error' && (
-                                        <BackButton 
-                                            iconName="x" 
-                                            onPress={agentIsLoading ? undefined : handleClose} 
-                                            containerStyle={styles.closeButton} 
-                                        />
-                                    )
-                                }
                             </View>
-                        )}
+                        }
+                        renderRight={() => currentView !== 'loading' && currentView !== 'error' ? (
+                            <BackButton
+                                iconName="x"
+                                onPress={agentIsLoading ? undefined : handleClose}
+                                containerStyle={styles.closeButton}
+                            />
+                        ) : undefined}
+                    />
+                )}
 
-                        {/* Content based on current view */}
-                        {currentView === 'search' && renderSearchContent()}
-                        {currentView === 'question' && renderQuestionContent()}
-                        {currentView === 'loading' && renderLoadingContent()}
-                        {currentView === 'error' && renderErrorContent()}
-                    </BottomSheetView>
-                </BottomSheet>
-            </View>
+                <View style={styles.body}>
+                    {currentView === 'search' && renderSearchContent()}
+                    {currentView === 'question' && renderQuestionContent()}
+                    {currentView === 'loading' && renderLoadingContent()}
+                    {currentView === 'error' && renderErrorContent()}
+                </View>
+
+                {renderFooterContent()}
+            </KeyboardAvoidingView>
+
+            <AdditionalInfoSheet
+                visible={showAdditionalInfoSheet}
+                value={questionTextInput}
+                onChangeText={setQuestionTextInput}
+                onClose={closeAdditionalInfoSheet}
+            />
+
             <ConfirmActionSheet
                 isOpen={showConfirmClose}
                 isOpenChange={setShowConfirmClose}
@@ -872,66 +852,42 @@ const AISearchModal = ({ visible, onClose, mode = 'search', artisan }: AISearchM
                 confirmText="Yes, Cancel"
                 cancelText="Continue"
             />
-            <Toast 
-                config={createToastConfig(theme)} 
-                topOffset={heightPixel(60)}
-                visibilityTime={8000}
-            />
-        </Modal>
+        </SafeAreaView>
     );
 };
 
-export default AISearchModal;
+export default AISearchFlow;
 
 const styles = StyleSheet.create({
-    modalOverlay: {
+    screenRoot: {
         flex: 1,
-        backgroundColor: 'transparent',
     },
-    bottomSheetContent: {
+    keyboardView: {
         flex: 1,
-        paddingTop: heightPixel(20),
     },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
+    body: {
+        flex: 1,
+        minHeight: 0,
+    },
+    modalStackHeader: {
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(24),
     },
-    headerLeft: {
-        flex: 1,
-        paddingRight: widthPixel(16),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerLabelRow: {
+    titleContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-        marginBottom: heightPixel(8),
+        justifyContent: 'space-between',
+        gap: widthPixel(12),
     },
-    headerLabel: {
+    titleTextContainer: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+    },
+    headerEyebrow: {
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
-    },
-    aiBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(3),
-        paddingHorizontal: widthPixel(6),
-        paddingVertical: heightPixel(3),
-        borderWidth: 1,
-    },
-    aiBadgeText: {
-        fontSize: fontPixel(9),
-        fontFamily: 'Bold',
-        letterSpacing: 0.5,
+        marginBottom: heightPixel(8),
     },
     headerTitle: {
         fontSize: fontPixel(24),
@@ -944,20 +900,9 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: widthPixel(20),
+        minHeight: 0,
+        paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(20),
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        borderWidth: 0.5,
-        borderLeftWidth: 0,
-        marginBottom: heightPixel(24),
-    },
-    inputAccent: {
-        width: widthPixel(4),
-    },
-    inputInner: {
-        flex: 1,
     },
     inputHeader: {
         flexDirection: 'row',
@@ -980,15 +925,6 @@ const styles = StyleSheet.create({
     clearText: {
         fontSize: fontPixel(11),
         fontFamily: 'Medium',
-    },
-    textInput: {
-        minHeight: heightPixel(100),
-        maxHeight: heightPixel(140),
-        paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(12),
-        fontSize: fontPixel(16),
-        fontFamily: 'Regular',
-        lineHeight: fontPixel(24),
     },
     inputFooter: {
         flexDirection: 'row',
@@ -1018,6 +954,37 @@ const styles = StyleSheet.create({
     charCountTotal: {
         fontSize: fontPixel(12),
         fontFamily: 'Regular',
+    },
+    marqueeSection: {
+        marginBottom: heightPixel(18),
+        marginHorizontal: -widthPixel(16),
+    },
+    marqueeClip: {
+        overflow: 'hidden',
+        paddingVertical: heightPixel(2),
+    },
+    marqueeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    marqueeTrack: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 0,
+        gap: widthPixel(10),
+        paddingRight: widthPixel(10),
+    },
+    suggestionMarqueeChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(6),
+        paddingHorizontal: widthPixel(12),
+        paddingVertical: heightPixel(8),
+        borderWidth: 0.5,
+    },
+    suggestionMarqueeText: {
+        fontSize: fontPixel(12),
+        fontFamily: 'Medium',
     },
     suggestionsSection: {
         marginBottom: heightPixel(20),
@@ -1075,9 +1042,9 @@ const styles = StyleSheet.create({
         lineHeight: fontPixel(20),
     },
     footer: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingTop: heightPixel(16),
-        paddingBottom: heightPixel(40),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
         borderTopWidth: 0.5,
     },
     searchButton: {
@@ -1093,9 +1060,10 @@ const styles = StyleSheet.create({
     // Question view styles
     questionContent: {
         flex: 1,
+        minHeight: 0,
     },
     questionScrollContent: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(20),
     },
     searchQueryHeader: {
@@ -1193,20 +1161,6 @@ const styles = StyleSheet.create({
         fontFamily: 'SemiBold',
         letterSpacing: 1.2,
     },
-    questionInputWrapper: {
-        flexDirection: 'row',
-        marginBottom: heightPixel(24),
-        borderWidth: 0.5,
-        borderLeftWidth: 0,
-    },
-    questionTextInput: {
-        flex: 1,
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(14),
-        fontSize: fontPixel(16),
-        fontFamily: 'Regular',
-        minHeight: heightPixel(52),
-    },
     questionButtonContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
@@ -1218,7 +1172,7 @@ const styles = StyleSheet.create({
     },
     skipButton: {
         paddingVertical: heightPixel(14),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         borderWidth: 0.5,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1227,6 +1181,24 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(12),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
+    },
+    additionalInfoButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(10),
+        paddingVertical: heightPixel(14),
+        paddingHorizontal: widthPixel(16),
+        borderWidth: 0.5,
+        marginBottom: heightPixel(8),
+    },
+    additionalInfoButtonLabel: {
+        flex: 1,
+        fontSize: fontPixel(14),
+        fontFamily: 'SemiBold',
+    },
+    additionalInfoButtonHint: {
+        fontSize: fontPixel(11),
+        fontFamily: 'Medium',
     },
     // Loading view styles
     loadingContainer: {
@@ -1246,7 +1218,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: heightPixel(40),
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
     },
     errorTitle: {
         fontSize: fontPixel(18),

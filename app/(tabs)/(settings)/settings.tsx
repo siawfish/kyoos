@@ -1,6 +1,8 @@
 import SettingsItem from '@/components/settings/SettingItem';
+import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -11,6 +13,7 @@ import { useAppDispatch } from '@/store/hooks';
 import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 
 const settingsSections = [
@@ -30,7 +33,7 @@ const settingsSections = [
     title: 'Notifications',
     icon: 'notifications-outline',
     color: colors.light.tint,
-    href: '/(tabs)/(settings)/notifications',
+    href: '/(tabs)/(settings)/notification-settings',
   },
 ];
 
@@ -64,8 +67,7 @@ const SettingsScreen = () => {
     light: colors.light.background,
     dark: colors.dark.background
   }, 'background');
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const labelColor = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
@@ -84,16 +86,21 @@ const SettingsScreen = () => {
   };
 
   return (
-    <ThemedSafeAreaView style={[styles.container, { backgroundColor }]}>
+    <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerSection}>
-          <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-          <Text style={[styles.label, { color: labelColor }]}>SETTINGS</Text>
-        </View>
+        <AccentScreenHeader
+          title="SETTINGS"
+          renderRight={()=><HeaderNotificationButton />}
+          titleStyle={{
+            fontSize: fontPixel(10),
+            fontFamily: 'SemiBold',
+            letterSpacing: 1.5,
+          }}
+        />
 
         <View style={styles.sectionLabelContainer}>
           <Text style={[styles.sectionLabel, { color: labelColor }]}>GENERAL</Text>
@@ -185,7 +192,7 @@ const SettingsScreen = () => {
         confirmButtonStyle={styles.dangerButton}
         confirmTextStyle={styles.dangerText}
       />
-    </ThemedSafeAreaView>
+    </ScreenLayout>
   );
 };
 
@@ -197,21 +204,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: heightPixel(100),
-  },
-  headerSection: {
-    paddingHorizontal: widthPixel(16),
-    paddingBottom: heightPixel(20),
-  },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(20),
-  },
-  label: {
-    fontSize: fontPixel(10),
-    fontFamily: 'SemiBold',
-    letterSpacing: 1.5,
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
   },
   sectionLabelContainer: {
     paddingHorizontal: widthPixel(16),

@@ -2,10 +2,12 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFooter, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { BlurView } from 'expo-blur';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Image, Modal, StyleProp, StyleSheet, TextStyle, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { AccentScreenHeader } from '../AccentScreenHeader';
 import BackButton from '../BackButton';
 import { ThemedText } from '../Themed/ThemedText';
 
@@ -49,8 +51,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
     },
     "background"
   );
-  const accentColor = isDark ? colors.dark.white : colors.light.black;
-  const borderColor = accentColor;
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const labelColor = useThemeColor({
     light: colors.light.secondary,
     dark: colors.dark.secondary
@@ -80,6 +81,59 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
     }
   }, [handleClose]);
 
+  const renderFooter = useCallback(
+    (props: BottomSheetDefaultFooterProps) => (
+      <BottomSheetFooter {...props}>
+        <View style={[styles.buttonContainer, styles.footerWrap, { backgroundColor }]}>
+          <TouchableOpacity
+            onPress={onCancel || handleClose}
+            style={[styles.outlineButton, { borderColor }]}
+          >
+            <ThemedText
+              style={[styles.outlineButtonText, { color: textColor }]}
+              lightColor={colors.light.text}
+              darkColor={colors.dark.text}
+            >
+              {cancelText.toUpperCase()}
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleConfirm}
+            style={[
+              styles.confirmButton,
+              {
+                borderColor,
+                backgroundColor: isDark ? colors.dark.white : colors.light.black,
+              },
+              confirmButtonStyle,
+            ]}
+          >
+            <ThemedText
+              style={[styles.confirmButtonText, confirmTextStyle]}
+              lightColor={colors.light.white}
+              darkColor={colors.dark.black}
+            >
+              {confirmText.toUpperCase()}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetFooter>
+    ),
+    [
+      backgroundColor,
+      borderColor,
+      cancelText,
+      confirmButtonStyle,
+      confirmText,
+      confirmTextStyle,
+      handleClose,
+      handleConfirm,
+      isDark,
+      onCancel,
+      textColor,
+    ]
+  );
+
   if (!isOpen) return null;
 
   return (
@@ -101,6 +155,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
           onClose={handleClose}
           enablePanDownToClose={true}
           enableDynamicSizing={false}
+          footerComponent={renderFooter}
           backgroundStyle={{
             backgroundColor,
             borderTopLeftRadius: 0,
@@ -110,20 +165,29 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
           }}
         >
           <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <View style={[styles.accentBar, { backgroundColor: borderColor }]} />
-                <Text style={[styles.label, { color: labelColor }]}>CONFIRMATION</Text>
-                <ThemedText 
-                  style={[styles.title, { color: textColor }]} 
-                  lightColor={colors.light.text} 
-                  darkColor={colors.dark.text}
-                >
-                  {title}
-                </ThemedText>
-              </View>
-              <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-            </View>
+            <AccentScreenHeader
+              renderRight={() => <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
+              title={
+                <View style={styles.titleContainer}>
+                    <View style={styles.titleTextContainer}>
+                      <ThemedText
+                        style={styles.confirmEyebrow}
+                        lightColor={colors.light.secondary}
+                        darkColor={colors.dark.secondary}
+                      >
+                        CONFIRMATION
+                      </ThemedText>
+                      <ThemedText
+                        style={styles.confirmTitle}
+                        lightColor={colors.light.text}
+                        darkColor={colors.dark.text}
+                      >
+                        {title}
+                      </ThemedText>
+                  </View>
+                </View>
+              }
+            />
 
             {icon && (
               <View style={styles.iconContainer}>
@@ -138,40 +202,6 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
             >
               {description}
             </ThemedText>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={onCancel || handleClose}
-                style={[styles.outlineButton, { borderColor }]}
-              >
-                <ThemedText 
-                  style={[styles.outlineButtonText, { color: textColor }]}
-                  lightColor={colors.light.text}
-                  darkColor={colors.dark.text}
-                >
-                  {cancelText.toUpperCase()}
-                </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleConfirm}
-                style={[
-                  styles.confirmButton, 
-                  { 
-                    borderColor,
-                    backgroundColor: isDark ? colors.dark.white : colors.light.black,
-                  }, 
-                  confirmButtonStyle
-                ]}
-              >
-                <ThemedText 
-                  style={[styles.confirmButtonText, confirmTextStyle]}
-                  lightColor={colors.light.white}
-                  darkColor={colors.dark.black}
-                >
-                  {confirmText.toUpperCase()}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
           </BottomSheetView>
         </BottomSheet>
       </View>
@@ -186,39 +216,34 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingTop: heightPixel(20),
-    paddingBottom: heightPixel(20),
+    paddingBottom: heightPixel(16),
     overflow: 'hidden',
   },
-  header: {
+  titleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: widthPixel(20),
-    paddingBottom: heightPixel(24),
+    alignItems: 'center',
+    gap: widthPixel(12),
   },
-  headerLeft: {
+  titleTextContainer: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
-  accentBar: {
-    width: widthPixel(40),
-    height: heightPixel(4),
-    marginBottom: heightPixel(16),
+  closeButton: {
+    marginTop: heightPixel(8),
   },
-  label: {
+  confirmEyebrow: {
     fontSize: fontPixel(10),
     fontFamily: 'SemiBold',
     letterSpacing: 1.5,
     marginBottom: heightPixel(8),
   },
-  title: {
+  confirmTitle: {
     fontSize: fontPixel(24),
     fontFamily: 'Bold',
     letterSpacing: -0.5,
     lineHeight: fontPixel(28),
-  },
-  closeButton: {
-    marginTop: heightPixel(8),
   },
   iconContainer: {
     alignItems: 'center',
@@ -233,8 +258,11 @@ const styles = StyleSheet.create({
     fontSize: fontPixel(15),
     fontFamily: 'Regular',
     lineHeight: fontPixel(22),
-    marginBottom: heightPixel(32),
+    marginBottom: heightPixel(20),
     paddingHorizontal: widthPixel(20),
+  },
+  footerWrap: {
+    paddingBottom: heightPixel(50),
   },
   buttonContainer: {
     flexDirection: 'row',

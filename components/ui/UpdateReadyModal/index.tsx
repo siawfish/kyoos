@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Modal, Dimensions, Animated } from 'react-native';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
-import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import Button from '@/components/ui/Button';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors } from '@/constants/theme/colors';
@@ -79,7 +79,7 @@ export default function UpdateReadyModal({ onRestart }: UpdateReadyModalProps) {
 
   return (
     <Modal animationType="slide" transparent style={styles.modal} visible>
-      <ThemedSafeAreaView style={styles.container}>
+      <ScreenLayout style={styles.container}>
         <View style={[styles.contentContainer, { backgroundColor }]}>
           <Animated.View
             style={{
@@ -120,7 +120,7 @@ export default function UpdateReadyModal({ onRestart }: UpdateReadyModalProps) {
             }
           />
         </View>
-      </ThemedSafeAreaView>
+      </ScreenLayout>
     </Modal>
   );
 }

@@ -56,16 +56,35 @@ export const useBookingStatus = (booking: Booking | undefined) => {
         statusColor: colors.light.secondary,
         isPassed: false,
         withinTheTimeRange: false,
+        canChat: true,
+        isDue: false,
     }
     const isDark = colorScheme === 'dark';
     const statusColor = getStatusColor(booking.status, isDark);
     const statusStyle = getStatusStyle(booking.status, isDark);
     const bookingTime = new Date(booking.date!).setTime(new Date(booking.startTime!).getTime());
     const bookingEndTime = new Date(booking.date!).setTime(new Date(booking.estimatedEndTime!).getTime());
-    const isPassed = booking.status === BookingStatuses.PENDING ? isPast(bookingTime) : isPast(bookingEndTime);
+    const pastStart = isPast(bookingTime);
+    const pastEnd = isPast(bookingEndTime);
+
+    /** Aux "PASSED" badge: only PENDING or ACCEPTED can qualify; not COMPLETED/CANCELLED/etc. */
+    const isPassed =
+        (booking.status === BookingStatuses.PENDING && pastStart) ||
+        (booking.status === BookingStatuses.ACCEPTED && pastEnd);
+
     const withinTheTimeRange = isWithinTheTimeRange(new Date(bookingTime).toISOString(), new Date(bookingEndTime).toISOString());
     const isDue = withinTheTimeRange && booking.status === BookingStatuses.ACCEPTED;
-    const canChat = !isPassed && booking.status !== BookingStatuses.COMPLETED && booking.status !== BookingStatuses.CANCELLED && booking.status !== BookingStatuses.DECLINED;
+
+    /** Chat: block when the relevant window has passed (includes ONGOING after end). */
+    const chatBlockedByTime =
+        (booking.status === BookingStatuses.PENDING && pastStart) ||
+        ((booking.status === BookingStatuses.ACCEPTED || booking.status === BookingStatuses.ONGOING) && pastEnd);
+
+    const canChat =
+        !chatBlockedByTime &&
+        booking.status !== BookingStatuses.COMPLETED &&
+        booking.status !== BookingStatuses.CANCELLED &&
+        booking.status !== BookingStatuses.DECLINED;
 
     return {
         statusColor,

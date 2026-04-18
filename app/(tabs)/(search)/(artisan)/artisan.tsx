@@ -1,10 +1,11 @@
 import ProfileCard from "@/components/account/ProfileCard";
 import Portfolio from "@/components/portfolio/Portfolio";
 import KyoosNotFoundScreen from "@/components/search/KyoosNotFoundScreen";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import EmptyList from "@/components/ui/EmptyList";
-import BackButton from "@/components/ui/BackButton";
 import IconButton from "@/components/ui/IconButton";
-import { ThemedSafeAreaView } from "@/components/ui/Themed/ThemedSafeAreaView";
+import { ScreenLayout } from "@/components/layout/ScreenLayout";
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
@@ -82,53 +83,79 @@ export default function ArtisanScreen() {
     const renderHeader = () => {
         return (
             <>
-                {/* Header Section */}
-                <View style={styles.header}>
-                    <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                    <Text style={[styles.label, { color: labelColor }]}>WORKER</Text>
-                </View>
+                <AccentScreenHeader
+                    containerStyle={styles.header}
+                    onBackPress={() => router.back()}
+                    renderRight={() => (
+                        <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
+                            <IconButton 
+                                style={styles.chatButton}
+                                lightColor={colors.light.black}
+                                darkColor={colors.dark.white}
+                            >
+                                <Ionicons 
+                                    name="chatbox-ellipses-outline" 
+                                    size={24} 
+                                    color={isDark ? colors.dark.black : colors.light.white} 
+                                />
+                            </IconButton>
+                        </Link>
+                    )}
+                    title="WORKER"
+                    titleStyle={{
+                        fontSize: fontPixel(10),
+                        fontFamily: 'SemiBold',
+                        letterSpacing: 1.5,
+                    }}
+                />
 
                 {/* Basic Info Section */}
                 <ProfileCard worker={artisan!} />
 
                 {/* Skills & Rate Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionLabelContainer}>
-                        <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
-                    </View>
-                    <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
-                        <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                        <View style={styles.skillsContent}>
-                            {artisan?.skills?.map((skill, index) => (
-                                <View 
-                                    key={index} 
-                                    style={[
-                                        styles.skillItem, 
-                                        { borderColor },
-                                        index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
-                                    ]}
-                                >
-                                    <View style={styles.skillInfo}>
-                                        <ThemedText style={[styles.skillName, { color: textColor }]}>
-                                            {skill.name}
-                                        </ThemedText>
-                                        <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
-                                            HOURLY RATE
-                                        </ThemedText>
-                                    </View>
-                                    <View style={styles.rateContainer}>
-                                        <ThemedText style={[styles.skillRate, { color: textColor }]}>
-                                            GH₵{skill.rate}
-                                        </ThemedText>
-                                        <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
-                                            /hr
-                                        </ThemedText>
+                {
+                    artisan?.skills?.length > 0 && (
+                        <>
+                            <View style={styles.section}>
+                                <View style={styles.sectionLabelContainer}>
+                                    <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
+                                </View>
+                                <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
+                                    <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+                                    <View style={styles.skillsContent}>
+                                        {artisan?.skills?.map((skill, index) => (
+                                            <View 
+                                                key={index} 
+                                                style={[
+                                                    styles.skillItem, 
+                                                    { borderColor },
+                                                    index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
+                                                ]}
+                                            >
+                                                <View style={styles.skillInfo}>
+                                                    <ThemedText style={[styles.skillName, { color: textColor }]}>
+                                                        {skill.name}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
+                                                        HOURLY RATE
+                                                    </ThemedText>
+                                                </View>
+                                                <View style={styles.rateContainer}>
+                                                    <ThemedText style={[styles.skillRate, { color: textColor }]}>
+                                                        GH₵{skill.rate}
+                                                    </ThemedText>
+                                                    <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
+                                                        /hr
+                                                    </ThemedText>
+                                                </View>
+                                            </View>
+                                        ))}
                                     </View>
                                 </View>
-                            ))}
-                        </View>
-                    </View>
-                </View>
+                            </View>
+                        </>
+                    )
+                }
                 <View style={styles.section}>
                     <View style={styles.sectionLabelContainer}>
                         <Text style={[styles.sectionLabel, { color: labelColor }]}>RECENT WORKS</Text>
@@ -146,26 +173,7 @@ export default function ArtisanScreen() {
     };
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.backButtonContainer}>
-                <BackButton
-                    iconName="arrow-left"
-                    onPress={() => router.back()}
-                />
-                <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
-                    <IconButton 
-                        style={styles.chatButton}
-                        lightColor={colors.light.black}
-                        darkColor={colors.dark.white}
-                    >
-                        <Ionicons 
-                            name="chatbox-ellipses-outline" 
-                            size={24} 
-                            color={isDark ? colors.dark.black : colors.light.white} 
-                        />
-                    </IconButton>
-                </Link>
-            </View>
+        <ScreenLayout style={styles.container}>
             <FlashList 
                 style={styles.content} 
                 contentContainerStyle={styles.scrollContent}
@@ -176,7 +184,7 @@ export default function ArtisanScreen() {
                 ListEmptyComponent={!isLoading ? <EmptyList message="No recent works found" /> : null}
                 keyExtractor={(item) => item.id}
             />
-        </ThemedSafeAreaView>
+        </ScreenLayout>
     )
 }
 
@@ -184,32 +192,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    backButtonContainer: {
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(16),
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
     content: {
         flex: 1,
     },
     scrollContent: {
         paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(100),
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     header: {
-        marginBottom: heightPixel(24),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(20),
-    },
-    label: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.5,
+        paddingHorizontal: widthPixel(0),
     },
     section: {
         marginTop: heightPixel(24),

@@ -48,9 +48,11 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       gap: widthPixel(10),
       flex: 1,
+      minWidth: 0,
     },
     locationText: {
       flex: 1,
+      minWidth: 0,
     },
     locationLabel: {
       fontSize: fontPixel(9),

@@ -1,8 +1,10 @@
 import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
+import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
 import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/booking/types'
+import { BookingStatuses } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
@@ -28,39 +30,23 @@ const BookingDetails = ({
 
     if (!booking) return null;
 
+    const isCompleted = booking.status === BookingStatuses.COMPLETED;
+    const hasFinal = isCompleted && booking.finalPrice != null;
+    const priceAmount = hasFinal ? booking.finalPrice : booking.estimatedPrice;
+    const priceLabel = hasFinal ? 'FINAL' : 'ESTIMATED';
+
     return (
         <ScrollView 
             contentContainerStyle={styles.mainContainer}
             showsVerticalScrollIndicator={false}
         >
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                <Text style={[styles.pageLabel, { color: labelColor }]}>
-                    BOOKING DETAILS
-                </Text>
-                <Text style={[styles.headerTitle, { color: textColor }]}>
-                    {booking?.description}
-                </Text>
-                <View style={styles.clientRow}>
-                    <Text style={[styles.withText, { color: labelColor }]}>with</Text>
-                      <Image 
-                        source={{ uri: booking?.worker?.avatar }} 
-                        style={[styles.avatar, { backgroundColor: labelColor }]}
-                      />
-                    <Text style={[styles.clientName, { color: textColor }]}>
-                        {booking?.worker?.name}
-                    </Text>
-                </View>
-            </View>
-
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>
                 <BookingStatus booking={booking} />
                 <View>
-                    <Text style={[styles.feeLabel, { color: labelColor }]}>ESTIMATED</Text>
+                    <Text style={[styles.feeLabel, { color: labelColor }]}>{priceLabel}</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>
-                        GHS {numeral(booking?.estimatedPrice).format('0,0.00') || '0.00'}
+                        GHS {numeral(priceAmount ?? 0).format('0,0.00')}
                     </Text>
                   </View>
                 </View>
@@ -149,45 +135,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         paddingHorizontal: widthPixel(16),
         gap: heightPixel(24),
-        paddingBottom: heightPixel(100),
-    },
-    headerSection: {
-        paddingTop: heightPixel(8),
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    pageLabel: {
-        fontSize: fontPixel(10),
-        fontFamily: 'SemiBold',
-        letterSpacing: 2,
-        marginBottom: heightPixel(8),
-    },
-    headerTitle: {
-        fontSize: fontPixel(28),
-        fontFamily: 'Bold',
-        letterSpacing: -0.5,
-        marginBottom: heightPixel(12),
-    },
-    clientRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(8),
-    },
-    withText: {
-        fontSize: fontPixel(14),
-        fontFamily: 'Regular',
-    },
-    avatar: {
-        width: widthPixel(24),
-        height: widthPixel(24),
-        borderRadius: 0,
-    },
-    clientName: {
-        fontSize: fontPixel(14),
-        fontFamily: 'SemiBold',
+        paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     statusRow: {
         flexDirection: 'row',

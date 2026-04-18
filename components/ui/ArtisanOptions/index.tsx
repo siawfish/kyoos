@@ -1,4 +1,4 @@
-import AISearchModal from "@/components/home/AISearchModal";
+import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import BackButton from "@/components/ui/BackButton";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
@@ -6,7 +6,7 @@ import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { actions as bookingActions } from "@/redux/booking/slice";
-import { selectDescriptionModalVisible, selectSearchReferenceId } from "@/redux/search/selector";
+import { selectSearchReferenceId } from "@/redux/search/selector";
 import { actions } from "@/redux/search/slice";
 import { Worker } from "@/redux/search/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -52,7 +52,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     
     const router = useRouter();
     const searchReferenceId = useAppSelector(selectSearchReferenceId);
-    const descriptionModalVisible = useAppSelector(selectDescriptionModalVisible);
     const dispatch = useAppDispatch();
     const snapPoints = useMemo(() => ['30%'], []);
     const withChildrenSnapPoints = useMemo(() => ['65%'], []);
@@ -67,7 +66,15 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
     const handleBookNow = () => {
         // Check if searchReferenceId is empty - if so, show description modal
         if (searchReferenceId === '') {
-            dispatch(actions.setDescriptionModalVisible(true));
+            if (artisan) {
+                dispatch(actions.setSelectedArtisan(artisan.id));
+                dispatch(actions.setAiSearchBookingWorker(artisan));
+            }
+            onClose();
+            router.push({
+                pathname: '/(tabs)/(search)/ai-search',
+                params: { mode: 'booking' },
+            });
         } else {
             // If searchReferenceId exists, navigate directly to booking screen
             onClose();
@@ -114,25 +121,29 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     }}
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
-                        {/* Header */}
-                        <View style={styles.header}>
-                            <View style={styles.headerLeft}>
-                                <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
-                                <View style={styles.headerLabelRow}>
-                                    <ThemedText style={[styles.headerLabel, { color: secondaryColor }]}>
-                                        ARTISAN OPTIONS
-                                    </ThemedText>
+                        <AccentScreenHeader
+                            onBackPress={onClose}
+                            title={
+                                <View style={styles.titleContainer}>
+                                    <View style={styles.titleTextContainer}>
+                                        <ThemedText
+                                            style={[styles.artisanEyebrow, { color: secondaryColor }]}
+                                            lightColor={colors.light.secondary}
+                                            darkColor={colors.dark.secondary}
+                                        >
+                                            ARTISAN OPTIONS
+                                        </ThemedText>
+                                        <ThemedText
+                                            style={[styles.headerTitle, { color: textColor }]}
+                                            lightColor={colors.light.text}
+                                            darkColor={colors.dark.text}
+                                        >
+                                            {artisan?.name || 'Service Provider'}
+                                        </ThemedText>
+                                    </View>
                                 </View>
-                                <ThemedText 
-                                    style={[styles.headerTitle, { color: textColor }]}
-                                    lightColor={colors.light.text}
-                                    darkColor={colors.dark.text}
-                                >
-                                    {artisan?.name || 'Service Provider'}
-                                </ThemedText>
-                            </View>
-                            <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
-                        </View>
+                            }
+                        />
 
                         {/* Children Container */}
                         {children && (
@@ -186,14 +197,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                     </BottomSheetView>
                 </BottomSheet>
             </View>
-
-            {/* Booking Description Modal - uses unified AISearchModal in booking mode */}
-            <AISearchModal 
-                visible={descriptionModalVisible}
-                onClose={() => dispatch(actions.setDescriptionModalVisible(false))}
-                mode="booking"
-                artisan={artisan}
-            />
         </Modal>
     );
 };
@@ -207,31 +210,26 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingBottom: heightPixel(40),
     },
-    header: {
+    titleContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(20),
-        paddingTop: heightPixel(20),
+        alignItems: 'center',
+        gap: widthPixel(12),
+    },
+    titleTextContainer: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+    },
+    artisanModalHeader: {
+        paddingHorizontal: widthPixel(16),
         paddingBottom: heightPixel(24),
     },
-    headerLeft: {
-        flex: 1,
-    },
-    accentBar: {
-        width: widthPixel(40),
-        height: heightPixel(4),
-        marginBottom: heightPixel(16),
-    },
-    headerLabelRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: heightPixel(8),
-    },
-    headerLabel: {
+    artisanEyebrow: {
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
+        marginBottom: heightPixel(8),
     },
     headerTitle: {
         fontSize: fontPixel(24),
