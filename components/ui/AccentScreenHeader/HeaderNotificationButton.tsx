@@ -7,13 +7,17 @@ import React from 'react';
 
 export default function HeaderNotificationButton() {
   const iconColor = useThemeColor(
+    { light: colors.light.white, dark: colors.dark.white },
+    'text'
+  );
+  const backgroundColor = useThemeColor(
     { light: colors.light.black, dark: colors.dark.black },
     'background'
   );
 
   return (
     <IconButton
-      lightColor={colors.light.black}
+      lightColor={backgroundColor}
       darkColor={colors.dark.black}
       onPress={() => router.push('/(tabs)/(settings)/notifications')}
       accessibilityLabel="Notifications"

@@ -84,7 +84,6 @@ const Comment = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <AccentScreenHeader
-                    style={styles.headerSection}
                     onBackPress={() => router.back()}
                     title={comment ? 'EDIT COMMENT' : 'ADD COMMENT'}
                     titleStyle={{
@@ -92,8 +91,7 @@ const Comment = () => {
                         fontFamily: 'SemiBold',
                         letterSpacing: 1.5,
                     }}
-                    accentSpacing='tight'
-                    trailing={
+                    renderRight={() => (
                         <Button 
                             style={styles.btn} 
                             label={comment ? "UPDATE" : "POST"}
@@ -104,7 +102,7 @@ const Comment = () => {
                             darkBackgroundColor={colors.dark.tint}
                             icon={<FontAwesome name="send" size={fontPixel(16)} color={buttonIconColor} />}
                         />
-                    }
+                    )}
                 />
 
                 <View style={[styles.previewContainer, { backgroundColor }]}>

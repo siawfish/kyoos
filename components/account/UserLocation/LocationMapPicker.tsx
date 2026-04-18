@@ -158,9 +158,7 @@ const LocationMapPicker = ({
                 >
                   <View style={[styles.line, { backgroundColor: borderColor }]} />
                   <AccentScreenHeader
-                    style={styles.bottomSheetHeader}
-                    accentColor={accentColor}
-                    trailing={
+                    renderRight={() => (
                       <BackButton 
                         iconName="x"
                         onPress={() => {
@@ -172,7 +170,7 @@ const LocationMapPicker = ({
                         }}
                         containerStyle={styles.closeButton}
                       />
-                    }
+                    )}
                     title={
                       <View>
                         <ThemedText style={[styles.mapEyebrow, { color: secondaryColor }]}>

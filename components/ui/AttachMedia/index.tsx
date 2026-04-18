@@ -435,20 +435,7 @@ export default function AttachMedia({
           >
             <BottomSheetView style={styles.bottomSheetContent}>
               <AccentScreenHeader
-                style={{
-                  paddingHorizontal: widthPixel(20),
-                  paddingBottom: heightPixel(24),
-                }}
-                accentColor={tintColor}
-                trailing={
-                  <TouchableOpacity 
-                    onPress={handleClose} 
-                    style={[styles.closeButton, { borderColor }]}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="x" size={18} color={textColor} />
-                  </TouchableOpacity>
-                }
+                onBackPress={handleClose}
                 title={
                   <View>
                     <ThemedText style={[styles.attachEyebrow, { color: secondaryColor }]}>
@@ -570,20 +557,7 @@ export default function AttachMedia({
             <BottomSheetView style={styles.voiceSheetContent}>
               <View style={styles.voiceMainContent}>
                 <AccentScreenHeader
-                  style={{
-                    paddingHorizontal: widthPixel(20),
-                    paddingBottom: heightPixel(24),
-                  }}
-                  accentColor={tintColor}
-                  trailing={
-                    <TouchableOpacity 
-                      onPress={handleCloseVoiceModal} 
-                      style={[styles.closeButton, { borderColor }]}
-                      activeOpacity={0.7}
-                    >
-                      <Feather name="x" size={18} color={textColor} />
-                    </TouchableOpacity>
-                  }
+                  onBackPress={handleCloseVoiceModal}
                   title={
                     <View>
                       <ThemedText style={[styles.attachEyebrow, { color: secondaryColor }]}>

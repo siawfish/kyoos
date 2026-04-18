@@ -93,14 +93,7 @@ const IOSDatePickerModal = ({
                 >
                     <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
                         <AccentScreenHeader
-                            style={{
-                                paddingHorizontal: widthPixel(20),
-                                paddingBottom: heightPixel(24),
-                            }}
-                            accentColor={borderColor}
-                            trailing={
-                                <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
-                            }
+                            onBackPress={handleClose}
                             title="SELECT DATE"
                             titleStyle={{
                                 fontSize: fontPixel(10),

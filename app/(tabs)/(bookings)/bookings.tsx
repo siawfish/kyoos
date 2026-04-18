@@ -26,6 +26,7 @@ import { selectFetchingConversation } from '@/redux/messaging/selector';
 import { router } from 'expo-router';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions as messagingActions } from '@/redux/messaging/slice';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 export default function BookingsScreen() {
   const dispatch = useAppDispatch();
@@ -164,8 +165,7 @@ export default function BookingsScreen() {
   const pageHeader = useMemo(
     () => (
       <AccentScreenHeader
-        style={styles.bookingsHeader}
-        accentSpacing="tight"
+        renderRight={()=><HeaderNotificationButton />}
         title={
           <View>
             <Text style={[styles.bookingsEyebrow, { color: secondaryColor }]}>BOOKINGS</Text>

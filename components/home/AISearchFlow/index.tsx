@@ -790,9 +790,6 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
             >
                 {(currentView === 'search' || currentView === 'question' || currentView === 'loading' || currentView === 'error') && (
                     <AccentScreenHeader
-                        style={styles.modalStackHeader}
-                        accentColor={accentColor}
-                        accentSpacing="split"
                         title={
                             <View style={styles.titleContainer}>
                                 <View style={styles.titleTextContainer}>
@@ -817,15 +814,15 @@ const AISearchFlow = ({ onRequestClose, mode = 'search', artisan }: AISearchFlow
                                         {headerTitle}
                                     </ThemedText>
                                 </View>
-                                {currentView !== 'loading' && currentView !== 'error' ? (
-                                    <BackButton
-                                        iconName="x"
-                                        onPress={agentIsLoading ? undefined : handleClose}
-                                        containerStyle={styles.closeButton}
-                                    />
-                                ) : undefined}
                             </View>
                         }
+                        renderRight={() => currentView !== 'loading' && currentView !== 'error' ? (
+                            <BackButton
+                                iconName="x"
+                                onPress={agentIsLoading ? undefined : handleClose}
+                                containerStyle={styles.closeButton}
+                            />
+                        ) : undefined}
                     />
                 )}
 

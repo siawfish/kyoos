@@ -122,8 +122,7 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
                         <AccentScreenHeader
-                            style={styles.artisanModalHeader}
-                            accentColor={accentColor}
+                            onBackPress={onClose}
                             title={
                                 <View style={styles.titleContainer}>
                                     <View style={styles.titleTextContainer}>
@@ -142,7 +141,6 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                                             {artisan?.name || 'Service Provider'}
                                         </ThemedText>
                                     </View>
-                                    <BackButton iconName="x" onPress={onClose} containerStyle={styles.closeButton} />
                                 </View>
                             }
                         />

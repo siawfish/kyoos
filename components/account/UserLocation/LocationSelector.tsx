@@ -90,8 +90,6 @@ export default function LocationSelector() {
   const ListHeader = useMemo(() => (
     <View style={[styles.stickyHeader, { backgroundColor }]}>
       <AccentScreenHeader
-        style={styles.headerSection}
-        accentColor={accentColor}
         onBackPress={() => router.back()}
         title={
           <View>

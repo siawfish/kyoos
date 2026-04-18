@@ -166,11 +166,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
         >
           <BottomSheetView style={[styles.contentContainer, { backgroundColor }]}>
             <AccentScreenHeader
-              style={{
-                paddingHorizontal: widthPixel(16),
-                paddingBottom: heightPixel(24),
-              }}
-              accentColor={borderColor}
+              renderRight={() => <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />}
               title={
                 <View style={styles.titleContainer}>
                     <View style={styles.titleTextContainer}>
@@ -189,7 +185,6 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
                         {title}
                       </ThemedText>
                   </View>
-                  <BackButton iconName="x" onPress={handleClose} containerStyle={styles.closeButton} />
                 </View>
               }
             />

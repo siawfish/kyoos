@@ -118,10 +118,7 @@ export default function BookingScreen() {
     return (
         <ScreenLayout style={styles.container}>
             <AccentScreenHeader
-                style={styles.header}
                 onBackPress={handleBackPress}
-                accentColor={accentColor}
-                accentSpacing="tight"
                 title="BOOK SERVICE"
                 titleStyle={{
                     fontSize: fontPixel(10),

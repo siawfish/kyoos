@@ -13,6 +13,7 @@ import { useAppDispatch } from '@/store/hooks';
 import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 
 const settingsSections = [
@@ -92,9 +93,8 @@ const SettingsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <AccentScreenHeader
-          style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
-          accentSpacing="tight"
           title="SETTINGS"
+          renderRight={()=><HeaderNotificationButton />}
           titleStyle={{
             fontSize: fontPixel(10),
             fontFamily: 'SemiBold',

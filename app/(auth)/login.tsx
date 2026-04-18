@@ -59,8 +59,6 @@ export default function Login() {
       >
         <View style={styles.mainStyle}>
           <AccentScreenHeader
-            style={styles.titleContainer}
-            accentSpacing="loose"
             title={
               <View>
                 <Text style={[styles.loginEyebrow, { color: secondaryColor }]}>SIGN IN</Text>

@@ -113,8 +113,6 @@ const AdditionalInfoSheet = ({
                 >
                     <BottomSheetView style={[styles.content, { backgroundColor }]}>
                         <AccentScreenHeader
-                            style={styles.header}
-                            accentColor={accentColor}
                             title={
                                 <View style={styles.titleContainer}>
                                     <View style={styles.titleTextContainer}>

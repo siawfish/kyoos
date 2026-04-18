@@ -4,7 +4,6 @@ import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import InputField from '@/components/ui/TextInput';
 import { colors } from '@/constants/theme/colors';
-import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { widthPixel, heightPixel, fontPixel } from '@/constants/normalize';
 import SelectGender from '@/components/ui/SelectGender';
@@ -13,6 +12,8 @@ import UploadProfilePhoto from '@/components/ui/UploadProfilePhoto';
 import { validateBasicInformation } from '@/constants/helpers/validations';
 import { ProfileForm as ProfileFormType, RegisterForm, RegisterFormFields } from '@/redux/auth/types';
 import { router } from 'expo-router';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
+import BackButton from '@/components/ui/BackButton';
 
 export default function ProfileForm({
     registerForm,
@@ -64,10 +65,7 @@ export default function ProfileForm({
             >
                 <ThemedView style={styles.container}>
                     <AccentScreenHeader
-                        style={styles.contentContainer}
-                        accentSpacing="tight"
-                        toolbarBottomGap={heightPixel(8)}
-                        onBackPress={() => router.back()}
+                        renderRight={()=><BackButton iconName="x" onPress={() => router.back()} />}
                         title={
                             <View>
                                 <ThemedText style={[styles.eyebrow, { color: subtitleColor }]}>
@@ -134,7 +132,7 @@ const styles = StyleSheet.create({
         paddingBottom: heightPixel(16),
     },
     contentContainer: {
-        paddingHorizontal: widthPixel(20),
+        paddingHorizontal: widthPixel(16),
         marginBottom: heightPixel(24),
     },
     eyebrow: {

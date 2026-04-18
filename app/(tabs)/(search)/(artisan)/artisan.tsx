@@ -84,12 +84,9 @@ export default function ArtisanScreen() {
         return (
             <>
                 <AccentScreenHeader
-                    style={styles.header}
-                    accentColor={accentColor}
-                    accentSpacing="loose"
-                    toolbarBottomGap={heightPixel(8)}
+                    containerStyle={styles.header}
                     onBackPress={() => router.back()}
-                    trailing={
+                    renderRight={() => (
                         <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
                             <IconButton 
                                 style={styles.chatButton}
@@ -103,7 +100,7 @@ export default function ArtisanScreen() {
                                 />
                             </IconButton>
                         </Link>
-                    }
+                    )}
                     title="WORKER"
                     titleStyle={{
                         fontSize: fontPixel(10),
@@ -203,7 +200,7 @@ const styles = StyleSheet.create({
         paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
     },
     header: {
-        marginBottom: heightPixel(24),
+        paddingHorizontal: widthPixel(0),
     },
     section: {
         marginTop: heightPixel(24),

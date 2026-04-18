@@ -156,10 +156,7 @@ export default function ReviewBooking() {
         <ScreenLayout style={styles.container}>
             <View style={styles.headerContainer}>
                 <AccentScreenHeader
-                    style={styles.reviewAccentHeader}
-                    accentColor={accentColor}
                     onBackPress={() => router.back()}
-                    trailing={null}
                     title="REVIEW BOOKING"
                     titleStyle={[styles.pageTitle, { color: labelColor }]}
                 />

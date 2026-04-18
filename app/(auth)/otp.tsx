@@ -90,7 +90,6 @@ const Otp = () => {
                 >
                     <View style={styles.mainStyle}>
                         <AccentScreenHeader
-                            accentSpacing="loose"
                             title={
                                 <View>
                                     <Text style={[styles.otpEyebrow, { color: eyebrowColor }]}>VERIFICATION</Text>

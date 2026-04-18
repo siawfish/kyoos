@@ -96,8 +96,8 @@ export default function PortfolioDetails() {
           clickable={false}
         />
         <View style={styles.commentsSection}>
-          <View>
-            <AccentBar color={accentColor} spacing="section" />
+          <View style={styles.commentsHeader}>
+            <AccentBar />
             <ThemedText type="title" style={[styles.commentsTitle, { color: textColor }]}>
               COMMENTS
             </ThemedText>
@@ -111,7 +111,7 @@ export default function PortfolioDetails() {
         </View>
       </View>
     )
-  }, [portfolio, accentColor, textColor, isLoading, isSubmittingComment]);
+  }, [portfolio, textColor, isLoading, isSubmittingComment]);
 
   const renderBody = () => {
     if (portfolio) {
@@ -145,13 +145,7 @@ export default function PortfolioDetails() {
   return (
     <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
-        style={{
-          paddingHorizontal: widthPixel(16),
-          paddingBottom: heightPixel(20),
-        }}
         onBackPress={() => router.back()}
-        toolbarBottomGap={heightPixel(8)}
-        accentSpacing='tight'
         title="PORTFOLIO DETAILS"
         titleStyle={{
           fontSize: fontPixel(10),
@@ -165,6 +159,9 @@ export default function PortfolioDetails() {
 }
 
 const styles = StyleSheet.create({
+  commentsHeader: {
+    gap: widthPixel(8),
+  },
   emptyList: {
     flex: 1,
     justifyContent: 'center',

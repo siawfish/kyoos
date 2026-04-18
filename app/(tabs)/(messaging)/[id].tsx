@@ -335,15 +335,12 @@ export default function ConversationScreen() {
   return (
     <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
-        style={{ paddingHorizontal: widthPixel(16), paddingBottom: heightPixel(20) }}
-        accentSpacing="tight"
-        toolbarBottomGap={0}
         onBackPress={() => router.back()}
-        trailing={
+        renderRight={() => (
           <TouchableOpacity onPress={handleBookingPress}>
             <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
           </TouchableOpacity>
-        }
+        )}
       />
       
       <KeyboardAvoidingView 
