@@ -36,7 +36,7 @@ const SettingsItem = ({ title, icon, color, borderColor, href, onPress }: Settin
     : (isDark ? colors.dark.grey : colors.light.grey);
 
   return (
-    <TouchableOpacity onPress={onPress ? onPress : () => router.push(href as RelativePathString)} style={[styles.settingsItem, { borderColor: borderColor, borderBottomWidth: borderColor ? 1 : 0 }]}>
+    <TouchableOpacity onPress={onPress ? onPress : () => router.push(href as RelativePathString)} style={[styles.settingsItem, { borderColor: borderColor, borderBottomWidth: borderColor ? 0.5 : 0 }]}>
       <View style={styles.settingsItemContent}>
         <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor }]}>
           <Ionicons name={icon as any} size={22} color={iconColor} />
