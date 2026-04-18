@@ -1,7 +1,7 @@
 import { request } from '@/services/api';
 import { ApiResponse } from '@/services/types';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { addDays, addHours, format, isPast, isToday, setHours, setMinutes, setSeconds } from 'date-fns';
+import { addDays, addHours, endOfDay, isPast, isToday, setHours, setMinutes, setSeconds, startOfDay } from 'date-fns';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
@@ -29,15 +29,15 @@ function* fetchHomeActiveBooking() {
 function* fetchBookings() {
   try {
     const currentWeekStart: string = yield select(selectCurrentWeekStart);
-    const weekStartDate = new Date(currentWeekStart);
-    const weekEndDate = addDays(weekStartDate, 6);
-    
+    const weekStartDate = startOfDay(new Date(currentWeekStart));
+    const weekEndDate = endOfDay(addDays(weekStartDate, 6));
+
     const response: ApiResponse<Booking[]> = yield call(request, {
       method: 'GET',
       url: `/api/users/bookings`,
       params: {
-        startDate: format(weekStartDate, 'yyyy-MM-dd'),
-        endDate: format(weekEndDate, 'yyyy-MM-dd'),
+        startDate: weekStartDate.toISOString(),
+        endDate: weekEndDate.toISOString(),
       },
     })
     if (response.error || !response.data) {
