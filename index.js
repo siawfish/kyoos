@@ -1,3 +1,3 @@
-// Register notification background task before any other app code (required for Android action taps).
-import './notificationBackgroundTask';
+// Register notification action bootstrap before app entry.
+import './notificationBootstrap';
 import 'expo-router/entry';
