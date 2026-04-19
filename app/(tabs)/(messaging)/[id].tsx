@@ -6,7 +6,7 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { selectUser } from '@/redux/app/selector';
-import { BookingStatuses, Media, MimeType } from '@/redux/app/types';
+import { Media, MimeType } from '@/redux/app/types';
 import { selectConversations, selectCurrentConversationMessages, selectTypingUsersInConversation } from '@/redux/messaging/selector';
 import { actions } from '@/redux/messaging/slice';
 import { Message } from '@/redux/messaging/types';
@@ -32,6 +32,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { isPast } from 'date-fns';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
 import { Booking } from '@/redux/booking/types';
+import CustomImage from '@/components/ui/CustomImage';
 
 function getVideoMimeType(mime: string | undefined): MimeType {
   const m = mime?.toLowerCase();
@@ -43,9 +44,10 @@ function getVideoMimeType(mime: string | undefined): MimeType {
 }
 
 export default function ConversationScreen() {
-  const textColor = useThemeColor({ light: colors.light.text, dark: colors.dark.text }, 'text');
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
+  const primaryColor = useThemeColor({ light: colors.light.tint, dark: colors.dark.tint }, 'tint');
+  const iconColor = useThemeColor({ light: colors.light.white, dark: colors.dark.black }, 'white');
   const conversations = useAppSelector(selectConversations);
   const conversationMessages = useAppSelector(selectCurrentConversationMessages);
   const safeConversationMessages = conversationMessages ?? [];
@@ -319,15 +321,29 @@ export default function ConversationScreen() {
     });
   };
 
+  const handleWorkerPress = () => {
+    router.push({
+      pathname: '/(tabs)/(search)/(artisan)/artisan',
+      params: {
+        id: conversation?.workerId as string,
+      },
+    });
+  };
+
 
   return (
     <ScreenLayout style={[styles.container, { backgroundColor }]}>
       <AccentScreenHeader
         onBackPress={() => router.back()}
         renderRight={() => (
-          <TouchableOpacity onPress={handleBookingPress}>
-            <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={textColor} />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={[styles.headerBookingIcon, { backgroundColor: primaryColor }]} onPress={handleBookingPress}>
+              <MaterialCommunityIcons name="calendar-outline" size={fontPixel(24)} color={iconColor} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.headerWorkerAvatar, { backgroundColor: primaryColor }]} onPress={handleWorkerPress}>
+              <CustomImage source={conversation?.worker?.avatar} width={"100%"} height={"100%"} />
+            </TouchableOpacity>
+          </View>
         )}
       />
       
@@ -413,6 +429,26 @@ const styles = StyleSheet.create({
   headerAvatarText: {
     fontSize: fontPixel(16),
     fontFamily: 'Bold',
+  },
+  headerBookingIcon: {
+    width: widthPixel(50),
+    height: widthPixel(50),
+    borderRadius: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: widthPixel(8),
+  },
+  headerWorkerAvatar: {
+    width: widthPixel(50),
+    height: widthPixel(50),
+    overflow: 'hidden',
+    borderRadius: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContainer: {
     paddingVertical: heightPixel(20),
