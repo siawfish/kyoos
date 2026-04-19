@@ -51,11 +51,12 @@ export function* register() {
         }));
         yield call(setItemToStorage, 'refreshToken', response.data.refreshToken);
         router.replace('/(auth)/success');
-    } catch (error:any) {
+    } catch (error:unknown) {
+        const errorMessage = error instanceof Error ? error.message :  (error as any)?.error || 'An error occurred while registering';
         Toast.show({
             type: 'error',
             text1: 'Register failed',
-            text2: error?.error || error?.message || 'An error occurred while registering',
+            text2: errorMessage,
         });
     } finally {
         yield put(actions.setRegisterFormIsLoading(false));
