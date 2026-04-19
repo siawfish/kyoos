@@ -31,6 +31,8 @@ const CustomImage = ({
         height,
         backgroundColor,
     };
+    const imageSource = source ? { uri: source } : undefined;
+    const imageRecyclingKey = source || undefined;
 
     const imageContent = (
         <>
@@ -41,13 +43,13 @@ const CustomImage = ({
             )}
             <Image
                 style={styles.img}
-                source={source}
+                source={imageSource}
                 onError={handleError}
                 onLoad={handleLoad}
                 cachePolicy="memory-disk"
                 transition={120}
                 contentFit="cover"
-                recyclingKey={source}
+                recyclingKey={imageRecyclingKey}
                 pointerEvents="none"
             />
         </>
