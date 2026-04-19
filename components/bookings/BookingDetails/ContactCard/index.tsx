@@ -10,8 +10,9 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import OverlayLoader from '@/components/ui/OverlayLoader';
 import { Ionicons } from '@expo/vector-icons';
 import React, { Fragment } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useBookingStatus } from "@/hooks/useBookingStatus";
+import { Image} from 'expo-image'
 
 interface ContactCardProps {
     booking: Booking;
@@ -42,8 +43,11 @@ const ContactCard = ({ booking }: ContactCardProps) => {
             <View style={styles.row}>
                 <View style={styles.user}>
                     <Image
-                            source={booking?.worker?.avatar ? { uri: booking?.worker?.avatar } : user}
+                        source={booking?.worker?.avatar ? { uri: booking?.worker?.avatar } : user}
                         style={styles.img}
+                        cachePolicy="memory-disk"
+                        contentFit="cover"
+                        transition={0}
                     />
                         <View style={styles.userInfo}>
                             <Text style={[styles.name, { color: textColor }]}>{booking?.worker?.name}</Text>

@@ -17,12 +17,14 @@ interface UpdateOverlayProps {
  * Full-screen overlay shown during update download.
  * Displays a blur background with progress indicator.
  */
-export default function UpdateOverlay({ progress }: UpdateOverlayProps) {
+export default function UpdateOverlay({ progress }: Readonly<UpdateOverlayProps>) {
   const theme = useAppTheme();
   const isDark = theme === 'dark';
 
-  const cardBackgroundColor = isDark ? colors.dark.misc : colors.light.background;
+  const cardBackgroundColor = isDark ? colors.dark.background : colors.light.background;
+  const borderColor = isDark ? colors.dark.white : colors.light.black;
   const spinnerColor = isDark ? colors.dark.white : colors.light.black;
+  const titleColor = isDark ? colors.dark.text : colors.light.text;
 
   return (
     <Portal>
@@ -32,14 +34,18 @@ export default function UpdateOverlay({ progress }: UpdateOverlayProps) {
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.container}>
-        <View style={[styles.card, { backgroundColor: cardBackgroundColor }]}>
+        <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ActivityIndicator 
             size="large" 
             color={spinnerColor}
             style={styles.spinner}
           />
-          
-          <ThemedText style={styles.title} type="defaultSemiBold">
+
+          <ThemedText style={styles.eyebrow} lightColor={colors.light.secondary} darkColor={colors.dark.secondary}>
+            UPDATE IN PROGRESS
+          </ThemedText>
+
+          <ThemedText style={[styles.title, { color: titleColor }]} type="defaultSemiBold">
             Downloading Update
           </ThemedText>
           
@@ -77,21 +83,29 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     padding: widthPixel(24),
-    borderRadius: widthPixel(12),
+    borderRadius: 0,
+    borderWidth: 0.5,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   spinner: {
     marginBottom: heightPixel(16),
   },
+  eyebrow: {
+    fontSize: fontPixel(10),
+    fontFamily: 'Medium',
+    letterSpacing: 1.4,
+    marginBottom: heightPixel(8),
+  },
   title: {
-    fontSize: fontPixel(18),
+    fontSize: fontPixel(22),
     textAlign: 'center',
     marginBottom: heightPixel(8),
+    letterSpacing: -0.4,
   },
   subtitle: {
     fontSize: fontPixel(14),

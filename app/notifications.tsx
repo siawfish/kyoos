@@ -11,6 +11,7 @@ import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions } from '@/redux/notifications/slice';
+import type { AppNotification } from '@/redux/notifications/types';
 import {
   selectNotifications,
   selectNotificationsIsLoading,
@@ -21,7 +22,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
 import { formatDistanceToNow } from 'date-fns';
-import { useFocusEffect, router } from 'expo-router';
+import { useFocusEffect, router, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -32,6 +33,30 @@ function formatNotificationTime(value: string) {
   } catch {
     return value;
   }
+}
+
+function getNotificationRoute(item: AppNotification): Href | null {
+  if (!item.data) {
+    return null;
+  }
+
+  const payload = item.data as unknown as Record<string, unknown>;
+
+  if (item.type === 'booking' && typeof payload.bookingId === 'string') {
+    return {
+      pathname: '/(tabs)/(bookings)/[id]',
+      params: { id: payload.bookingId },
+    };
+  }
+
+  if (item.type === 'message' && typeof payload.conversationId === 'string') {
+    return {
+      pathname: '/(tabs)/(messaging)/[id]',
+      params: { id: payload.conversationId },
+    };
+  }
+
+  return null;
 }
 
 export default function NotificationsScreen() {
@@ -137,6 +162,11 @@ export default function NotificationsScreen() {
                 onPress={() => {
                   if (isUnread) {
                     dispatch(actions.markNotificationAsRead(item.id));
+                  }
+
+                  const route = getNotificationRoute(item);
+                  if (route) {
+                    router.push(route);
                   }
                 }}
                 style={({ pressed }) => [

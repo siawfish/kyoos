@@ -1,9 +1,9 @@
 import Ghana from '@/assets/svgs/ic_ghana.svg';
-import { widthPixel, fontPixel, heightPixel } from '@/constants/normalize';
+import { widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import React, { memo, useCallback, useRef, useEffect } from 'react';
-import { Animated, Easing, StyleSheet, TextInput, TextInputProps, View, ViewStyle, Image } from 'react-native';
+import { Animated, Easing, StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { ThemedText } from '../Themed/ThemedText';
 import { actions } from '@/redux/auth/slice';
 import { useDispatch } from 'react-redux';
@@ -58,8 +58,18 @@ const PhoneInput = memo(({
     const borderWidthAnim = useRef(new Animated.Value(0.3)).current;
 
     const handleChangeText = useCallback((text: string) => {
-        // Remove any non-numeric characters and limit to maxLength
-        const numericText = text.replace(/[^0-9]/g, '').slice(0, maxLength);
+        let numericText = text.replaceAll(/\D/g, '');
+
+        // Normalize Ghana international autofill values into local 0XXXXXXXXX format.
+        if (numericText.startsWith('00233')) {
+            numericText = `0${numericText.slice(5)}`;
+        } else if (numericText.startsWith('2330')) {
+            numericText = numericText.slice(3);
+        } else if (numericText.startsWith('233')) {
+            numericText = `0${numericText.slice(3)}`;
+        }
+
+        numericText = numericText.slice(0, maxLength);
         onChangeText?.(numericText);
     }, [maxLength, onChangeText]);
 
@@ -115,7 +125,7 @@ const PhoneInput = memo(({
                 placeholder={placeholder}
                 keyboardType={keyboardType}
                 textContentType={textContentType}
-                maxLength={maxLength}
+                maxLength={maxLength + 10}
                 clearButtonMode={clearButtonMode}
                 autoFocus={autoFocus}
                 value={value}
@@ -139,6 +149,8 @@ const PhoneInput = memo(({
         </View>
     );
 });
+
+PhoneInput.displayName = 'PhoneInput';
 
 const styles = StyleSheet.create({
     inputContainer: {

@@ -6,9 +6,17 @@ import { useAppSelector } from '@/store/hooks';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-export default function HeaderNotificationButton() {
+interface HeaderNotificationButtonProps {
+  readonly containerStyle?: StyleProp<ViewStyle>;
+  readonly iconSize?: number;
+}
+
+export default function HeaderNotificationButton({
+  containerStyle,
+  iconSize = 24,
+}: HeaderNotificationButtonProps) {
   const unreadCount = useAppSelector(selectNotificationsUnreadCount);
   const iconColor = useThemeColor(
     { light: colors.light.white, dark: colors.dark.white },
@@ -26,9 +34,10 @@ export default function HeaderNotificationButton() {
       darkColor={colors.dark.black}
       onPress={() => router.push('/notifications')}
       accessibilityLabel="Notifications"
+      style={containerStyle}
     >
       <View style={styles.iconWrapper}>
-        <Feather name="bell" size={24} color={iconColor} />
+        <Feather name="bell" size={iconSize} color={iconColor} />
         {unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badgeLabel}</Text>

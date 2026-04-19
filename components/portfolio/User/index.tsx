@@ -3,14 +3,15 @@ import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { formatDistanceToNow, isValid } from 'date-fns';
-import React from 'react';
-import { Image, ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import React, { memo } from 'react';
+import { ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
 
 interface UserProps {
-    name: string;
-    avatar: string;
-    createdAt?: string;
-    imageStyle?: StyleProp<ImageStyle>;
+    readonly name: string;
+    readonly avatar: string;
+    readonly createdAt?: string;
+    readonly imageStyle?: StyleProp<ImageStyle>;
 }
 
 const User = ({ name, avatar, createdAt, imageStyle }: UserProps) => {
@@ -24,6 +25,9 @@ const User = ({ name, avatar, createdAt, imageStyle }: UserProps) => {
         <View style={styles.user}>
             <Image
                 source={avatar ? { uri: avatar } : user}
+                cachePolicy="memory-disk"
+                contentFit="cover"
+                transition={0}
                 style={[styles.image, imageStyle]}
             />
             <View>
@@ -43,7 +47,16 @@ const User = ({ name, avatar, createdAt, imageStyle }: UserProps) => {
     )
 };
 
-export default User;
+const areUserPropsEqual = (prev: UserProps, next: UserProps) => {
+    return (
+        prev.name === next.name &&
+        prev.avatar === next.avatar &&
+        prev.createdAt === next.createdAt &&
+        prev.imageStyle === next.imageStyle
+    );
+};
+
+export default memo(User, areUserPropsEqual);
 
 const styles = StyleSheet.create({
     image: { 

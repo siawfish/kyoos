@@ -5,6 +5,7 @@ import {
 } from '@/constants/pushNotifications';
 import { selectIsAuthenticated, selectUser } from '@/redux/app/selector';
 import { actions as messagingActions } from '@/redux/messaging/slice';
+import { actions as notificationsActions } from '@/redux/notifications/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
@@ -128,6 +129,8 @@ export function useInAppNotificationActions() {
       return;
     }
 
+    dispatch(notificationsActions.fetchNotifications());
+
     let cancelled = false;
     const drainLastResponse = () => {
       void Notifications.getLastNotificationResponseAsync().then((last) => {
@@ -142,9 +145,13 @@ export function useInAppNotificationActions() {
     const subscription = Notifications.addNotificationResponseReceivedListener((r) => {
       handleResponse(r);
     });
+    const notificationReceivedSubscription = Notifications.addNotificationReceivedListener(() => {
+      dispatch(notificationsActions.fetchNotifications());
+    });
 
     const onAppState = (state: AppStateStatus) => {
       if (state === 'active') {
+        dispatch(notificationsActions.fetchNotifications());
         drainLastResponse();
       }
     };
@@ -153,7 +160,8 @@ export function useInAppNotificationActions() {
     return () => {
       cancelled = true;
       subscription.remove();
+      notificationReceivedSubscription.remove();
       appSub.remove();
     };
-  }, [isAuthenticated, handleResponse]);
+  }, [dispatch, isAuthenticated, handleResponse]);
 }

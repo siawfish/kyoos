@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button';
+import IconButton from '@/components/ui/IconButton';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -10,16 +11,17 @@ import { actions } from '@/redux/search/slice';
 import { Worker } from '@/redux/search/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { AntDesign, SimpleLineIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { memo, useMemo } from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface ProfileCardProps {
     readonly containerStyle?: StyleProp<ViewStyle>;
     readonly worker: Worker;
 }
 
-export default function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
+function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const router = useRouter();
@@ -90,6 +92,9 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
                 <View style={styles.profileRow}>
                     <Image
                         source={{ uri: worker.avatar }}
+                        cachePolicy="memory-disk"
+                        contentFit="cover"
+                        transition={0}
                         style={[styles.img, { backgroundColor: miscColor }]}
                     />
                     <View style={styles.details}>
@@ -100,18 +105,6 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
                         >
                             {worker.name}
                         </ThemedText>
-                        <View style={styles.metaRow}>
-                            <View style={[styles.metaBadge, { borderColor }]}>
-                                <ThemedText style={[styles.metaBadgeText, { color: labelColor }]}>
-                                    {worker.skills.length} SKILLS
-                                </ThemedText>
-                            </View>
-                            <View style={[styles.metaBadge, { borderColor }]}>
-                                <ThemedText style={[styles.metaBadgeText, { color: labelColor }]}>
-                                    GH₵{averageRate || 0}/HR AVG
-                                </ThemedText>
-                            </View>
-                        </View>
                         <View style={styles.ratingRow}>
                             <ThemedText
                                 style={[styles.ratingLabel, { color: labelColor }]}
@@ -140,27 +133,32 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
                             {worker.location?.address || 'Location not set'}
                         </ThemedText>
                     </View>
-                </View>
 
-                <Button 
-                    label="BOOK NOW" 
-                    onPress={handleBookNow}
-                    style={styles.bookNowButton}
-                    labelStyle={styles.bookNowLabel}
-                    lightBackgroundColor={colors.light.black}
-                    darkBackgroundColor={colors.dark.white}
-                    icon={
+                    <IconButton  
+                        onPress={handleBookNow}
+                        style={styles.bookNowButton}
+                    >
                         <SimpleLineIcons 
                             name="calendar" 
-                            size={14} 
-                            color={isDark ? colors.dark.black : colors.light.white} 
+                            size={fontPixel(14)} 
+                            color={textColor}
                         />
-                    }
-                />
+                    </IconButton>
+                </View>
             </View>
         </View>
     )
 }
+
+const MemoizedProfileCard = memo(ProfileCard, (prevProps, nextProps) => {
+    return (
+        prevProps.worker.id === nextProps.worker.id &&
+        prevProps.worker.avatar === nextProps.worker.avatar &&
+        prevProps.containerStyle === nextProps.containerStyle
+    );
+});
+
+export default MemoizedProfileCard;
 
 const styles = StyleSheet.create({
     container: {
@@ -185,10 +183,10 @@ const styles = StyleSheet.create({
     },
     details: {
         flex: 1,
-        gap: heightPixel(8),
+        gap: heightPixel(4),
     },
     name: {
-        fontSize: fontPixel(20),
+        fontSize: fontPixel(16),
         fontFamily: 'Bold',
         letterSpacing: -0.6,
     },
@@ -227,19 +225,15 @@ const styles = StyleSheet.create({
         fontFamily: 'Medium',
     },
     img: { 
-        width: widthPixel(72), 
-        height: widthPixel(72),
+        width: widthPixel(50), 
+        height: widthPixel(50),
         borderRadius: 0
     },
     bookNowButton: {
-        width: '100%',
-        paddingHorizontal: widthPixel(20),
-        marginHorizontal: 0,
-        height: heightPixel(44),
-    },
-    bookNowLabel: {
-        fontSize: fontPixel(11),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.2,
+        width: widthPixel(48),
+        height: widthPixel(48),
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
     }
 })
