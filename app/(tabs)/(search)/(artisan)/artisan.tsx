@@ -11,16 +11,27 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectConversations } from "@/redux/messaging/selector";
+import { actions as messagingActions } from "@/redux/messaging/slice";
 import { selectIsLoading, selectPortfolios } from "@/redux/portfolio/selector";
 import { actions } from "@/redux/portfolio/slice";
+import type { Portfolio as PortfolioType } from "@/redux/portfolio/types";
 import { selectAllWorkers } from "@/redux/search/selector";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import PortfolioSkeleton from "@/components/portfolio/Loaders/PortfolioSkeleton";
+
+type DockRow = { id: "__dock__"; kind: "dock" };
+type EmptyRow = { id: "__empty__"; kind: "empty" };
+type SkeletonRow = { id: string; isSkeleton: true };
+type ArtisanListRow = DockRow | EmptyRow | SkeletonRow | PortfolioType;
+
+const DOCK_ROW: DockRow = { id: "__dock__", kind: "dock" };
+const EMPTY_ROW: EmptyRow = { id: "__empty__", kind: "empty" };
 
 export default function ArtisanScreen() {
     const router = useRouter();
@@ -28,6 +39,7 @@ export default function ArtisanScreen() {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
     const allWorkers = useAppSelector(selectAllWorkers);
+    const conversations = useAppSelector(selectConversations);
     const portfolios = useAppSelector(selectPortfolios);
     const isLoading = useAppSelector(selectIsLoading);
     const dispatch = useAppDispatch();
@@ -70,15 +82,22 @@ export default function ArtisanScreen() {
     }, [artisanId]);
 
     // Create skeleton data array when loading
-    const skeletonData = useMemo(() => {
+    const skeletonData = useMemo((): SkeletonRow[] => {
         if (isLoading) {
             return new Array(3).fill(null).map((_, index) => ({ id: `skeleton-${index}`, isSkeleton: true }));
         }
         return [];
     }, [isLoading]);
 
-    // Determine which data to show
-    const listData = isLoading ? skeletonData : portfolios;
+    const listData = useMemo((): ArtisanListRow[] => {
+        if (isLoading) {
+            return [DOCK_ROW, ...skeletonData];
+        }
+        if (portfolios.length > 0) {
+            return [DOCK_ROW, ...portfolios];
+        }
+        return [DOCK_ROW, EMPTY_ROW];
+    }, [isLoading, portfolios, skeletonData]);
 
     const textColor = useThemeColor({
         light: colors.light.text,
@@ -108,6 +127,20 @@ export default function ArtisanScreen() {
         )
     }
 
+    const handleChatPress = () => {
+        const conversation = conversations.find((item) => item.workerId === artisan.id);
+
+        if (conversation?.id) {
+            dispatch(messagingActions.markConversationAsRead(conversation.id));
+            router.push(`/(tabs)/(messaging)/${conversation.id}`);
+            return;
+        }
+
+        // Refresh the list and route to conversations instead of using worker id as conversation id.
+        dispatch(messagingActions.fetchConversations());
+        router.push("/(tabs)/(messaging)/messaging");
+    };
+
     const renderHeader = () => {
         return (
             <>
@@ -115,19 +148,18 @@ export default function ArtisanScreen() {
                     containerStyle={styles.header}
                     onBackPress={() => router.back()}
                     renderRight={() => (
-                        <Link asChild href={`/(tabs)/(messaging)/${artisan?.id}`}>
-                            <IconButton 
-                                style={styles.chatButton}
-                                lightColor={colors.light.black}
-                                darkColor={colors.dark.white}
-                            >
-                                <Ionicons 
-                                    name="chatbox-ellipses-outline" 
-                                    size={24} 
-                                    color={isDark ? colors.dark.black : colors.light.white} 
-                                />
-                            </IconButton>
-                        </Link>
+                        <IconButton 
+                            style={styles.chatButton}
+                            lightColor={colors.light.black}
+                            darkColor={colors.dark.white}
+                            onPress={handleChatPress}
+                        >
+                            <Ionicons 
+                                name="chatbox-ellipses-outline" 
+                                size={24} 
+                                color={isDark ? colors.dark.black : colors.light.white} 
+                            />
+                        </IconButton>
                     )}
                     title="WORKER"
                     titleStyle={{
@@ -136,9 +168,6 @@ export default function ArtisanScreen() {
                         letterSpacing: 1.5,
                     }}
                 />
-
-                {/* Basic Info Section */}
-                <ProfileCard worker={artisan!} />
 
                 {/* Skills & Rate Section */}
                 {
@@ -219,11 +248,23 @@ export default function ArtisanScreen() {
         )
     }
 
-    const renderItem = ({ item }: { item: any }) => {
-        if (item?.isSkeleton) {
+    const renderItem = ({ item }: { item: ArtisanListRow }) => {
+        if ("kind" in item) {
+            if (item.kind === "dock") {
+                return (
+                    <View style={[styles.dockBlock, { backgroundColor: cardBg }]}>
+                        <ProfileCard worker={artisan} />
+                    </View>
+                );
+            }
+            if (item.kind === "empty") {
+                return <EmptyList message="No recent works found" />;
+            }
+        }
+        if ("isSkeleton" in item && item.isSkeleton) {
             return <PortfolioSkeleton />;
         }
-        return <Portfolio portfolio={item} />;
+        return <Portfolio portfolio={item as PortfolioType} />;
     };
 
     return (
@@ -235,8 +276,17 @@ export default function ArtisanScreen() {
                 ListHeaderComponent={renderHeader}
                 data={listData}
                 renderItem={renderItem}
-                ListEmptyComponent={isLoading ? null : <EmptyList message="No recent works found" />}
-                keyExtractor={(item) => item.id}
+                stickyHeaderIndices={[0]}
+                ListEmptyComponent={null}
+                keyExtractor={(item) => {
+                    if ("kind" in item) {
+                        return item.id;
+                    }
+                    if ("isSkeleton" in item && item.isSkeleton) {
+                        return item.id;
+                    }
+                    return item.id;
+                }}
             />
         </ScreenLayout>
     )
@@ -255,6 +305,9 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: widthPixel(0),
+    },
+    dockBlock: {
+        paddingBottom: heightPixel(8),
     },
     section: {
         marginTop: heightPixel(20),
