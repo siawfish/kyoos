@@ -1,8 +1,12 @@
 import { Stack } from 'expo-router';
 
+export const unstable_settings = {
+  anchor: 'artisan',
+};
+
 export default function ArtisanLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack initialRouteName="artisan" screenOptions={{ headerShown: false }}>
       <Stack.Screen 
         name="artisan" 
       />

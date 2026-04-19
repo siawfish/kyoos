@@ -1,8 +1,12 @@
 import { Stack } from 'expo-router';
 
+export const unstable_settings = {
+  anchor: 'settings',
+};
+
 export default function SettingsLayout() {
   return (
-    <Stack>
+    <Stack initialRouteName="settings">
       <Stack.Screen 
         name="settings" 
         options={{
