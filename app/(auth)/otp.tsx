@@ -26,7 +26,7 @@ function hubtelOtpUssdTelUrls(): string[] {
     }
     if (Platform.OS === 'ios') {
         return [
-            `tel:${HUBTEL_OTP_USSD.replace(/#/g, '%23')}`,
+            `tel:${HUBTEL_OTP_USSD.replaceAll('#', '%23')}`,
             `tel:${encodeURIComponent(HUBTEL_OTP_USSD)}`,
         ]
     }
@@ -60,12 +60,10 @@ const Otp = () => {
                 /* try next encoding */
             }
         }
-        Alert.alert(
-            'Could not open dialer',
-            !Device.isDevice
-                ? `The iOS Simulator cannot open phone links (error -10814). Use a physical iPhone, or open Phone and dial ${HUBTEL_OTP_USSD} manually.`
-                : `Open the Phone app and dial ${HUBTEL_OTP_USSD} from this device. If the link still fails, dial it manually — iOS sometimes blocks USSD short codes.`,
-        )
+        const errorMessage = Device.isDevice
+            ? `Open the Phone app and dial ${HUBTEL_OTP_USSD} from this device. If the link still fails, dial it manually — iOS sometimes blocks USSD short codes.`
+            : `The iOS Simulator cannot open phone links (error -10814). Use a physical iPhone, or open Phone and dial ${HUBTEL_OTP_USSD} manually.`
+        Alert.alert('Could not open dialer', errorMessage)
     }, [])
 
     if (!referenceId || !otpPrefix) {
@@ -90,6 +88,7 @@ const Otp = () => {
                 >
                     <View style={styles.mainStyle}>
                         <AccentScreenHeader
+                            containerStyle={styles.headerContainer}
                             title={
                                 <View>
                                     <Text style={[styles.otpEyebrow, { color: eyebrowColor }]}>VERIFICATION</Text>
@@ -124,6 +123,9 @@ const Otp = () => {
                                 error={otp.error}
                                 onTextChange={(text: string) => {
                                     dispatch(actions.setLoginFormValue({key: 'otp', value: text}));
+                                    if (text.length === 4 && !isLoading) {
+                                        dispatch(actions.initiateLogin());
+                                    }
                                 }}
                             />
                         </View>
@@ -177,6 +179,9 @@ const styles = StyleSheet.create({
     scrollFooterSpacer: {
         flexGrow: 1,
         minHeight: heightPixel(1),
+    },
+    headerContainer: {
+        paddingHorizontal: widthPixel(0),
     },
     mainStyle: {
         paddingHorizontal: widthPixel(16),

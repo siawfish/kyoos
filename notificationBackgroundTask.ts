@@ -14,30 +14,44 @@ import * as TaskManager from 'expo-task-manager';
 
 const BACKGROUND_NOTIFICATION_ACTIONS_TASK = 'BACKGROUND_NOTIFICATION_ACTIONS_TASK';
 
+const logBackgroundTask = (event: string, payload?: Record<string, unknown>) => {
+  if (!__DEV__) {
+    return;
+  }
+  console.info('[notification-bg-task:kyoos]', event, payload ?? {});
+};
+
 TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, error }) => {
   if (error) {
+    logBackgroundTask('task_error', { message: error.message });
     return BackgroundNotificationTaskResult.Failed;
   }
   if (!data || typeof data !== 'object' || !('actionIdentifier' in data)) {
+    logBackgroundTask('no_data');
     return BackgroundNotificationTaskResult.NoData;
   }
 
   const response = data as NotificationResponse;
+  logBackgroundTask('received_response', { actionIdentifier: response.actionIdentifier });
   const token = await getItemFromStorage('token');
   if (!token) {
+    logBackgroundTask('missing_token');
     return BackgroundNotificationTaskResult.NoData;
   }
 
   const baseURL = process.env.EXPO_PUBLIC_API_URL;
   if (!baseURL) {
+    logBackgroundTask('missing_api_url');
     return BackgroundNotificationTaskResult.Failed;
   }
 
   const raw = response.notification.request.content.data as Record<string, unknown> | undefined;
   if (raw?.type !== 'message') {
+    logBackgroundTask('ignored_non_message', { type: raw?.type });
     return BackgroundNotificationTaskResult.NoData;
   }
   if (response.actionIdentifier !== MESSAGE_PUSH_REPLY_ACTION_ID) {
+    logBackgroundTask('ignored_non_reply_action', { actionIdentifier: response.actionIdentifier });
     return BackgroundNotificationTaskResult.NoData;
   }
 
@@ -45,6 +59,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, erro
     typeof raw.conversationId === 'string' ? raw.conversationId : null;
   const text = response.userText?.trim();
   if (!conversationId || !text) {
+    logBackgroundTask('missing_reply_payload', { hasConversationId: Boolean(conversationId), hasText: Boolean(text) });
     return BackgroundNotificationTaskResult.NoData;
   }
 
@@ -64,6 +79,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, erro
       ? BackgroundNotificationTaskResult.NewData
       : BackgroundNotificationTaskResult.Failed;
   } catch {
+    logBackgroundTask('request_failed');
     return BackgroundNotificationTaskResult.Failed;
   }
 });

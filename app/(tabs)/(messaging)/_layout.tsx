@@ -1,5 +1,9 @@
 import { Stack } from 'expo-router';
 
+export const unstable_settings = {
+  anchor: 'messaging',
+};
+
 export default function MessagingLayout() {
   return (
     <Stack initialRouteName="messaging" screenOptions={{ headerShown: false }}>

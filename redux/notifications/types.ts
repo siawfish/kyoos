@@ -1,8 +1,29 @@
+export interface BookingNotificationData {
+  type: 'booking';
+  bookingId: string;
+  status?: string;
+  reason?: string;
+  finalPrice?: number;
+  categoryId?: string;
+}
+
+export interface MessageNotificationData {
+  type: 'message';
+  conversationId: string;
+  messageId?: string;
+  senderId?: string;
+  senderName?: string;
+  categoryId?: string;
+}
+
+export type AppNotificationData = BookingNotificationData | MessageNotificationData | null;
+
 export interface AppNotification {
   id: string;
   title: string;
   body: string;
   type: 'booking' | 'message';
+  data?: AppNotificationData;
   isRead: boolean;
   createdAt: string;
   updatedAt: string;

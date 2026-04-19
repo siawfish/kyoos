@@ -88,7 +88,7 @@ const BookingPreviewCard = ({ booking }: BookingPreviewCardProps) => {
     }, [booking, withinTheTimeRange]);
 
     const handlePress = () => {
-        router.push(`/(tabs)/(bookings)/${booking.id}`);
+        router.push(`/(tabs)/(bookings)/${booking.id}`, { withAnchor: true });
     };
 
     const start = getBookingStartDate(booking);

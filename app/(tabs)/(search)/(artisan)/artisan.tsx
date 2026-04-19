@@ -18,8 +18,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import PortfolioSkeleton from "@/components/portfolio/Loaders/PortfolioSkeleton";
 
 export default function ArtisanScreen() {
@@ -31,6 +31,7 @@ export default function ArtisanScreen() {
     const portfolios = useAppSelector(selectPortfolios);
     const isLoading = useAppSelector(selectIsLoading);
     const dispatch = useAppDispatch();
+    const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
 
     useEffect(() => {
         if (artisanId) {
@@ -41,10 +42,37 @@ export default function ArtisanScreen() {
 
     const artisan = useMemo(() => allWorkers.find((worker) => worker.id === artisanId), [allWorkers, artisanId]);
 
+    const skillsSummary = useMemo(() => {
+        const skills = artisan?.skills ?? [];
+        if (skills.length === 0) {
+            return "No skills added";
+        }
+
+        const rates = skills
+            .map((skill) => skill.rate ?? 0)
+            .filter((rate) => rate > 0);
+
+        if (rates.length === 0) {
+            return `${skills.length} skills`;
+        }
+
+        const minRate = Math.min(...rates);
+        const maxRate = Math.max(...rates);
+        const rateLabel = minRate === maxRate
+            ? `GH₵${minRate}/hr`
+            : `GH₵${minRate}-${maxRate}/hr`;
+
+        return `${skills.length} skills • ${rateLabel}`;
+    }, [artisan?.skills]);
+
+    useEffect(() => {
+        setIsSkillsExpanded(false);
+    }, [artisanId]);
+
     // Create skeleton data array when loading
     const skeletonData = useMemo(() => {
         if (isLoading) {
-            return Array(3).fill(null).map((_, index) => ({ id: `skeleton-${index}`, isSkeleton: true }));
+            return new Array(3).fill(null).map((_, index) => ({ id: `skeleton-${index}`, isSkeleton: true }));
         }
         return [];
     }, [isLoading]);
@@ -115,21 +143,47 @@ export default function ArtisanScreen() {
                 {/* Skills & Rate Section */}
                 {
                     artisan?.skills?.length > 0 && (
-                        <>
-                            <View style={styles.section}>
-                                <View style={styles.sectionLabelContainer}>
-                                    <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
-                                </View>
-                                <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
-                                    <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
-                                    <View style={styles.skillsContent}>
+                        <View style={styles.section}>
+                            <View style={styles.sectionLabelContainer}>
+                                <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
+                            </View>
+                            <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
+                                <Pressable
+                                    style={[styles.skillsSummaryRow, { borderColor }]}
+                                    onPress={() => setIsSkillsExpanded((prev) => !prev)}
+                                >
+                                    <View style={styles.skillsSummaryContent}>
+                                        <ThemedText style={[styles.skillsSummaryTitle, { color: textColor }]}>
+                                            {skillsSummary}
+                                        </ThemedText>
+                                        <ThemedText style={[styles.skillsSummaryHint, { color: labelColor }]}>
+                                            {isSkillsExpanded ? "Tap to collapse details" : "Tap to expand details"}
+                                        </ThemedText>
+                                    </View>
+                                    <Ionicons
+                                        name={isSkillsExpanded ? "chevron-up-outline" : "chevron-down-outline"}
+                                        size={16}
+                                        color={textColor}
+                                    />
+                                </Pressable>
+
+                                {isSkillsExpanded && (
+                                    <>
+                                        <View style={[styles.skillsHeader, { borderColor }]}>
+                                            <ThemedText style={[styles.skillsHeaderText, { color: labelColor }]}>
+                                                SKILL
+                                            </ThemedText>
+                                            <ThemedText style={[styles.skillsHeaderText, { color: labelColor }]}>
+                                                RATE / HOUR
+                                            </ThemedText>
+                                        </View>
                                         {artisan?.skills?.map((skill, index) => (
-                                            <View 
-                                                key={index} 
+                                            <View
+                                                key={`${skill.skillId ?? skill.id ?? skill.name}-${index}`}
                                                 style={[
-                                                    styles.skillItem, 
+                                                    styles.skillItem,
                                                     { borderColor },
-                                                    index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder
+                                                    index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder,
                                                 ]}
                                             >
                                                 <View style={styles.skillInfo}>
@@ -137,12 +191,12 @@ export default function ArtisanScreen() {
                                                         {skill.name}
                                                     </ThemedText>
                                                     <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
-                                                        HOURLY RATE
+                                                        SERVICE
                                                     </ThemedText>
                                                 </View>
-                                                <View style={styles.rateContainer}>
+                                                <View style={[styles.rateBadge]}>
                                                     <ThemedText style={[styles.skillRate, { color: textColor }]}>
-                                                        GH₵{skill.rate}
+                                                        GH₵{skill.rate ?? 0}
                                                     </ThemedText>
                                                     <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
                                                         /hr
@@ -150,10 +204,10 @@ export default function ArtisanScreen() {
                                                 </View>
                                             </View>
                                         ))}
-                                    </View>
-                                </View>
+                                    </>
+                                )}
                             </View>
-                        </>
+                        </View>
                     )
                 }
                 <View style={styles.section}>
@@ -181,7 +235,7 @@ export default function ArtisanScreen() {
                 ListHeaderComponent={renderHeader}
                 data={listData}
                 renderItem={renderItem}
-                ListEmptyComponent={!isLoading ? <EmptyList message="No recent works found" /> : null}
+                ListEmptyComponent={isLoading ? null : <EmptyList message="No recent works found" />}
                 keyExtractor={(item) => item.id}
             />
         </ScreenLayout>
@@ -203,7 +257,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: widthPixel(0),
     },
     section: {
-        marginTop: heightPixel(24),
+        marginTop: heightPixel(20),
     },
     sectionLabelContainer: {
         marginBottom: heightPixel(12),
@@ -215,22 +269,53 @@ const styles = StyleSheet.create({
     },
     skillsCard: {
         borderWidth: 0.5,
-        borderTopWidth: 0,
+        borderTopWidth: 0.5,
+        width: '100%',
         overflow: 'hidden',
     },
-    topAccent: {
-        height: heightPixel(3),
-        width: '100%',
+    skillsSummaryRow: {
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(12),
+        borderBottomWidth: 0.5,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: widthPixel(12),
     },
-    skillsContent: {
-        paddingVertical: heightPixel(4),
+    skillsSummaryContent: {
+        flex: 1,
+        gap: heightPixel(4),
+    },
+    skillsSummaryTitle: {
+        fontSize: fontPixel(13),
+        fontFamily: 'SemiBold',
+        letterSpacing: -0.1,
+    },
+    skillsSummaryHint: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.05,
+    },
+    skillsHeader: {
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(10),
+        borderBottomWidth: 0.5,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    skillsHeaderText: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.1,
     },
     skillItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: widthPixel(20),
-        paddingVertical: heightPixel(18),
+        alignItems: 'flex-start',
+        paddingHorizontal: widthPixel(16),
+        paddingVertical: heightPixel(14),
+        gap: widthPixel(12),
     },
     skillItemBorder: {
         borderBottomWidth: 0.5,
@@ -240,27 +325,28 @@ const styles = StyleSheet.create({
         gap: heightPixel(4),
     },
     skillName: {
-        fontSize: fontPixel(16),
-        fontFamily: 'Medium',
-        letterSpacing: -0.3,
+        fontSize: fontPixel(15),
+        fontFamily: 'SemiBold',
+        letterSpacing: -0.2,
     },
     skillLabel: {
         fontSize: fontPixel(9),
         fontFamily: 'SemiBold',
-        letterSpacing: 1.2,
+        letterSpacing: 1.1,
     },
-    rateContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        gap: widthPixel(2),
+    rateBadge: {
+        borderWidth: 0.5,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        minWidth: widthPixel(92),
     },
     skillRate: {
-        fontSize: fontPixel(20),
+        fontSize: fontPixel(17),
         fontFamily: 'Bold',
-        letterSpacing: -0.5,
+        letterSpacing: -0.3,
     },
     rateUnit: {
-        fontSize: fontPixel(12),
+        fontSize: fontPixel(10),
         fontFamily: 'Regular',
     },
     chatButton: {

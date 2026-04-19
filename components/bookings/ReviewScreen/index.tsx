@@ -112,7 +112,7 @@ export default function ReviewBooking() {
         if(callbackRoute) {
             router.dismissTo(callbackRoute);
         } else {
-            router.push(`/(tabs)/(bookings)/${bookingId}`);
+            router.push(`/(tabs)/(bookings)/${bookingId}`, { withAnchor: true });
         }
         dispatch(actions.resetState());
         dispatch(searchActions.resetState());

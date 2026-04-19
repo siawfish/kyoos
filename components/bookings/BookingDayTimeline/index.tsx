@@ -183,7 +183,7 @@ function AgendaBookingRow({
       </View>
 
       <TouchableOpacity
-        onPress={() => router.push(`/(tabs)/(bookings)/${booking.id}`)}
+        onPress={() => router.push(`/(tabs)/(bookings)/${booking.id}`, { withAnchor: true })}
         activeOpacity={0.7}
         style={[
           styles.card,

@@ -8,9 +8,10 @@ import { BookingStatuses } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import BookingStatus from './Status'
+import CustomImage from '@/components/ui/CustomImage'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -112,10 +113,10 @@ const BookingDetails = ({
                         >
                             {booking?.media?.map((item, index) => (
                                 <View key={index} style={styles.mediaItem}>
-                                    <Image
-                                        source={{ uri: item.url }}
-                                        style={styles.mediaImage}
-                                        resizeMode="cover"
+                                    <CustomImage
+                                        source={item.url}
+                                        width={widthPixel(80)}
+                                        height={widthPixel(80)}
                                     />
                                 </View>
                             ))}
@@ -216,10 +217,5 @@ const styles = StyleSheet.create({
         height: widthPixel(80),
         marginRight: widthPixel(8),
         overflow: 'hidden',
-    },
-    mediaImage: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: colors.light.lightTint,
-    },
+    }
 });

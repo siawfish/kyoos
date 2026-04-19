@@ -3,12 +3,15 @@ import EmptyList from '@/components/ui/EmptyList';
 import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
+import { ThemedView } from '@/components/ui/Themed/ThemedView';
 import NotificationItemSkeleton from '@/components/notifications/NotificationItemSkeleton';
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions } from '@/redux/notifications/slice';
+import type { AppNotification } from '@/redux/notifications/types';
 import {
   selectNotifications,
   selectNotificationsIsLoading,
@@ -18,20 +21,42 @@ import {
 } from '@/redux/notifications/selector';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FlashList } from '@shopify/flash-list';
-import { useFocusEffect, router } from 'expo-router';
+import { formatDistanceToNow } from 'date-fns';
+import { useFocusEffect, router, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 function formatNotificationTime(value: string) {
   try {
     const date = new Date(value);
-    return new Intl.DateTimeFormat('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(date);
+    return formatDistanceToNow(date, { addSuffix: true });
   } catch {
     return value;
   }
+}
+
+function getNotificationRoute(item: AppNotification): Href | null {
+  if (!item.data) {
+    return null;
+  }
+
+  const payload = item.data as unknown as Record<string, unknown>;
+
+  if (item.type === 'booking' && typeof payload.bookingId === 'string') {
+    return {
+      pathname: '/(tabs)/(bookings)/[id]',
+      params: { id: payload.bookingId },
+    };
+  }
+
+  if (item.type === 'message' && typeof payload.conversationId === 'string') {
+    return {
+      pathname: '/(tabs)/(messaging)/[id]',
+      params: { id: payload.conversationId },
+    };
+  }
+
+  return null;
 }
 
 export default function NotificationsScreen() {
@@ -42,15 +67,32 @@ export default function NotificationsScreen() {
   const isRefreshing = useAppSelector(selectNotificationsIsRefreshing);
   const isUpdating = useAppSelector(selectNotificationsIsUpdating);
 
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
+
   const backgroundColor = useThemeColor(
     { light: colors.light.background, dark: colors.dark.background },
     'background',
   );
-  const borderColor = useThemeColor(
-    { light: colors.light.black, dark: colors.dark.white },
+  const tintColor = useThemeColor(
+    { light: colors.light.tint, dark: colors.dark.tint },
+    'background',
+  );
+  const tintTextColor = useThemeColor(
+    { light: colors.light.white, dark: colors.dark.black },
+    'white',
+  );
+  const cardBg = useThemeColor(
+    { light: colors.light.background, dark: colors.dark.background },
+    'background',
+  );
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = accentColor;
+  const textColor = useThemeColor(
+    { light: colors.light.text, dark: colors.dark.text },
     'text',
   );
-  const mutedTextColor = useThemeColor(
+  const secondaryText = useThemeColor(
     { light: colors.light.secondary, dark: colors.dark.secondary },
     'text',
   );
@@ -73,7 +115,7 @@ export default function NotificationsScreen() {
         }}
       />
       <View style={styles.actionsRow}>
-        <ThemedText style={styles.unreadText} lightColor={mutedTextColor} darkColor={mutedTextColor}>
+        <ThemedText style={styles.unreadText} lightColor={secondaryText} darkColor={secondaryText}>
           {unreadCount} unread
         </ThemedText>
         <Pressable
@@ -113,39 +155,66 @@ export default function NotificationsScreen() {
             />
           }
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => {
-                if (!item.isRead) {
-                  dispatch(actions.markNotificationAsRead(item.id));
-                }
-              }}
-              style={[
-                styles.itemContainer,
-                { borderColor },
-                !item.isRead && styles.unreadItemContainer,
-              ]}
-            >
-              <View style={styles.itemHeader}>
-                <ThemedText style={styles.itemTitle}>{item.title}</ThemedText>
-                {!item.isRead && <View style={styles.unreadDot} />}
-              </View>
-              <ThemedText
-                style={styles.itemBody}
-                lightColor={mutedTextColor}
-                darkColor={mutedTextColor}
+          renderItem={({ item }) => {
+            const isUnread = !item.isRead;
+            return (
+              <Pressable
+                onPress={() => {
+                  if (isUnread) {
+                    dispatch(actions.markNotificationAsRead(item.id));
+                  }
+
+                  const route = getNotificationRoute(item);
+                  if (route) {
+                    router.push(route, { withAnchor: true });
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.itemContainer,
+                  { backgroundColor: cardBg, borderColor },
+                  pressed && styles.itemPressed,
+                ]}
               >
-                {item.body}
-              </ThemedText>
-              <ThemedText
-                style={styles.itemDate}
-                lightColor={mutedTextColor}
-                darkColor={mutedTextColor}
-              >
-                {formatNotificationTime(item.createdAt)}
-              </ThemedText>
-            </Pressable>
-          )}
+                <View
+                  style={[
+                    styles.leftAccent,
+                    { backgroundColor: accentColor },
+                    !isUnread && styles.leftAccentRead,
+                  ]}
+                />
+                <View style={styles.content}>
+                  <View style={styles.headerRow}>
+                    <ThemedText
+                      style={[styles.title, { color: textColor }]}
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </ThemedText>
+                    {isUnread && (
+                      <ThemedView style={[styles.unreadBadge, { backgroundColor: tintColor }]}>
+                        <ThemedText style={[styles.unreadBadgeText, { color: tintTextColor }]}>
+                          NEW
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                  </View>
+                  <ThemedText
+                    style={[
+                      styles.body,
+                      { color: secondaryText },
+                      isUnread && styles.bodyUnread,
+                      isUnread && { color: textColor },
+                    ]}
+                  >
+                    {item.body}
+                  </ThemedText>
+                  <ThemedText style={[styles.timestamp, { color: secondaryText }]}>
+                    {formatNotificationTime(item.createdAt)}
+                  </ThemedText>
+                </View>
+              </Pressable>
+            );
+          }}
         />
       )}
     </ScreenLayout>
@@ -178,49 +247,72 @@ const styles = StyleSheet.create({
   skeletonList: {
     paddingHorizontal: widthPixel(16),
     paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
-    gap: heightPixel(12),
   },
   listContent: {
     paddingHorizontal: widthPixel(16),
     paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
-    gap: heightPixel(12),
   },
   itemContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    marginBottom: heightPixel(11),
     borderWidth: 0.5,
-    paddingHorizontal: widthPixel(14),
-    paddingVertical: heightPixel(12),
+    borderLeftWidth: 0,
+    overflow: 'hidden',
   },
-  unreadItemContainer: {
-    borderColor: colors.light.tint,
-    borderWidth: 1,
+  itemPressed: {
+    opacity: 0.7,
   },
-  itemHeader: {
+  leftAccent: {
+    width: widthPixel(4),
+  },
+  leftAccentRead: {
+    opacity: 0.28,
+  },
+  content: {
+    flex: 1,
+    paddingVertical: heightPixel(10),
+    paddingHorizontal: widthPixel(12),
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: heightPixel(8),
-    gap: widthPixel(10),
+    alignItems: 'flex-start',
+    marginBottom: heightPixel(5),
+    gap: widthPixel(8),
   },
-  itemTitle: {
+  title: {
     flex: 1,
-    fontFamily: 'SemiBold',
     fontSize: fontPixel(14),
-  },
-  unreadDot: {
-    width: widthPixel(8),
-    height: widthPixel(8),
-    borderRadius: widthPixel(8),
-    backgroundColor: colors.light.tint,
-  },
-  itemBody: {
-    fontFamily: 'Regular',
-    fontSize: fontPixel(13),
+    fontFamily: 'Bold',
+    letterSpacing: 0.5,
     lineHeight: fontPixel(19),
-    marginBottom: heightPixel(8),
   },
-  itemDate: {
+  unreadBadge: {
+    borderRadius: 0,
+    minWidth: widthPixel(18),
+    height: heightPixel(18),
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: widthPixel(6),
+  },
+  unreadBadgeText: {
+    fontSize: fontPixel(9),
+    fontFamily: 'Bold',
+    letterSpacing: 0.8,
+  },
+  body: {
+    fontSize: fontPixel(13),
     fontFamily: 'Regular',
+    lineHeight: fontPixel(18),
+    marginBottom: heightPixel(7),
+  },
+  bodyUnread: {
+    fontFamily: 'SemiBold',
+  },
+  timestamp: {
     fontSize: fontPixel(11),
+    fontFamily: 'Regular',
   },
   emptyList: {
     minHeight: heightPixel(300),

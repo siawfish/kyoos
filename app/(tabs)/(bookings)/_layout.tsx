@@ -1,5 +1,9 @@
 import { Stack } from 'expo-router';
 
+export const unstable_settings = {
+  anchor: 'bookings',
+};
+
 export default function BookingsLayout() {
   return (
     <Stack

@@ -177,7 +177,7 @@ function* fetchConversationByBookingSaga(action: PayloadAction<string>) {
     }
     yield put(actions.fetchOrCreateConversationByBookingSuccess({ conversationId }));
     // Navigate to conversation screen with the conversation ID
-    router.push(`/(tabs)/(messaging)/${conversationId}`);
+    router.push(`/(tabs)/(messaging)/${conversationId}`, { withAnchor: true });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch conversation';
     console.error(errorMessage);
@@ -209,7 +209,7 @@ function* createConversationByBookingSaga(action: PayloadAction<string>) {
     }
     yield put(actions.fetchOrCreateConversationByBookingSuccess({ conversationId }));
     // Navigate to conversation screen with the conversation ID
-    router.push(`/(tabs)/(messaging)/${conversationId}`);
+    router.push(`/(tabs)/(messaging)/${conversationId}`, { withAnchor: true });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to create conversation';
     yield put(actions.fetchOrCreateConversationByBookingFailure(errorMessage));

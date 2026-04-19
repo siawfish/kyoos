@@ -57,6 +57,7 @@ import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import type MapView from 'react-native-maps';
 import { Marker, type Region } from 'react-native-maps';
 import { ThemedSafeAreaView } from '@/components/ui/Themed/ThemedSafeAreaView';
+import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 const SEARCH_BAR_TOP_FEED = heightPixel(120);
 /** Same targets as `searchBarContainer` top when booking preview is closed vs open */
@@ -737,6 +738,7 @@ export default function HomeScreen() {
                                     color={tintColor}
                                 />
                             </TouchableOpacity>
+                            <HeaderNotificationButton containerStyle={styles.notificationButton} iconSize={18} iconColor={tintColor} />
                         </View>
                     </BlurView>
                 </Animated.View>
@@ -900,6 +902,7 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',
       paddingHorizontal: widthPixel(16),
       paddingVertical: heightPixel(16),
+      gap: widthPixel(8),
     },
     locationRow: {
       flex: 1,
@@ -917,10 +920,17 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
     },
+    notificationButton: {
+      width: undefined,
+      height: undefined,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: "transparent"
+    },
     headerRight: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: widthPixel(8),
+      gap: widthPixel(16),
     },
     bookingToggle: {},
     toggleContent: {

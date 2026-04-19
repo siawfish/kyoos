@@ -9,6 +9,7 @@ import { usePermissionsRequestQueue } from '@/hooks/use-permissions-request-queu
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import { getCurrentLocation, MenuItems } from '@/constants/helpers';
+import { ANDROID_DEFAULT_NOTIFICATION_CHANNEL_ID } from '@/constants/pushNotifications';
 import { PermissionStatus } from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -50,8 +51,8 @@ export default function Layout() {
 
   const registerForPushNotificationsAsync = useCallback(async () => {
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+      await Notifications.setNotificationChannelAsync(ANDROID_DEFAULT_NOTIFICATION_CHANNEL_ID, {
+        name: ANDROID_DEFAULT_NOTIFICATION_CHANNEL_ID,
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',

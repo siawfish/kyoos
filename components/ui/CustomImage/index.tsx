@@ -25,17 +25,17 @@ const CustomImage = ({
     const handleError = useCallback(() => setError(true), []);
     const handleLoad = useCallback(() => setError(false), []);
 
-    return (
-        <TouchableOpacity
-            style={{
-                ...styles.container,
-                width,
-                height,
-                backgroundColor,
-            }}
-            onPress={onPress}
-            activeOpacity={onPress ? 0.8 : 1}
-        >
+    const containerStyle = {
+        ...styles.container,
+        width,
+        height,
+        backgroundColor,
+    };
+    const imageSource = source ? { uri: source } : undefined;
+    const imageRecyclingKey = source || undefined;
+
+    const imageContent = (
+        <>
             {error && (
                 <View style={styles.center}>
                     <MaterialIcons name="broken-image" size={24} color={color} />
@@ -43,16 +43,27 @@ const CustomImage = ({
             )}
             <Image
                 style={styles.img}
-                source={source}
+                source={imageSource}
                 onError={handleError}
                 onLoad={handleLoad}
                 cachePolicy="memory-disk"
                 transition={120}
                 contentFit="cover"
-                recyclingKey={source}
+                recyclingKey={imageRecyclingKey}
+                pointerEvents="none"
             />
-        </TouchableOpacity>
-    )
+        </>
+    );
+
+    if (onPress) {
+        return (
+            <TouchableOpacity style={containerStyle} onPress={onPress} activeOpacity={0.8}>
+                {imageContent}
+            </TouchableOpacity>
+        );
+    }
+
+    return <View style={containerStyle}>{imageContent}</View>;
 }
 
 const arePropsEqual = (prevProps: CustomImageProps, nextProps: CustomImageProps) => {

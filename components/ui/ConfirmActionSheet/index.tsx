@@ -24,6 +24,7 @@ interface ConfirmActionSheetProps {
   icon?: React.ReactNode;
   onCancel?: () => void;
   snapPoints?: (string | number)[];
+  caption?: string;
 }
 
 export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
@@ -39,6 +40,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
   onCancel,
   icon=<Image source={require('@/assets/images/caution.png')} style={styles.icon} />,
   snapPoints = ['45%'],
+  caption = "CONFIRMATION",
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const theme = useAppTheme();
@@ -175,7 +177,7 @@ export const ConfirmActionSheet: React.FC<ConfirmActionSheetProps> = ({
                         lightColor={colors.light.secondary}
                         darkColor={colors.dark.secondary}
                       >
-                        CONFIRMATION
+                        {caption}
                       </ThemedText>
                       <ThemedText
                         style={styles.confirmTitle}

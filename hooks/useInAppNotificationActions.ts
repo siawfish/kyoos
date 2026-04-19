@@ -1,71 +1,54 @@
 import {
-  ANDROID_DEFAULT_NOTIFICATION_CHANNEL_ID,
   MESSAGE_PUSH_REPLY_ACTION_ID,
-  MESSAGE_REPLY_PUSH_CATEGORY_ID,
 } from '@/constants/pushNotifications';
 import { selectIsAuthenticated, selectUser } from '@/redux/app/selector';
+import { actions as bookingsActions } from '@/redux/bookings/slice';
 import { actions as messagingActions } from '@/redux/messaging/slice';
+import { actions as notificationsActions } from '@/redux/notifications/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, type AppStateStatus, Platform } from 'react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 
 /**
- * Registers the message-reply notification category and, when authenticated,
- * handles inline reply and cold-start last response.
+ * Handles notification responses/listeners in-app (foreground/active lifecycle),
+ * including cold-start replay via last response.
  */
 export function useInAppNotificationActions() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const user = useAppSelector(selectUser);
   const dispatch = useAppDispatch();
   const processedKeys = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync(ANDROID_DEFAULT_NOTIFICATION_CHANNEL_ID, {
-            name: 'default',
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#FF231F7C',
-          });
-        }
-        await Notifications.setNotificationCategoryAsync(MESSAGE_REPLY_PUSH_CATEGORY_ID, [
-          {
-            identifier: MESSAGE_PUSH_REPLY_ACTION_ID,
-            buttonTitle: 'Reply',
-            textInput: {
-              submitButtonTitle: 'Send',
-              placeholder: 'Message',
-            },
-            options: { opensAppToForeground: true },
-          },
-        ]);
-      } catch {
-        // Category registration is best-effort.
-      }
-    })();
+  const logNotificationAction = useCallback((event: string, payload?: Record<string, unknown>) => {
+    if (!__DEV__) {
+      return;
+    }
+    console.info('[notification-action:kyoos]', event, payload ?? {});
   }, []);
 
   const handleResponse = useCallback(
     (response: Notifications.NotificationResponse) => {
       const key = `${response.notification.request.identifier}:${response.actionIdentifier}`;
       if (processedKeys.current.has(key)) {
+        logNotificationAction('duplicate_response_ignored', { key });
         return;
       }
 
       const { actionIdentifier } = response;
       const raw = (response.notification.request.content.data ?? {}) as Record<string, unknown>;
       const payloadType = raw.type;
+      logNotificationAction('response_received', {
+        actionIdentifier,
+        payloadType: typeof payloadType === 'string' ? payloadType : 'unknown',
+      });
 
       if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
         if (payloadType === 'booking') {
           const bookingId = typeof raw.bookingId === 'string' ? raw.bookingId : null;
           if (bookingId) {
             processedKeys.current.add(key);
-            router.push(`/(tabs)/(bookings)/${bookingId}`);
+            router.push(`/(tabs)/(bookings)/${bookingId}`, { withAnchor: true });
             void Notifications.clearLastNotificationResponseAsync();
           }
           return;
@@ -75,7 +58,7 @@ export function useInAppNotificationActions() {
             typeof raw.conversationId === 'string' ? raw.conversationId : null;
           if (conversationId) {
             processedKeys.current.add(key);
-            router.push(`/(tabs)/(messaging)/${conversationId}`);
+            router.push(`/(tabs)/(messaging)/${conversationId}`, { withAnchor: true });
             void Notifications.clearLastNotificationResponseAsync();
           }
           return;
@@ -120,13 +103,31 @@ export function useInAppNotificationActions() {
       );
       void Notifications.clearLastNotificationResponseAsync();
     },
-    [dispatch, user]
+    [dispatch, logNotificationAction, user]
+  );
+
+  const handleNotificationReceived = useCallback(
+    (notification: Notifications.Notification) => {
+      dispatch(notificationsActions.fetchNotifications());
+
+      const raw = notification.request.content.data ?? {};
+      if (raw.type === 'message') {
+        dispatch(messagingActions.refreshConversations());
+        return;
+      }
+      if (raw.type === 'booking') {
+        dispatch(bookingsActions.refreshBookings());
+      }
+    },
+    [dispatch]
   );
 
   useEffect(() => {
     if (!isAuthenticated) {
       return;
     }
+
+    dispatch(notificationsActions.fetchNotifications());
 
     let cancelled = false;
     const drainLastResponse = () => {
@@ -140,11 +141,16 @@ export function useInAppNotificationActions() {
     drainLastResponse();
 
     const subscription = Notifications.addNotificationResponseReceivedListener((r) => {
+      logNotificationAction('response_listener_fired', { actionIdentifier: r.actionIdentifier });
       handleResponse(r);
     });
+    const notificationReceivedSubscription =
+      Notifications.addNotificationReceivedListener(handleNotificationReceived);
 
     const onAppState = (state: AppStateStatus) => {
       if (state === 'active') {
+        logNotificationAction('app_became_active');
+        dispatch(notificationsActions.fetchNotifications());
         drainLastResponse();
       }
     };
@@ -153,7 +159,8 @@ export function useInAppNotificationActions() {
     return () => {
       cancelled = true;
       subscription.remove();
+      notificationReceivedSubscription.remove();
       appSub.remove();
     };
-  }, [isAuthenticated, handleResponse]);
+  }, [dispatch, isAuthenticated, handleNotificationReceived, handleResponse, logNotificationAction]);
 }

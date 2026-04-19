@@ -18,7 +18,8 @@ import { actions as searchActions } from "@/redux/search/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { RelativePathString, useLocalSearchParams, useRouter } from "expo-router";
 import { RefObject, useMemo, useRef, useState } from "react";
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image } from 'expo-image'
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -139,7 +140,9 @@ export default function BookingScreen() {
                         <Image 
                             source={{ uri: artisan?.avatar }} 
                             style={[styles.avatar, { backgroundColor: cardBg }]}
-                            resizeMode="cover"
+                            cachePolicy="memory-disk"
+                            contentFit="cover"
+                            transition={0}
                         />
                         <ThemedText 
                             type="defaultSemiBold"

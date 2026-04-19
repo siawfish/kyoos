@@ -1,5 +1,6 @@
-import { heightPixel, widthPixel } from '@/constants/normalize';
+import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -13,6 +14,8 @@ import Animated, {
 
 const NotificationItemSkeleton = () => {
   const opacity = useSharedValue(0.3);
+  const theme = useAppTheme();
+  const isDark = theme === 'dark';
 
   React.useEffect(() => {
     opacity.value = withRepeat(
@@ -25,10 +28,8 @@ const NotificationItemSkeleton = () => {
     );
   }, [opacity]);
 
-  const borderColor = useThemeColor(
-    { light: colors.light.black, dark: colors.dark.white },
-    'text',
-  );
+  const accentColor = isDark ? colors.dark.white : colors.light.black;
+  const borderColor = accentColor;
   const skeletonColor = useThemeColor(
     { light: colors.light.misc, dark: colors.dark.misc },
     'text',
@@ -40,23 +41,26 @@ const NotificationItemSkeleton = () => {
 
   return (
     <View style={[styles.itemContainer, { borderColor }]}>
-      <View style={styles.itemHeader}>
+      <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Animated.View
+            style={[styles.titleSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
+          />
+          <Animated.View
+            style={[styles.badgeSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
+          />
+        </View>
         <Animated.View
-          style={[styles.titleSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
+          style={[styles.bodyLineLong, animatedStyle, { backgroundColor: skeletonColor }]}
         />
         <Animated.View
-          style={[styles.dotSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
+          style={[styles.bodyLineShort, animatedStyle, { backgroundColor: skeletonColor }]}
+        />
+        <Animated.View
+          style={[styles.timestampSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
         />
       </View>
-      <Animated.View
-        style={[styles.bodyLineLong, animatedStyle, { backgroundColor: skeletonColor }]}
-      />
-      <Animated.View
-        style={[styles.bodyLineShort, animatedStyle, { backgroundColor: skeletonColor }]}
-      />
-      <Animated.View
-        style={[styles.timeSkeleton, animatedStyle, { backgroundColor: skeletonColor }]}
-      />
     </View>
   );
 };
@@ -65,42 +69,48 @@ export default NotificationItemSkeleton;
 
 const styles = StyleSheet.create({
   itemContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    marginBottom: heightPixel(11),
     borderWidth: 0.5,
-    paddingHorizontal: widthPixel(14),
-    paddingVertical: heightPixel(12),
+    borderLeftWidth: 0,
+    overflow: 'hidden',
   },
-  itemHeader: {
+  leftAccent: {
+    width: widthPixel(4),
+  },
+  content: {
+    flex: 1,
+    paddingVertical: heightPixel(10),
+    paddingHorizontal: widthPixel(12),
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: heightPixel(10),
-    gap: widthPixel(10),
+    marginBottom: heightPixel(8),
+    gap: widthPixel(8),
   },
   titleSkeleton: {
-    width: widthPixel(145),
-    height: heightPixel(14),
-    borderRadius: 0,
+    width: widthPixel(150),
+    height: fontPixel(14),
   },
-  dotSkeleton: {
-    width: widthPixel(8),
-    height: widthPixel(8),
-    borderRadius: widthPixel(8),
+  badgeSkeleton: {
+    width: widthPixel(30),
+    height: heightPixel(18),
   },
   bodyLineLong: {
     width: '100%',
-    height: heightPixel(13),
-    borderRadius: 0,
-    marginBottom: heightPixel(6),
+    height: fontPixel(13),
+    marginBottom: heightPixel(5),
   },
   bodyLineShort: {
-    width: '75%',
-    height: heightPixel(13),
-    borderRadius: 0,
+    width: '70%',
+    height: fontPixel(13),
     marginBottom: heightPixel(10),
   },
-  timeSkeleton: {
+  timestampSkeleton: {
     width: widthPixel(95),
-    height: heightPixel(11),
-    borderRadius: 0,
+    height: fontPixel(11),
   },
 });
