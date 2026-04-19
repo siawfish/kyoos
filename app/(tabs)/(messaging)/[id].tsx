@@ -311,12 +311,15 @@ export default function ConversationScreen() {
   };
 
   const handleBookingPress = () => {
-    router.push({
-      pathname: '/(tabs)/(bookings)/[id]',
-      params: {
-        id: conversation?.bookingId as string,
+    router.push(
+      {
+        pathname: '/(tabs)/(bookings)/[id]',
+        params: {
+          id: conversation?.bookingId as string,
+        },
       },
-    });
+      { withAnchor: true },
+    );
   };
 
   const handleWorkerPress = () => {

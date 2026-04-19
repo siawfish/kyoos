@@ -11,15 +11,17 @@ import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 interface HeaderNotificationButtonProps {
   readonly containerStyle?: StyleProp<ViewStyle>;
   readonly iconSize?: number;
+  readonly iconColor?: string;
 }
 
 export default function HeaderNotificationButton({
   containerStyle,
   iconSize = 24,
+  iconColor,
 }: HeaderNotificationButtonProps) {
   const unreadCount = useAppSelector(selectNotificationsUnreadCount);
-  const iconColor = useThemeColor(
-    { light: colors.light.white, dark: colors.dark.white },
+  const iconColorValue = useThemeColor(
+    { light: iconColor ?? colors.light.white, dark: iconColor ?? colors.dark.white },
     'text'
   );
   const backgroundColor = useThemeColor(
@@ -37,7 +39,7 @@ export default function HeaderNotificationButton({
       style={containerStyle}
     >
       <View style={styles.iconWrapper}>
-        <Feather name="bell" size={iconSize} color={iconColor} />
+        <Feather name="bell" size={iconSize} color={iconColorValue} />
         {unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badgeLabel}</Text>

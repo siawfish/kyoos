@@ -166,7 +166,7 @@ export default function NotificationsScreen() {
 
                   const route = getNotificationRoute(item);
                   if (route) {
-                    router.push(route);
+                    router.push(route, { withAnchor: true });
                   }
                 }}
                 style={({ pressed }) => [

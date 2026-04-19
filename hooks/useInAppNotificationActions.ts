@@ -4,6 +4,7 @@ import {
   MESSAGE_REPLY_PUSH_CATEGORY_ID,
 } from '@/constants/pushNotifications';
 import { selectIsAuthenticated, selectUser } from '@/redux/app/selector';
+import { actions as bookingsActions } from '@/redux/bookings/slice';
 import { actions as messagingActions } from '@/redux/messaging/slice';
 import { actions as notificationsActions } from '@/redux/notifications/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -66,7 +67,7 @@ export function useInAppNotificationActions() {
           const bookingId = typeof raw.bookingId === 'string' ? raw.bookingId : null;
           if (bookingId) {
             processedKeys.current.add(key);
-            router.push(`/(tabs)/(bookings)/${bookingId}`);
+            router.push(`/(tabs)/(bookings)/${bookingId}`, { withAnchor: true });
             void Notifications.clearLastNotificationResponseAsync();
           }
           return;
@@ -76,7 +77,7 @@ export function useInAppNotificationActions() {
             typeof raw.conversationId === 'string' ? raw.conversationId : null;
           if (conversationId) {
             processedKeys.current.add(key);
-            router.push(`/(tabs)/(messaging)/${conversationId}`);
+            router.push(`/(tabs)/(messaging)/${conversationId}`, { withAnchor: true });
             void Notifications.clearLastNotificationResponseAsync();
           }
           return;
@@ -124,6 +125,22 @@ export function useInAppNotificationActions() {
     [dispatch, user]
   );
 
+  const handleNotificationReceived = useCallback(
+    (notification: Notifications.Notification) => {
+      dispatch(notificationsActions.fetchNotifications());
+
+      const raw = notification.request.content.data ?? {};
+      if (raw.type === 'message') {
+        dispatch(messagingActions.refreshConversations());
+        return;
+      }
+      if (raw.type === 'booking') {
+        dispatch(bookingsActions.refreshBookings());
+      }
+    },
+    [dispatch]
+  );
+
   useEffect(() => {
     if (!isAuthenticated) {
       return;
@@ -145,9 +162,8 @@ export function useInAppNotificationActions() {
     const subscription = Notifications.addNotificationResponseReceivedListener((r) => {
       handleResponse(r);
     });
-    const notificationReceivedSubscription = Notifications.addNotificationReceivedListener(() => {
-      dispatch(notificationsActions.fetchNotifications());
-    });
+    const notificationReceivedSubscription =
+      Notifications.addNotificationReceivedListener(handleNotificationReceived);
 
     const onAppState = (state: AppStateStatus) => {
       if (state === 'active') {
@@ -163,5 +179,5 @@ export function useInAppNotificationActions() {
       notificationReceivedSubscription.remove();
       appSub.remove();
     };
-  }, [dispatch, isAuthenticated, handleResponse]);
+  }, [dispatch, isAuthenticated, handleNotificationReceived, handleResponse]);
 }

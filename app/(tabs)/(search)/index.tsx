@@ -738,7 +738,7 @@ export default function HomeScreen() {
                                     color={tintColor}
                                 />
                             </TouchableOpacity>
-                            <HeaderNotificationButton containerStyle={styles.notificationButton} iconSize={18} />
+                            <HeaderNotificationButton containerStyle={styles.notificationButton} iconSize={18} iconColor={tintColor} />
                         </View>
                     </BlurView>
                 </Animated.View>
@@ -925,6 +925,7 @@ const styles = StyleSheet.create({
       height: undefined,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: "transparent"
     },
     headerRight: {
       flexDirection: 'row',
