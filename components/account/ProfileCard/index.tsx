@@ -11,12 +11,12 @@ import { Worker } from '@/redux/search/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { AntDesign, SimpleLineIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface ProfileCardProps {
-    containerStyle?: StyleProp<ViewStyle>;
-    worker: Worker;
+    readonly containerStyle?: StyleProp<ViewStyle>;
+    readonly worker: Worker;
 }
 
 export default function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
@@ -56,6 +56,15 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
         dark: colors.dark.white
     }, 'background');
 
+    const averageRate = useMemo(() => {
+        const rates = worker.skills
+            .map((skill) => skill.rate ?? 0)
+            .filter((rate) => rate > 0);
+
+        if (rates.length === 0) return 0;
+        return Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length);
+    }, [worker.skills]);
+
     const handleBookNow = () => {
         // Check if searchReferenceId is empty - if so, show description modal
         if (searchReferenceId === '') {
@@ -78,42 +87,61 @@ export default function ProfileCard({ worker, containerStyle }: ProfileCardProps
         <View style={[styles.container, { backgroundColor: cardBg, borderColor }, containerStyle]}>
             <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
             <View style={styles.content}>
-                <View style={styles.detailsContainer}>
+                <View style={styles.profileRow}>
                     <Image
                         source={{ uri: worker.avatar }}
                         style={[styles.img, { backgroundColor: miscColor }]}
                     />
                     <View style={styles.details}>
-                        <ThemedText 
-                            type="subtitle" 
+                        <ThemedText
+                            type="subtitle"
                             style={[styles.name, { color: textColor }]}
+                            numberOfLines={1}
                         >
                             {worker.name}
                         </ThemedText>
-                        <View style={styles.ratingContainer}>
-                            <ThemedText 
-                                style={[styles.ratingLabel, { color: labelColor }]} 
-                                darkColor={colors.dark.secondary} 
+                        <View style={styles.metaRow}>
+                            <View style={[styles.metaBadge, { borderColor }]}>
+                                <ThemedText style={[styles.metaBadgeText, { color: labelColor }]}>
+                                    {worker.skills.length} SKILLS
+                                </ThemedText>
+                            </View>
+                            <View style={[styles.metaBadge, { borderColor }]}>
+                                <ThemedText style={[styles.metaBadgeText, { color: labelColor }]}>
+                                    GH₵{averageRate || 0}/HR AVG
+                                </ThemedText>
+                            </View>
+                        </View>
+                        <View style={styles.ratingRow}>
+                            <ThemedText
+                                style={[styles.ratingLabel, { color: labelColor }]}
+                                darkColor={colors.dark.secondary}
                                 lightColor={colors.light.secondary}
                             >
                                 RATING
                             </ThemedText>
-                            <ThemedText 
-                                style={[styles.rating, { color: textColor }]} 
-                                darkColor={colors.dark.text} 
+                            <ThemedText
+                                style={[styles.rating, { color: textColor }]}
+                                darkColor={colors.dark.text}
                                 lightColor={colors.light.text}
                             >
-                                {worker.rating}{' '}
-                                <AntDesign 
-                                    name='star' 
-                                    size={14} 
-                                    color={textColor}
-                                />
+                                {worker.rating}
                             </ThemedText>
+                            <AntDesign
+                                name="star"
+                                size={12}
+                                color={textColor}
+                            />
                         </View>
+                        <ThemedText
+                            style={[styles.location, { color: labelColor }]}
+                            numberOfLines={1}
+                        >
+                            {worker.location?.address || 'Location not set'}
+                        </ThemedText>
                     </View>
                 </View>
-               
+
                 <Button 
                     label="BOOK NOW" 
                     onPress={handleBookNow}
@@ -146,49 +174,68 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     content: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: widthPixel(16),
         paddingVertical: heightPixel(16),
+        gap: heightPixel(14),
     },
-    detailsContainer: {
-        flex: 1,
+    profileRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: widthPixel(16),
+        alignItems: 'flex-start',
+        gap: widthPixel(12),
     },
     details: {
-        gap: heightPixel(4),
+        flex: 1,
+        gap: heightPixel(8),
     },
     name: {
-        fontSize: fontPixel(18),
+        fontSize: fontPixel(20),
         fontFamily: 'Bold',
-        letterSpacing: -0.5,
-        maxWidth: widthPixel(140),
+        letterSpacing: -0.6,
     },
-    ratingContainer: {
-        gap: heightPixel(2),
+    metaRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: widthPixel(8),
+    },
+    metaBadge: {
+        borderWidth: 0.5,
+        paddingHorizontal: widthPixel(8),
+        paddingVertical: heightPixel(4),
+    },
+    metaBadgeText: {
+        fontSize: fontPixel(9),
+        fontFamily: 'SemiBold',
+        letterSpacing: 1.1,
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: widthPixel(6),
     },
     ratingLabel: {
-        fontSize: fontPixel(10),
+        fontSize: fontPixel(9),
         fontFamily: 'SemiBold',
         letterSpacing: 1.2,
     },
     rating: {
         fontSize: fontPixel(14),
-        fontFamily: 'SemiBold',
+        fontFamily: 'Bold',
+        letterSpacing: -0.2,
+    },
+    location: {
+        fontSize: fontPixel(11),
+        fontFamily: 'Medium',
     },
     img: { 
-        width: widthPixel(60), 
-        height: widthPixel(60),
+        width: widthPixel(72), 
+        height: widthPixel(72),
         borderRadius: 0
     },
     bookNowButton: {
+        width: '100%',
         paddingHorizontal: widthPixel(20),
         marginHorizontal: 0,
         height: heightPixel(44),
-        minWidth: widthPixel(120),
     },
     bookNowLabel: {
         fontSize: fontPixel(11),

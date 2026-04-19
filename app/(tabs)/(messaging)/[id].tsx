@@ -29,9 +29,7 @@ import {
   View,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { isPast } from 'date-fns';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
-import { Booking } from '@/redux/booking/types';
 import CustomImage from '@/components/ui/CustomImage';
 
 function getVideoMimeType(mime: string | undefined): MimeType {
@@ -322,10 +320,12 @@ export default function ConversationScreen() {
   };
 
   const handleWorkerPress = () => {
+    const workerId = conversation?.workerId;
+    if (!workerId) return;
     router.push({
       pathname: '/(tabs)/(search)/(artisan)/artisan',
       params: {
-        id: conversation?.workerId as string,
+        artisanId: workerId,
       },
     });
   };
