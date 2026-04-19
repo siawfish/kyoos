@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "kyoos",
     slug: "kyoos",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "kyoos",
@@ -32,8 +32,8 @@ module.exports = {
         light: "./assets/images/icon-light.png",
         tinted: "./assets/images/icon-tinted.png",
       },
-      buildNumber: "1.0.0",
-      versionCode: 1,
+      buildNumber: "1.0.1",
+      versionCode: 2,
     },
     android: {
       adaptiveIcon: {
@@ -47,8 +47,8 @@ module.exports = {
         "android.permission.CAMERA",
       ],
       package: "com.divsandviews.kyoos",
-      buildNumber: "1.0.0",
-      versionCode: 1,
+      buildNumber: "1.0.1",
+      versionCode: 2,
       googleServicesFile: "./google-services.json",
     },
     web: {

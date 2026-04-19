@@ -48,6 +48,7 @@ export default function ConversationScreen() {
   const backgroundColor = useThemeColor({ light: colors.light.background, dark: colors.dark.background }, 'background');
   const conversations = useAppSelector(selectConversations);
   const conversationMessages = useAppSelector(selectCurrentConversationMessages);
+  const safeConversationMessages = conversationMessages ?? [];
   const [inputText, setInputText] = useState('');
   const [attachments, setAttachments] = useState<Media[]>([]);
   const [isAttachmentSheetOpen, setIsAttachmentSheetOpen] = useState(false);
@@ -82,13 +83,13 @@ export default function ConversationScreen() {
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    const currentCount = conversationMessages.length;
+    const currentCount = safeConversationMessages.length;
     const prevCount = prevMessageCountRef.current;
     
     // Check if a new message was added
     if (currentCount > prevCount && currentCount > 0) {
       // Check if the new message is from the current user (they just sent a message)
-      const lastMessage = conversationMessages[currentCount - 1];
+      const lastMessage = safeConversationMessages[currentCount - 1];
       const isOwnNewMessage = lastMessage?.senderId === user?.id;
       
       // Always scroll for own messages, or if auto-scroll is enabled
@@ -102,40 +103,27 @@ export default function ConversationScreen() {
     
     // Update previous count
     prevMessageCountRef.current = currentCount;
-  }, [conversationMessages, user?.id]);
+  }, [safeConversationMessages, user?.id]);
 
   // Scroll to bottom on initial load
   useEffect(() => {
-    if (conversationMessages.length > 0 && prevMessageCountRef.current === 0) {
+    if (safeConversationMessages.length > 0 && prevMessageCountRef.current === 0) {
       // Initial load - scroll to bottom without animation
       requestAnimationFrame(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       });
     }
-  }, [conversationMessages.length]);
+  }, [safeConversationMessages.length]);
 
-  // Scroll to bottom when keyboard opens
+  // Keep latest messages visible once keyboard is fully open.
   useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => {
-        // Delay to allow keyboard animation to progress
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, Platform.OS === 'ios' ? 50 : 150);
-      }
-    );
-
-    // Also handle keyboard did show for a second scroll (ensures content is visible)
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      // Final scroll after keyboard is fully visible
       requestAnimationFrame(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       });
     });
 
     return () => {
-      keyboardWillShowListener.remove();
       keyboardDidShowListener.remove();
     };
   }, []);
@@ -346,11 +334,11 @@ export default function ConversationScreen() {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={heightPixel(60)}
       >
         <FlashList
           ref={scrollViewRef}
-          data={conversationMessages}
+          data={safeConversationMessages}
           contentContainerStyle={styles.listContainer}
           keyboardShouldPersistTaps="handled"
           onScroll={(event: any) => {

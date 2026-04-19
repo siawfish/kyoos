@@ -90,6 +90,7 @@ const Otp = () => {
                 >
                     <View style={styles.mainStyle}>
                         <AccentScreenHeader
+                            containerStyle={styles.headerContainer}
                             title={
                                 <View>
                                     <Text style={[styles.otpEyebrow, { color: eyebrowColor }]}>VERIFICATION</Text>
@@ -177,6 +178,9 @@ const styles = StyleSheet.create({
     scrollFooterSpacer: {
         flexGrow: 1,
         minHeight: heightPixel(1),
+    },
+    headerContainer: {
+        paddingHorizontal: widthPixel(0),
     },
     mainStyle: {
         paddingHorizontal: widthPixel(16),
