@@ -23,7 +23,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { selectFetchingConversation } from '@/redux/messaging/selector';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { actions as messagingActions } from '@/redux/messaging/slice';
 import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
@@ -69,10 +69,9 @@ export default function BookingsScreen() {
     }
   }, [selectedDate, currentWeekStart, dispatch]);
 
-  // Initial fetch on mount (uses current week start from state)
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     dispatch(actions.fetchBookings());
-  }, [dispatch]);
+  }, [dispatch]));
 
   const bookingCounts = useMemo(() => {
     const counts: Record<string, number> = {};
