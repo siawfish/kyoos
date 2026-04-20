@@ -30,9 +30,13 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Env / secrets — ignore all variants; commit only templates (never real keys or tunnels)
 .env
-.env*.local
+.env.*
+!.env.example
+!.env.sample
+# EAS CLI: `eas env:pull --path …` (often contains secrets)
+.env.eas.*
 
 # typescript
 *.tsbuildinfo
