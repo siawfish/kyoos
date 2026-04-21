@@ -7,7 +7,6 @@ import {
     Animated, 
     Easing, 
     TextStyle, 
-    Platform, 
     Text,
     ActivityIndicator,
     ScrollView
@@ -18,9 +17,8 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { colors } from '@/constants/theme/colors';
 import { fontPixel, widthPixel, heightPixel } from '@/constants/normalize';
 import { Feather } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { addHours, isToday, parseISO, setHours, setMinutes, setSeconds } from 'date-fns';
-import IOSDatePickerModal from '@/components/ui/IOSDatePickerModal';
+import WheelDatePickerModal from '@/components/ui/WheelDatePicker/WheelDatePickerModal';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { actions } from '@/redux/booking/slice';
 import { 
@@ -103,24 +101,18 @@ const AppointmentDateTimeSelector = ({
         return new Date();
     }, [appointmentDate?.value]);
 
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        onBlur();
-        if (selectedDate) {
-            // if date is today, pass the date as it is. if not reset the time to 00:00:00
-            if (isToday(selectedDate)) {
-                // set time to an hour away from now
-                selectedDate = addHours(selectedDate, 1);
-            } else {
-                selectedDate = setHours(selectedDate, 7);
-                selectedDate = setMinutes(selectedDate, 0);
-                selectedDate = setSeconds(selectedDate, 0);
-            }
-            const dateString = selectedDate.toISOString();
-            // Set the date
-            dispatch(actions.setAppointmentDate(dateString));
-            // Fetch available times for this date
-            dispatch(actions.getAvailableTimes(dateString));
+    const handleDateChange = (picked: Date) => {
+        let normalized = picked;
+        if (isToday(normalized)) {
+            normalized = addHours(normalized, 1);
+        } else {
+            normalized = setHours(normalized, 7);
+            normalized = setMinutes(normalized, 0);
+            normalized = setSeconds(normalized, 0);
         }
+        const dateString = normalized.toISOString();
+        dispatch(actions.setAppointmentDate(dateString));
+        dispatch(actions.getAvailableTimes(dateString));
     };
 
     const handleTimeSlotSelect = (slot: AvailableSlot) => {
@@ -177,23 +169,13 @@ const AppointmentDateTimeSelector = ({
                 </ThemedText>
             </AnimatedTouchable>
 
-            {/* Date Picker Modal */}
-            {Platform.OS === 'ios' ? (
-                <IOSDatePickerModal
-                    visible={showDatePicker}
-                    selectedDate={selectedDate}
-                    onDateChange={handleDateChange}
-                    onClose={onBlur}
-                />
-            ) : showDatePicker && (
-                <DateTimePicker
-                    value={selectedDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                    minimumDate={new Date()}
-                />
-            )}
+            <WheelDatePickerModal
+                visible={showDatePicker}
+                onClose={onBlur}
+                value={selectedDate}
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+            />
 
             {/* Time Slots Section */}
             {appointmentDate?.value && (
