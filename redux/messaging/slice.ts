@@ -273,12 +273,29 @@ const messagingSlice = createSlice({
       }
     },
     
-    // Message status updated
+    // Single message status updated (e.g. DELIVERED)
     messageStatusUpdated: (state, action: PayloadAction<{ messageId: string; status: string }>) => {
       const { messageId, status } = action.payload;
       const message = state.currentConversationMessages.find(m => m.id === messageId);
       if (message) {
         message.status = status as any;
+      }
+    },
+
+    // Bulk: mark own messages in a conversation as READ
+    messagesMarkedAsRead: (state, action: PayloadAction<{ conversationId: string; messageIds?: string[] }>) => {
+      const { conversationId, messageIds } = action.payload;
+      for (const msg of state.currentConversationMessages) {
+        if (msg.conversationId !== conversationId) continue;
+        if (messageIds && messageIds.length > 0) {
+          if (messageIds.includes(msg.id)) {
+            msg.status = MessageStatus.READ;
+          }
+        } else {
+          if (msg.status === MessageStatus.SENT || msg.status === MessageStatus.DELIVERED) {
+            msg.status = MessageStatus.READ;
+          }
+        }
       }
     },
     

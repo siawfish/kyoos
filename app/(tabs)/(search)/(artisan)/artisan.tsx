@@ -389,7 +389,6 @@ const styles = StyleSheet.create({
         letterSpacing: 1.1,
     },
     rateBadge: {
-        borderWidth: 0.5,
         alignItems: 'flex-end',
         justifyContent: 'center',
         minWidth: widthPixel(92),

@@ -70,8 +70,8 @@ function* fetchConversationMessagesSaga(action: PayloadAction<string>) {
 
 /**
  * Send a new message
- * The optimistic message is already added to state by the reducer
- * This saga handles the actual sending in the background
+ * The optimistic message is already added to state by the reducer.
+ * This saga uploads media, then awaits the server ack before marking success.
  */
 function* sendMessageSaga(
   action: PayloadAction<SendMessagePayload>
@@ -81,7 +81,6 @@ function* sendMessageSaga(
   try {
     let media: Asset[] = [];
 
-    // Upload attachments if any exist
     if (message.attachments && message.attachments.length > 0) {
       const uploadResult: { data?: Asset[]; error?: string } = yield call(
         uploadAttachments,
@@ -95,12 +94,15 @@ function* sendMessageSaga(
       media = uploadResult.data || [];
     }
 
-    // Send via Socket.io for real-time delivery
-    // The server will broadcast the message back with a real ID
-    socketService.sendMessage(conversationId, message.content, media);
+    const ack: { success: boolean; tempId?: string; message?: Message } = yield call(
+      [socketService, socketService.sendMessage],
+      conversationId,
+      message.content,
+      media,
+      tempId,
+    );
 
-    // Mark as sent (status will be updated when server confirms via socket)
-    yield put(actions.sendMessageSuccess({ tempId }));
+    yield put(actions.sendMessageSuccess({ tempId, message: ack.message }));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
     
@@ -120,16 +122,27 @@ function* sendMessageSaga(
 function* retryMessageSaga(
   action: PayloadAction<{ tempId: string; newTempId: string; conversationId: string; content?: string; media?: Asset[] }>
 ) {
-  const { tempId, newTempId, conversationId, content, media } = action.payload;
+  const { newTempId, conversationId, content, media } = action.payload;
   
   try {
-    // Send via Socket.io
-    socketService.sendMessage(conversationId, content, media || []);
+    const ack: { success: boolean; tempId?: string; message?: Message } = yield call(
+      [socketService, socketService.sendMessage],
+      conversationId,
+      content,
+      media || [],
+      newTempId,
+    );
 
-    yield put(actions.sendMessageSuccess({ tempId: newTempId }));
+    yield put(actions.sendMessageSuccess({ tempId: newTempId, message: ack.message }));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
     yield put(actions.sendMessageFailure({ tempId: newTempId, error: errorMessage }));
+
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to send message',
+      text2: 'Tap the message to retry',
+    });
   }
 }
 

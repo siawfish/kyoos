@@ -1,14 +1,12 @@
 import { AccentScreenHeader } from "@/components/ui/AccentScreenHeader";
 import Button from "@/components/ui/Button";
 import MediaPreviews from "@/components/ui/MediaPreviews";
-import SuccessOverlay from "@/components/ui/SuccessOverlay";
 import { ScreenLayout } from "@/components/layout/ScreenLayout";
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from "@/constants/navigation/tabRootScrollPadding";
 import { ThemedText } from "@/components/ui/Themed/ThemedText";
 import { convertFromMillisecondsToHours, formatDate } from "@/constants/helpers";
 import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
-import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { selectUser } from "@/redux/app/selector";
 import {
@@ -29,11 +27,12 @@ import { ServiceLocationType } from "@/redux/booking/types";
 import { actions as searchActions } from "@/redux/search/slice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Feather } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { RelativePathString, useLocalSearchParams, useRouter } from "expo-router";
 import numeral from "numeral";
 import { useMemo } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import Success from "../Success";
+import BackButton from "@/components/ui/BackButton";
 
 export default function ReviewBooking() {
     const router = useRouter();
@@ -60,9 +59,6 @@ export default function ReviewBooking() {
         return rate ? rate * convertFromMillisecondsToHours(summary?.estimatedDuration) : 0;
     },[rate, summary?.estimatedDuration]);
     const bookingId = useAppSelector(selectBookingId);
-
-    const theme = useAppTheme();
-    const isDark = theme === 'dark';
 
     const textColor = useThemeColor({
         light: colors.light.text,
@@ -156,7 +152,7 @@ export default function ReviewBooking() {
         <ScreenLayout style={styles.container}>
             <View style={styles.headerContainer}>
                 <AccentScreenHeader
-                    onBackPress={() => router.back()}
+                    renderRight={() => <BackButton onPress={() => router.back()} iconName="x" />}
                     title="REVIEW BOOKING"
                     titleStyle={[styles.pageTitle, { color: labelColor }]}
                 />
@@ -223,14 +219,6 @@ export default function ReviewBooking() {
                                         </Text>
                                     </View>
                                 )}
-                                {/* {artisan.phoneNumber && (
-                                    <View style={styles.detailRow}>
-                                        <Feather name="phone" size={fontPixel(14)} color={labelColor} />
-                                        <Text style={[styles.detailText, { color: textColor }]}>
-                                            {artisan.phoneNumber}
-                                        </Text>
-                                    </View>
-                                )} */}
                             </View>
                         </View>
                     </View>
@@ -383,19 +371,7 @@ export default function ReviewBooking() {
             </View>
 
             {isSuccess && (
-                <>
-                    <BlurView
-                        intensity={60}
-                        tint={isDark ? 'dark' : 'light'}
-                        style={StyleSheet.absoluteFill}
-                    />
-                    <SuccessOverlay
-                        title="Booking Requested"
-                        text="Your booking has been requested. We will notify you when the booking is accepted."
-                        buttonLabel="View Booking"
-                        onButtonPress={handleSuccessClose}
-                    />
-                </>
+                <Success onButtonPress={handleSuccessClose} />
             )}
         </ScreenLayout>
     );
@@ -406,9 +382,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerContainer: {
-        paddingHorizontal: widthPixel(16),
-        paddingBottom: heightPixel(8),
-        gap: heightPixel(8),
+        paddingHorizontal: widthPixel(0),
     },
     reviewAccentHeader: {
         paddingHorizontal: 0,
@@ -432,7 +406,6 @@ const styles = StyleSheet.create({
         fontSize: fontPixel(10),
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
-        marginBottom: heightPixel(12),
     },
     sectionLabel: {
         fontSize: fontPixel(10),
