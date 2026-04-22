@@ -1,4 +1,4 @@
-import { convertFromMillisecondsToHours, formatDate, formatTime } from '@/constants/helpers'
+import { convertFromMillisecondsToHours, formatDate, formatTime, parseCompletedActualInterval } from '@/constants/helpers'
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
@@ -12,6 +12,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import BookingStatus from './Status'
 import CustomImage from '@/components/ui/CustomImage'
+import YourRatingCard from './YourRatingCard'
+import YourReportCard from './YourReportCard'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -32,6 +34,10 @@ const BookingDetails = ({
     if (!booking) return null;
 
     const isCompleted = booking.status === BookingStatuses.COMPLETED;
+    const actualInterval = parseCompletedActualInterval(booking);
+    const durationMs = actualInterval
+        ? actualInterval.endMs - actualInterval.startMs
+        : (booking.estimatedDuration ?? 0);
     const hasFinal = isCompleted && booking.finalPrice != null;
     const priceAmount = hasFinal ? booking.finalPrice : booking.estimatedPrice;
     const priceLabel = hasFinal ? 'FINAL' : 'ESTIMATED';
@@ -77,7 +83,7 @@ const BookingDetails = ({
                         <View style={styles.infoTextContainer}>
                             <Text style={[styles.infoLabel, { color: labelColor }]}>DURATION</Text>
                             <Text style={[styles.infoValue, { color: textColor }]}>
-                                {convertFromMillisecondsToHours(booking?.estimatedDuration!)} hours
+                                {convertFromMillisecondsToHours(durationMs)} hours
                             </Text>
                         </View>
                     </View>
@@ -126,6 +132,11 @@ const BookingDetails = ({
             )}
 
             <ContactCard booking={booking} />
+
+            <YourReportCard report={booking.report} />
+
+            <YourRatingCard rating={booking.rating} />
+
         </ScrollView>
     )
 }
@@ -217,5 +228,5 @@ const styles = StyleSheet.create({
         height: widthPixel(80),
         marginRight: widthPixel(8),
         overflow: 'hidden',
-    }
+    },
 });

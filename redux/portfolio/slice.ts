@@ -34,6 +34,7 @@ export const initialState: PortfolioState = {
     isLoading: false,
   },
   isLikingPortfolio: false,
+  isReportingPortfolio: false,
   isLoadingComments: false,
   isLoading: false,
   error: null,
@@ -140,6 +141,24 @@ const portfolioSlice = createSlice({
     setIsLikingPortfolio: (state, action: PayloadAction<boolean>) => {
       state.isLikingPortfolio = action.payload;
     },
+    reportPortfolio: (
+      state,
+      _action: PayloadAction<{ portfolioId: string; reason: string; comment: string }>
+    ) => {
+      state.isReportingPortfolio = true;
+    },
+    setIsReportingPortfolio: (state, action: PayloadAction<boolean>) => {
+      state.isReportingPortfolio = action.payload;
+    },
+    markPortfolioReported: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      const mark = (p: Portfolio) => (p.id === id ? { ...p, hasReported: true } : p);
+      state.portfolios = state.portfolios.map(mark);
+      state.homePopularPortfolios = state.homePopularPortfolios.map(mark);
+      if (state.selectedPortfolio?.id === id) {
+        state.selectedPortfolio = { ...state.selectedPortfolio, hasReported: true };
+      }
+    },
     fetchComments: (state, action: PayloadAction<string>) => {
       state.isLoadingComments = true;
     },
@@ -186,6 +205,7 @@ const portfolioSlice = createSlice({
         return {
           ...state,
           ...action.payload.portfolio,
+          isReportingPortfolio: false,
         };
       }
       return state;

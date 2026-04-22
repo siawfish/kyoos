@@ -133,20 +133,23 @@ export const useMessaging = (conversationId?: string) => {
     }, []);
 
     /**
-     * Setup Socket.io event listeners
-     * Re-runs when connection state changes to ensure listeners are registered
+     * Setup Socket.io event listeners.
+     * Only the root instance (no conversationId) registers listeners to avoid
+     * duplicate handlers when both _layout.tsx and [id].tsx use this hook.
      */
     useEffect(() => {
-        // Only set up listeners when connected
+        if (conversationId) return;
         if (!isConnected) return;
 
         const socket = socketService.getSocket();
         if (!socket) return;
 
-        // Message events
         const handleMessageNew = (message: Message) => {
-            console.log('New message received:', message);
             dispatch(actions.messageReceived({ ...message, currentUserId: user?.id }));
+
+            if (user?.id && message.senderId !== user.id && message.id) {
+                socketService.acknowledgeDelivery(message.id, message.conversationId);
+            }
         };
 
         const handleMessageEdited = (data: {
@@ -154,7 +157,6 @@ export const useMessaging = (conversationId?: string) => {
             content: string;
             editedAt: string;
         }) => {
-            console.log('Message edited:', data);
             dispatch(actions.messageEdited(data));
         };
 
@@ -162,30 +164,31 @@ export const useMessaging = (conversationId?: string) => {
             messageId: string;
             deletedAt: string;
         }) => {
-            console.log('Message deleted:', data);
             dispatch(actions.messageDeleted(data));
         };
 
         const handleMessageStatus = (data: {
-            conversationId: string;
+            conversationId?: string;
+            messageId?: string;
             status: string;
-            readBy: string;
+            readBy?: string;
+            messageIds?: string[];
         }) => {
-            console.log('Message status updated:', data);
-            // Optionally update message statuses in Redux
+            if (data.messageId) {
+                dispatch(actions.messageStatusUpdated({ messageId: data.messageId, status: data.status }));
+            }
+            if (data.conversationId && data.messageIds && data.messageIds.length > 0) {
+                dispatch(actions.messagesMarkedAsRead({ conversationId: data.conversationId, messageIds: data.messageIds }));
+            } else if (data.conversationId && data.status === 'READ') {
+                dispatch(actions.messagesMarkedAsRead({ conversationId: data.conversationId }));
+            }
         };
 
-        const handleMessageSent = (data: { messageId: string }) => {
-            console.log('Message sent confirmation:', data);
-        };
-
-        // Typing events
         const handleTypingStart = (data: {
             conversationId: string;
             userId: string;
             userName: string;
         }) => {
-            console.log('User started typing:', data);
             dispatch(actions.userStartedTyping(data));
         };
 
@@ -193,37 +196,31 @@ export const useMessaging = (conversationId?: string) => {
             conversationId: string;
             userId: string;
         }) => {
-            console.log('User stopped typing:', data);
             dispatch(actions.userStoppedTyping(data));
         };
 
-        // Error handling
         const handleError = (error: { message: string }) => {
             console.error('Socket error:', error);
         };
 
-        // Register event listeners
         socket.on('message:new', handleMessageNew);
         socket.on('message:edited', handleMessageEdited);
         socket.on('message:deleted', handleMessageDeleted);
         socket.on('message:status', handleMessageStatus);
-        socket.on('message:sent', handleMessageSent);
         socket.on('typing:start', handleTypingStart);
         socket.on('typing:stop', handleTypingStop);
         socket.on('error', handleError);
 
-        // Cleanup function
         return () => {
             socket.off('message:new', handleMessageNew);
             socket.off('message:edited', handleMessageEdited);
             socket.off('message:deleted', handleMessageDeleted);
             socket.off('message:status', handleMessageStatus);
-            socket.off('message:sent', handleMessageSent);
             socket.off('typing:start', handleTypingStart);
             socket.off('typing:stop', handleTypingStop);
             socket.off('error', handleError);
         };
-    }, [dispatch, user?.id, isConnected]);
+    }, [conversationId, dispatch, user?.id, isConnected]);
 
     /**
      * Auto-join conversation when conversationId changes

@@ -20,6 +20,7 @@ import { RelativePathString, useLocalSearchParams, useRouter } from "expo-router
 import { RefObject, useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Image } from 'expo-image'
+import BackButton from "@/components/ui/BackButton";
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -119,13 +120,12 @@ export default function BookingScreen() {
     return (
         <ScreenLayout style={styles.container}>
             <AccentScreenHeader
-                onBackPress={handleBackPress}
+                renderRight={() => <BackButton onPress={handleBackPress} iconName="x" />}
                 title="BOOK SERVICE"
                 titleStyle={{
                     fontSize: fontPixel(10),
                     fontFamily: 'SemiBold',
                     letterSpacing: 1.5,
-                    marginBottom: heightPixel(12),
                 }}
                 subtitle={
                     <View style={styles.headerSubtitle}>
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: widthPixel(16),
-        marginBottom: heightPixel(24),
+        // marginBottom: heightPixel(24),
     },
     headerSubtitle: {
         flexDirection: 'row',

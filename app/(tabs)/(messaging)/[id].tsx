@@ -18,7 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState, useEffect } from 'react';
 import {
   Keyboard,
@@ -56,6 +56,7 @@ export default function ConversationScreen() {
   const prevMessageCountRef = useRef(0);
   const shouldAutoScrollRef = useRef(true);
   const isPickerActiveRef = useRef(false);
+  const lastAutoReadMessageIdRef = useRef<string | null>(null);
   const dispatch = useAppDispatch();
   const { id } = useLocalSearchParams();
   const user = useAppSelector(selectUser);
@@ -74,12 +75,31 @@ export default function ConversationScreen() {
     }
   }, [id, conversations, dispatch]);
 
-  // Fetch messages for this conversation
   useEffect(() => {
     if (id) {
       dispatch(actions.fetchConversationMessages(id as string));
+      dispatch(actions.markConversationAsRead(id as string));
     }
   }, [id, dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (typeof id !== 'string') return;
+      dispatch(actions.fetchConversationMessages(id));
+      dispatch(actions.markConversationAsRead(id));
+    }, [id, dispatch])
+  );
+
+  useEffect(() => {
+    if (typeof id !== 'string' || !user?.id || safeConversationMessages.length === 0) return;
+
+    const latestMessage = safeConversationMessages[safeConversationMessages.length - 1];
+    if (!latestMessage || latestMessage.senderId === user.id) return;
+    if (latestMessage.id === lastAutoReadMessageIdRef.current) return;
+
+    lastAutoReadMessageIdRef.current = latestMessage.id;
+    dispatch(actions.markConversationAsRead(id));
+  }, [id, user?.id, safeConversationMessages, dispatch]);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {

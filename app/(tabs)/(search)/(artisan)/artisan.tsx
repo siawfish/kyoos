@@ -305,12 +305,13 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: widthPixel(0),
+        paddingBottom: heightPixel(0),
     },
     dockBlock: {
         paddingBottom: heightPixel(8),
     },
     section: {
-        marginTop: heightPixel(20),
+        marginTop: heightPixel(16),
     },
     sectionLabelContainer: {
         marginBottom: heightPixel(12),
@@ -388,7 +389,6 @@ const styles = StyleSheet.create({
         letterSpacing: 1.1,
     },
     rateBadge: {
-        borderWidth: 0.5,
         alignItems: 'flex-end',
         justifyContent: 'center',
         minWidth: widthPixel(92),

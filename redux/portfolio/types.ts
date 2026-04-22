@@ -9,6 +9,8 @@ export interface Portfolio {
   comments: number;
   hasLiked: boolean;
   hasCommented: boolean;
+  /** True if the current user has already reported this portfolio (from API or after submit). */
+  hasReported?: boolean;
   createdAt: string;
   updatedAt: string;
   createdBy: User;
@@ -54,6 +56,7 @@ export interface PortfolioState {
   isLoadingComments: boolean;
   commentForm: CommentForm;
   isLikingPortfolio: boolean;
+  isReportingPortfolio: boolean;
   isLoading: boolean;
   error: string | null;
   pagination: Pagination;

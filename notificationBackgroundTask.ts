@@ -8,6 +8,7 @@ import { getItemFromStorage } from '@/services/asyncStorage';
 import {
   BackgroundNotificationTaskResult,
   registerTaskAsync,
+  scheduleNotificationAsync,
   type NotificationResponse,
 } from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
@@ -21,17 +22,65 @@ const logBackgroundTask = (event: string, payload?: Record<string, unknown>) => 
   console.info('[notification-bg-task:kyoos]', event, payload ?? {});
 };
 
+type PresentPayload = {
+  title?: string;
+  body?: string;
+  categoryId?: string;
+  sound?: string;
+  channelId?: string;
+};
+
+/**
+ * Handle a headless (data-only) notification delivery by presenting a local notification so
+ * category action buttons work in background/killed state on Android. See plan and PR
+ * https://github.com/expo/expo/pull/35295.
+ */
+async function presentHeadlessNotification(
+  payload: Record<string, unknown>,
+): Promise<BackgroundNotificationTaskResult> {
+  const notifData = (payload.data ?? {}) as Record<string, unknown>;
+  const present = notifData._present as PresentPayload | undefined;
+  if (!present?.categoryId) {
+    logBackgroundTask('headless_missing_present', { hasData: Boolean(notifData) });
+    return BackgroundNotificationTaskResult.NoData;
+  }
+
+  try {
+    await scheduleNotificationAsync({
+      content: {
+        title: present.title ?? '',
+        body: present.body ?? '',
+        data: notifData,
+        categoryIdentifier: present.categoryId,
+        sound: present.sound ?? 'notification.wav',
+      },
+      trigger: null,
+    });
+    logBackgroundTask('presented_local_notification', { categoryId: present.categoryId });
+    return BackgroundNotificationTaskResult.NewData;
+  } catch (err) {
+    logBackgroundTask('present_failed', { message: err instanceof Error ? err.message : String(err) });
+    return BackgroundNotificationTaskResult.Failed;
+  }
+}
+
 TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, error }) => {
   if (error) {
     logBackgroundTask('task_error', { message: error.message });
     return BackgroundNotificationTaskResult.Failed;
   }
-  if (!data || typeof data !== 'object' || !('actionIdentifier' in data)) {
+  if (!data || typeof data !== 'object') {
     logBackgroundTask('no_data');
     return BackgroundNotificationTaskResult.NoData;
   }
 
-  const response = data as NotificationResponse;
+  const payload = data as Record<string, unknown>;
+
+  if (!('actionIdentifier' in payload)) {
+    return presentHeadlessNotification(payload);
+  }
+
+  const response = payload as unknown as NotificationResponse;
   logBackgroundTask('received_response', { actionIdentifier: response.actionIdentifier });
   const token = await getItemFromStorage('token');
   if (!token) {

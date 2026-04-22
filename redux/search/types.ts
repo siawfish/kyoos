@@ -91,6 +91,8 @@ export interface Worker {
     acceptedTerms: AcceptedTerms;
     userId: string;
     rating: number;
+    ratingAverage?: number;
+    ratingCount?: number;
 }
 
 export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';

@@ -13,14 +13,15 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 interface ActionsProps {
   readonly onCancel?: () => void;
   readonly onReport?: () => void;
-  readonly onDelete?: () => void;
   readonly onReschedule?: () => void;
+  readonly onRateWorker?: () => void;
 }
 
 const Actions = ({
     onCancel,
     onReport,
     onReschedule,
+    onRateWorker,
 }:ActionsProps) => {
   const booking = useAppSelector(selectBooking);
   const isUpdatingBooking = useAppSelector(selectIsUpdatingBooking);
@@ -57,19 +58,43 @@ const Actions = ({
 
     if (booking?.status === BookingStatuses.COMPLETED) {
       return [
-        {
-          label: 'REPORT BOOKING',
-          icon: <Ionicons name="flag" size={fontPixel(16)} color={colors.light.white} />,
-          style: styles.cancelBtn,
-          labelStyle: styles.cancelLabel,
-          onPress: onReport,
-        }
-      ]
+        ...(booking.report
+          ? []
+          : [
+              {
+                label: 'REPORT BOOKING',
+                icon: <Ionicons name="flag" size={fontPixel(16)} color={colors.light.white} />,
+                style: styles.cancelBtn,
+                labelStyle: styles.cancelLabel,
+                onPress: onReport,
+              },
+            ]),
+        ...(booking.rating
+          ? []
+          : [{
+              label: '',
+              icon: <Ionicons name="thumbs-up" size={fontPixel(16)} color={iconColor} />,
+              style: styles.smallBtn,
+              labelStyle: styles.cancelLabel,
+              onPress: onRateWorker,
+            }]),
+      ];
     }
 
     if (booking?.status === BookingStatuses.ACCEPTED) {
       if (isPassed) {
         return [
+          ...(booking.report
+          ? []
+          : [
+              {
+                label: '',
+                icon: <Ionicons name="flag" size={fontPixel(16)} color={colors.light.white} />,
+                style: styles.smallBtn,
+                labelStyle: styles.cancelLabel,
+                onPress: onReport,
+              },
+            ]),
           {
             label: 'RESCHEDULE BOOKING',
             icon: <Ionicons name="calendar" size={fontPixel(16)} color={iconColor} />,
@@ -153,6 +178,12 @@ const styles = StyleSheet.create({
       fontSize: fontPixel(12),
       fontFamily: 'SemiBold',
       letterSpacing: 1.5,
+    },
+    smallBtn: {
+      width: widthPixel(80),
+      borderRadius: 0,
+      marginHorizontal: 0,
+      backgroundColor: colors.light.danger,
     },
     bookingBtn: {
       marginHorizontal: 0,

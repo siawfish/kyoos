@@ -11,15 +11,17 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Options as OptionsType } from '@/redux/app/types';
 
-export function Options({
-    options,
-    snapPoints = ['45%'],
-    title = 'Portfolio Actions',
-}: {
+interface OptionsProps {
     options: OptionsType[],
     snapPoints?: string[],
     title?: string,
-}) {
+}
+
+export function Options({
+    options,
+    snapPoints = ['40%'],
+    title = 'Portfolio Actions',
+}: Readonly<OptionsProps>) {
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -48,7 +50,7 @@ export function Options({
         dark: colors.dark.green
     }, 'text');
 
-    const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
+    const memoizedSnapPoints = useMemo(() => options.length > 2 ? snapPoints : ['35%'], [options.length, snapPoints]);
 
     const handleOpen = useCallback(() => {
         setIsOpen(true);

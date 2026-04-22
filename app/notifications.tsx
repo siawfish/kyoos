@@ -10,6 +10,7 @@ import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { BookingStatuses } from '@/redux/app/types';
 import { actions } from '@/redux/notifications/slice';
 import type { AppNotification } from '@/redux/notifications/types';
 import {
@@ -43,9 +44,13 @@ function getNotificationRoute(item: AppNotification): Href | null {
   const payload = item.data as unknown as Record<string, unknown>;
 
   if (item.type === 'booking' && typeof payload.bookingId === 'string') {
+    const isCompleted = payload.status === BookingStatuses.COMPLETED;
     return {
       pathname: '/(tabs)/(bookings)/[id]',
-      params: { id: payload.bookingId },
+      params: {
+        id: payload.bookingId,
+        ...(isCompleted ? { openRatingSheet: '1' } : {}),
+      },
     };
   }
 

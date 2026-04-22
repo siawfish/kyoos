@@ -1,4 +1,5 @@
 import { BookingStatuses, MimeType, PermissionType, StatusColors } from '@/redux/app/types';
+import { Booking } from '@/redux/booking/types';
 import { Location as LocationType } from '@/redux/auth/types';
 import { Worker } from '@/redux/search/types';
 import { format, formatRelative, isBefore, isToday, isTomorrow, isWithinInterval } from 'date-fns';
@@ -18,10 +19,24 @@ export const isWithinTheTimeRange = (startDateTime: string, endDateTime: string)
   if (!startDateTime || !endDateTime) return false;
   const start = new Date(startDateTime);
   const end = new Date(endDateTime);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
   // Require a valid forward interval; an inverted check rejects every normal booking window.
   if (!isBefore(start, end)) return false;
   return isWithinInterval(new Date(), { start, end });
+}
+
+/** When a booking is completed with real clock times, use this for duration / agenda rail. */
+export function parseCompletedActualInterval(
+  booking: Booking
+): { startMs: number; endMs: number } | null {
+  if (booking.status !== BookingStatuses.COMPLETED) return null;
+  if (!booking.actualStartTime || !booking.actualEndTime) return null;
+  const startMs = new Date(booking.actualStartTime).getTime();
+  const endMs = new Date(booking.actualEndTime).getTime();
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || !isBefore(startMs, endMs)) {
+    return null;
+  }
+  return { startMs, endMs };
 }
 
 export const formatDate = (date: Date) => {

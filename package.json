@@ -1,21 +1,23 @@
 {
   "name": "kyoos",
   "main": "index.js",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:ios:prod:local": "GOOGLE_API_KEY=$(grep '^GOOGLE_API_KEY=' .env.development.local | cut -d= -f2-) eas env:exec production 'eas build --platform ios --profile production --local --clear-cache'",
+    "build:android:prod:local": "GOOGLE_API_KEY=$(grep '^GOOGLE_API_KEY=' .env.development.local | cut -d= -f2-) eas env:exec production 'eas build --platform android --profile production --local --clear-cache'"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@gorhom/portal": "^1.0.14",
+    "@quidone/react-native-wheel-picker": "^1.6.4",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-menu/menu": "^2.0.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",

@@ -23,7 +23,6 @@ interface ProfileCardProps {
 
 function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
     const theme = useAppTheme();
-    const isDark = theme === 'dark';
     const router = useRouter();
     const searchReferenceId = useAppSelector(selectSearchReferenceId);
     const dispatch = useAppDispatch();
@@ -32,6 +31,11 @@ function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
         light: colors.light.background,
         dark: colors.dark.background
     }, 'background');
+
+    const tintColor = useThemeColor({
+        light: colors.light.white,
+        dark: colors.dark.black
+    }, 'tint');
 
     const borderColor = useThemeColor({
         light: colors.light.black,
@@ -57,15 +61,6 @@ function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
         light: colors.light.black,
         dark: colors.dark.white
     }, 'background');
-
-    const averageRate = useMemo(() => {
-        const rates = worker.skills
-            .map((skill) => skill.rate ?? 0)
-            .filter((rate) => rate > 0);
-
-        if (rates.length === 0) return 0;
-        return Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length);
-    }, [worker.skills]);
 
     const handleBookNow = () => {
         // Check if searchReferenceId is empty - if so, show description modal
@@ -136,12 +131,12 @@ function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
 
                     <IconButton  
                         onPress={handleBookNow}
-                        style={styles.bookNowButton}
+                        style={[styles.bookNowButton, { backgroundColor: accentColor }]}
                     >
                         <SimpleLineIcons 
                             name="calendar" 
                             size={fontPixel(14)} 
-                            color={textColor}
+                            color={tintColor}
                         />
                     </IconButton>
                 </View>

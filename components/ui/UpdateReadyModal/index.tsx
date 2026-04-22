@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: widthPixel(24),
     gap: widthPixel(16),
-    borderRadius: widthPixel(16),
   },
   iconContainer: {
     width: widthPixel(80),

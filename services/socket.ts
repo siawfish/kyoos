@@ -206,16 +206,60 @@ class SocketService {
         }
     }
 
+    private static readonly SEND_TIMEOUT_MS = 15_000;
+
     /**
-     * Send a message
+     * Send a message. Returns a Promise that resolves when the server emits
+     * `message:sent` with the matching tempId, or rejects on error/timeout.
      */
-    sendMessage(conversationId: string, content?: string, media?: any[]) {
+    sendMessage(conversationId: string, content?: string, media?: any[], tempId?: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (!this.socket?.connected) {
+                return reject(new Error('Socket is not connected'));
+            }
+
+            let settled = false;
+            const cleanup = () => {
+                clearTimeout(timer);
+                this.socket?.off('message:sent', onSent);
+                this.socket?.off('message:send:error', onError);
+            };
+            const settle = (fn: () => void) => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                fn();
+            };
+
+            const timer = setTimeout(() => {
+                settle(() => reject(new Error('Message send timed out')));
+            }, SocketService.SEND_TIMEOUT_MS);
+
+            const onSent = (data: any) => {
+                if (data?.tempId === tempId) {
+                    settle(() => resolve(data));
+                }
+            };
+
+            const onError = (data: any) => {
+                if (data?.tempId === tempId) {
+                    settle(() => reject(new Error(data?.error || 'Failed to send message')));
+                }
+            };
+
+            this.socket.on('message:sent', onSent);
+            this.socket.on('message:send:error', onError);
+
+            this.socket.emit('message:send', { conversationId, content, media, tempId });
+        });
+    }
+
+    /**
+     * Acknowledge that a message was delivered to this client.
+     */
+    acknowledgeDelivery(messageId: string, conversationId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('message:send', {
-                conversationId,
-                content,
-                media,
-            });
+            this.socket.emit('message:delivered', { messageId, conversationId });
         }
     }
 

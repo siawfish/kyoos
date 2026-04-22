@@ -225,11 +225,15 @@ function* deleteBooking(action: PayloadAction<string>) {
   }
 }
 
-function* reportBooking(action: PayloadAction<string>) {
+function* reportBooking(
+  action: PayloadAction<{ bookingId: string; reason: string; comment: string }>
+) {
   try {
+    const { bookingId, reason, comment } = action.payload;
     const response: ApiResponse<Booking> = yield call(request, {
       method: 'POST',
-      url: `/api/users/bookings/${action.payload}/report`,
+      url: `/api/users/bookings/${bookingId}/report`,
+      data: { reason, comment },
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while reporting booking');
@@ -240,9 +244,39 @@ function* reportBooking(action: PayloadAction<string>) {
       text2: 'You complaint has been received. We will review it and get back to you soon.',
     });
     yield put(actions.fetchBookings());
-    yield put(actions.fetchBooking(action.payload));
+    yield put(actions.fetchBooking(bookingId));
   } catch (error:unknown) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while reporting booking';
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
+  }
+}
+
+function* rateWorker(action: PayloadAction<{ bookingId: string; rating: number; comment: string }>) {
+  try {
+    const { bookingId, rating, comment } = action.payload;
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/bookings/${bookingId}/rate`,
+      data: { rating, comment },
+    });
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while submitting your rating');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Thanks for your feedback',
+      text2: 'Your rating has been submitted.',
+    });
+    yield put(actions.fetchBookings());
+    yield put(actions.fetchBooking(bookingId));
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while submitting your rating';
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -264,5 +298,6 @@ export function* bookingsSaga() {
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
   yield takeLatest(actions.reportBooking, reportBooking);
   yield takeLatest(actions.rebookBooking, rebookBooking);
+  yield takeLatest(actions.rateWorker, rateWorker);
 }
 

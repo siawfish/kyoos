@@ -1,6 +1,7 @@
 import {
   MESSAGE_PUSH_REPLY_ACTION_ID,
 } from '@/constants/pushNotifications';
+import { BookingStatuses } from '@/redux/app/types';
 import { selectIsAuthenticated, selectUser } from '@/redux/app/selector';
 import { actions as bookingsActions } from '@/redux/bookings/slice';
 import { actions as messagingActions } from '@/redux/messaging/slice';
@@ -48,8 +49,18 @@ export function useInAppNotificationActions() {
           const bookingId = typeof raw.bookingId === 'string' ? raw.bookingId : null;
           if (bookingId) {
             processedKeys.current.add(key);
-            router.push(`/(tabs)/(bookings)/${bookingId}`, { withAnchor: true });
-            void Notifications.clearLastNotificationResponseAsync();
+            const isCompleted = raw.status === BookingStatuses.COMPLETED;
+            router.push(
+              {
+                pathname: '/(tabs)/(bookings)/[id]',
+                params: {
+                  id: bookingId,
+                  ...(isCompleted ? { openRatingSheet: '1' } : {}),
+                },
+              },
+              { withAnchor: true }
+            );
+            Notifications.clearLastNotificationResponse();
           }
           return;
         }
@@ -59,7 +70,7 @@ export function useInAppNotificationActions() {
           if (conversationId) {
             processedKeys.current.add(key);
             router.push(`/(tabs)/(messaging)/${conversationId}`, { withAnchor: true });
-            void Notifications.clearLastNotificationResponseAsync();
+            Notifications.clearLastNotificationResponse();
           }
           return;
         }

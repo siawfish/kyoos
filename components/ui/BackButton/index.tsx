@@ -8,7 +8,7 @@ import IconButton from '../IconButton'
 interface BackButtonProps {
     readonly containerStyle?: ViewStyle | ViewStyle[]
     readonly onPress?: () => void
-    readonly iconName?: "x" | "arrow-left" | "menu"
+    readonly iconName?: "x" | "arrow-left" | "menu" | "refresh-ccw"
     readonly iconColor?: string
 }
 
