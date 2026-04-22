@@ -1,11 +1,14 @@
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
+import ReportSheet from '@/components/ui/ReportSheet';
 import { ThemedText } from '@/components/ui/Themed/ThemedText';
 import Thumbnails from '@/components/ui/Thumbnails';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { actions } from '@/redux/portfolio/slice';
 import { Portfolio } from '@/redux/portfolio/types';
+import { useAppDispatch } from '@/store/hooks';
 import { Link, router } from 'expo-router';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -13,7 +16,7 @@ import { Options } from '../Options';
 import User from '../User';
 import Actions from './Actions';
 import { useSharing } from '@/hooks/use-sharing';
-import { OptionIcons } from '@/redux/app/types';
+import { OptionIcons, Options as OptionsType } from '@/redux/app/types';
 
 interface PortfolioProps {
   portfolio: Portfolio;
@@ -21,8 +24,10 @@ interface PortfolioProps {
 }
 
 const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
+    const dispatch = useAppDispatch();
     const { share } = useSharing();
     const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+    const [showReportSheet, setShowReportSheet] = useState(false);
     const theme = useAppTheme();
     const isDark = theme === 'dark';
 
@@ -44,8 +49,32 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
         router.push(`/(tabs)/(search)/(artisan)/(portfolio)/comment?id=${portfolio.id}`);
     }, [portfolio.id]);
 
-    const options = useMemo(
-        () => [
+    const handleOpenReport = useCallback(() => {
+        setShowReportSheet(true);
+    }, []);
+
+    const handleCloseReport = useCallback(() => {
+        setShowReportSheet(false);
+    }, []);
+
+    const handleConfirmReport = useCallback(
+        (reason: string, comment: string) => {
+            setShowReportSheet(false);
+            dispatch(
+                actions.reportPortfolio({
+                    portfolioId: portfolio.id,
+                    reason,
+                    comment,
+                })
+            );
+        },
+        [dispatch, portfolio.id]
+    );
+
+    console.log('portfolio.hasReported', portfolio);
+
+    const options = useMemo(() => {
+        const items: OptionsType[] = [
             {
                 label: 'Add comment',
                 icon: OptionIcons.COMMENT,
@@ -56,49 +85,49 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                 icon: OptionIcons.SHARE,
                 onPress: handleShare,
             },
-            {
+        ];
+        if (!portfolio.hasReported) {
+            items.push({
                 label: 'Report',
                 icon: OptionIcons.FLAG,
-                onPress: () => {},
+                onPress: handleOpenReport,
                 isDanger: true,
-            },
-        ],
-        [handleAddComment, handleShare],
-    );
+            });
+        }
+        return items;
+    }, [handleAddComment, handleOpenReport, handleShare, portfolio.hasReported]);
 
     const portfolioContent = () => {
         return (
-            <>
-                <View style={[styles.content, { borderColor }]}>
-                    <View style={styles.topContent}>
-                        <User
-                            name={portfolio.createdBy?.name}
-                            avatar={portfolio.createdBy?.avatar}
-                            createdAt={portfolio.createdAt}
-                        />
-                        <Options 
-                            options={options}
-                        />
-                    </View>
-                    {
-                        portfolio?.assets?.length > 0 &&
-                        <Thumbnails 
-                            portfolio={portfolio}
-                            autoplayVideos={!clickable}
-                        />
-                    }
-                    <ThemedText 
-                        darkColor={colors.dark.text} 
-                        lightColor={colors.light.text} 
-                        style={[styles.description, { color: textColor }]}
-                    >
-                        {portfolio.description}
-                    </ThemedText>
-                    <Actions 
-                        portfolio={portfolio}
+            <View style={[styles.content, { borderColor }]}>
+                <View style={styles.topContent}>
+                    <User
+                        name={portfolio.createdBy?.name}
+                        avatar={portfolio.createdBy?.avatar}
+                        createdAt={portfolio.createdAt}
+                    />
+                    <Options 
+                        options={options}
                     />
                 </View>
-            </>
+                {
+                    portfolio?.assets?.length > 0 &&
+                    <Thumbnails 
+                        portfolio={portfolio}
+                        autoplayVideos={!clickable}
+                    />
+                }
+                <ThemedText 
+                    darkColor={colors.dark.text} 
+                    lightColor={colors.light.text} 
+                    style={[styles.description, { color: textColor }]}
+                >
+                    {portfolio.description}
+                </ThemedText>
+                <Actions 
+                    portfolio={portfolio}
+                />
+            </View>
         )
     }
 
@@ -137,6 +166,15 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
                     confirmText='Yes, Delete'
                 />
             )}
+            {showReportSheet && (
+                <ReportSheet
+                    isOpen={showReportSheet}
+                    onClose={handleCloseReport}
+                    onConfirm={handleConfirmReport}
+                    subject="portfolio"
+                    userName={portfolio.createdBy?.name}
+                />
+            )}
         </>
     )
 }
@@ -154,6 +192,7 @@ const arePropsEqual = (prev: PortfolioProps, next: PortfolioProps) => {
         a.comments === b.comments &&
         a.hasLiked === b.hasLiked &&
         a.hasCommented === b.hasCommented &&
+        a.hasReported === b.hasReported &&
         a.createdAt === b.createdAt &&
         a.assets?.length === b.assets?.length &&
         a.skills?.length === b.skills?.length &&

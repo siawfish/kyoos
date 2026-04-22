@@ -224,6 +224,44 @@ export function* updateComment(action: PayloadAction<{
   }
 }
 
+function* reportPortfolio(
+  action: PayloadAction<{ portfolioId: string; reason: string; comment: string }>
+) {
+  try {
+    const { portfolioId, reason, comment } = action.payload;
+    const response: ApiResponse<unknown> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/portfolio/${portfolioId}/report`,
+      data: { reason, comment },
+    });
+    if (response.error) {
+      throw new Error(
+        response.message || response.error || 'An error occurred while reporting this portfolio'
+      );
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2:
+        response.message ||
+        'Report received. We will review it and follow up if needed.',
+    });
+    yield put(actions.markPortfolioReported(portfolioId));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error
+      ? error.message
+      : (error as { error?: string })?.error || 'An error occurred while reporting this portfolio';
+    yield put(actions.setError(errorMessage));
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  } finally {
+    yield put(actions.setIsReportingPortfolio(false));
+  }
+}
+
 export function* portfolioSaga() {
   yield takeLatest(actions.fetchHomePopular.type, fetchHomePopularPortfolios);
   yield takeLatest(actions.fetchPortfolioById.type, fetchPortfolioById);
@@ -234,4 +272,5 @@ export function* portfolioSaga() {
   yield takeLatest(actions.updateComment, updateComment);
   yield takeLatest(actions.likePortfolio, likePortfolio);
   yield takeLatest(actions.deleteComment, deleteComment);
+  yield takeLatest(actions.reportPortfolio.type, reportPortfolio);
 } 

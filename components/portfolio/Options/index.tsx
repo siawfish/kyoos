@@ -19,7 +19,7 @@ interface OptionsProps {
 
 export function Options({
     options,
-    snapPoints = ['45%'],
+    snapPoints = ['40%'],
     title = 'Portfolio Actions',
 }: Readonly<OptionsProps>) {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +50,7 @@ export function Options({
         dark: colors.dark.green
     }, 'text');
 
-    const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints]);
+    const memoizedSnapPoints = useMemo(() => options.length > 2 ? snapPoints : ['35%'], [options.length, snapPoints]);
 
     const handleOpen = useCallback(() => {
         setIsOpen(true);

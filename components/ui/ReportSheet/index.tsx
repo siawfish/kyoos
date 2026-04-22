@@ -9,7 +9,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import BottomSheet, { BottomSheetFooter, BottomSheetTextInput, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { BottomSheetDefaultFooterProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetFooter/types';
 import { BlurView } from 'expo-blur';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Keyboard, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import Animated, {
     FadeInDown,
@@ -18,7 +18,7 @@ import Animated, {
     FadeOutUp,
 } from 'react-native-reanimated';
 
-export const REPORT_REASONS = [
+export const BOOKING_REPORT_REASONS = [
     'Unprofessional behavior',
     'No-show',
     'Safety concerns',
@@ -26,10 +26,27 @@ export const REPORT_REASONS = [
     'Other',
 ] as const;
 
-export type ReportReason = (typeof REPORT_REASONS)[number];
+export const PORTFOLIO_REPORT_REASONS = [
+    'Inappropriate or offensive content',
+    'Misleading or misrepresented work',
+    'Spam or excessive promotion',
+    'Copyright or ownership concern',
+    'Harassment or hate',
+    'Other',
+] as const;
+
+/** @deprecated Use BOOKING_REPORT_REASONS; kept for backward compatibility. */
+export const REPORT_REASONS = BOOKING_REPORT_REASONS;
+
+export type ReportReason =
+    | (typeof BOOKING_REPORT_REASONS)[number]
+    | (typeof PORTFOLIO_REPORT_REASONS)[number];
+
+export type ReportSubject = 'booking' | 'portfolio';
 
 interface ReasonsSectionProps {
     reason: string;
+    reasons: readonly string[];
     onSelect: (value: string) => void;
     isDark: boolean;
     borderColor: string;
@@ -39,6 +56,7 @@ interface ReasonsSectionProps {
 
 const ReasonsSection = ({
     reason,
+    reasons,
     onSelect,
     isDark,
     borderColor,
@@ -48,7 +66,7 @@ const ReasonsSection = ({
     <>
         <Text style={[styles.sectionLabel, { color: labelColor }]}>Reason (required)</Text>
         <View style={styles.reasonsList}>
-            {REPORT_REASONS.map((r) => {
+            {reasons.map((r) => {
                 const isSelected = reason === r;
                 return (
                     <TouchableOpacity
@@ -84,13 +102,16 @@ interface ReportSheetProps {
     readonly onClose: () => void;
     readonly onConfirm: (reason: string, comment: string) => void;
     readonly userName?: string;
+    /** Which report reason set to show. Default `booking` for existing call sites. */
+    readonly subject?: ReportSubject;
 }
 
 const ReportSheet = ({
     isOpen,
     onClose,
     onConfirm,
-    userName,
+    userName: _userName,
+    subject = 'booking',
 }: ReportSheetProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
@@ -133,12 +154,17 @@ const ReportSheet = ({
         'tint'
     );
 
+    const reportReasons = useMemo(
+        () => (subject === 'portfolio' ? PORTFOLIO_REPORT_REASONS : BOOKING_REPORT_REASONS),
+        [subject]
+    );
+
     useEffect(() => {
         if (isOpen) {
             setReason('');
             setComment('');
         }
-    }, [isOpen]);
+    }, [isOpen, subject]);
 
     useEffect(() => {
         const show = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
@@ -243,6 +269,7 @@ const ReportSheet = ({
                                 >
                                     <ReasonsSection
                                         reason={reason}
+                                        reasons={reportReasons}
                                         onSelect={handleReasonSelect}
                                         isDark={isDark}
                                         borderColor={borderColor}
@@ -288,6 +315,7 @@ const ReportSheet = ({
                                 >
                                     <ReasonsSection
                                         reason={reason}
+                                        reasons={reportReasons}
                                         onSelect={handleReasonSelect}
                                         isDark={isDark}
                                         borderColor={borderColor}
