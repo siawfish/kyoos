@@ -36,6 +36,41 @@ function* fetchConversationsSaga() {
 }
 
 /**
+ * Fetch a single conversation by id (notification deep link when thread is not in inbox list)
+ */
+function* fetchConversationByIdSaga(action: PayloadAction<string>) {
+  const conversationId = action.payload;
+  try {
+    const response: { data?: Conversation; error?: string; message?: string } = yield call(
+      request<Conversation>,
+      {
+        url: `/api/users/messages/conversations/${conversationId}`,
+        method: 'GET',
+      }
+    );
+
+    if (response.error || !response.data) {
+      throw new Error(
+        (typeof response.error === 'string' && response.error) ||
+          (typeof response.message === 'string' && response.message) ||
+          'Failed to fetch conversation'
+      );
+    }
+
+    yield put(actions.fetchConversationByIdSuccess(response.data));
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to fetch conversation';
+    yield put(actions.fetchConversationByIdFailure(errorMessage));
+    Toast.show({
+      type: 'error',
+      text1: 'Could not load conversation',
+      text2: errorMessage,
+    });
+  }
+}
+
+/**
  * Fetch messages for a specific conversation
  */
 function* fetchConversationMessagesSaga(action: PayloadAction<string>) {
@@ -236,6 +271,7 @@ function* createConversationByBookingSaga(action: PayloadAction<string>) {
 
 export function* messagingSaga() {
   yield takeLatest(actions.fetchConversations.type, fetchConversationsSaga);
+  yield takeLatest(actions.fetchConversationById.type, fetchConversationByIdSaga);
   yield takeLatest(
     actions.refreshConversations.type,
     fetchConversationsSaga

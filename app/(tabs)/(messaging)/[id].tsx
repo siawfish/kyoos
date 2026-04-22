@@ -19,7 +19,7 @@ import { FlashList } from '@shopify/flash-list';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -57,49 +57,75 @@ export default function ConversationScreen() {
   const shouldAutoScrollRef = useRef(true);
   const isPickerActiveRef = useRef(false);
   const lastAutoReadMessageIdRef = useRef<string | null>(null);
+  const fetchConversationByIdForRef = useRef<string | null>(null);
+  const backfillRequestedForIdRef = useRef<string | null>(null);
   const dispatch = useAppDispatch();
-  const { id } = useLocalSearchParams();
+  const { id: idParam } = useLocalSearchParams();
+  const conversationId = useMemo((): string | null => {
+    if (typeof idParam === 'string' && idParam.length > 0) return idParam;
+    if (Array.isArray(idParam) && idParam[0] && typeof idParam[0] === 'string') return idParam[0];
+    return null;
+  }, [idParam]);
   const user = useAppSelector(selectUser);
-  const conversation = conversations.find(m => m.id === id);
+  const conversation = conversationId
+    ? conversations.find((m) => m.id === conversationId)
+    : undefined;
   const otherParticipant = user?.id === conversation?.clientId ? conversation?.worker : conversation?.client;
-  const typingUsers = useAppSelector(selectTypingUsersInConversation(id as string));
-  const { sendTypingIndicator, stopTypingIndicator } = useMessaging(id as string);
+  const typingUsers = useAppSelector(selectTypingUsersInConversation(conversationId ?? ''));
+  const { sendTypingIndicator, stopTypingIndicator } = useMessaging(conversationId ?? undefined);
 
   const { canChat } = useBookingStatus(conversation?.booking);
 
-  useEffect(() => {
-    if (!id || typeof id !== 'string') return;
-    const inList = conversations.some((c) => c.id === id);
-    if (!inList) {
-      dispatch(actions.fetchConversations());
-    }
-  }, [id, conversations, dispatch]);
+  const isConversationInList =
+    conversationId && conversations.some((c) => c.id === conversationId);
 
   useEffect(() => {
-    if (id) {
-      dispatch(actions.fetchConversationMessages(id as string));
-      dispatch(actions.markConversationAsRead(id as string));
+    fetchConversationByIdForRef.current = null;
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    if (isConversationInList) {
+      backfillRequestedForIdRef.current = null;
+      return;
     }
-  }, [id, dispatch]);
+    if (backfillRequestedForIdRef.current === conversationId) return;
+    backfillRequestedForIdRef.current = conversationId;
+    dispatch(actions.fetchConversations());
+  }, [conversationId, isConversationInList, dispatch]);
+
+  useEffect(() => {
+    if (!conversationId || conversation) return;
+    if (fetchConversationByIdForRef.current === conversationId) return;
+    fetchConversationByIdForRef.current = conversationId;
+    dispatch(actions.fetchConversationById(conversationId));
+  }, [conversationId, conversation, dispatch]);
+
+  useEffect(() => {
+    if (conversationId) {
+      dispatch(actions.fetchConversationMessages(conversationId));
+      dispatch(actions.markConversationAsRead(conversationId));
+    }
+  }, [conversationId, dispatch]);
 
   useFocusEffect(
     useCallback(() => {
-      if (typeof id !== 'string') return;
-      dispatch(actions.fetchConversationMessages(id));
-      dispatch(actions.markConversationAsRead(id));
-    }, [id, dispatch])
+      if (!conversationId) return;
+      dispatch(actions.fetchConversationMessages(conversationId));
+      dispatch(actions.markConversationAsRead(conversationId));
+    }, [conversationId, dispatch])
   );
 
   useEffect(() => {
-    if (typeof id !== 'string' || !user?.id || safeConversationMessages.length === 0) return;
+    if (!conversationId || !user?.id || safeConversationMessages.length === 0) return;
 
     const latestMessage = safeConversationMessages[safeConversationMessages.length - 1];
     if (!latestMessage || latestMessage.senderId === user.id) return;
     if (latestMessage.id === lastAutoReadMessageIdRef.current) return;
 
     lastAutoReadMessageIdRef.current = latestMessage.id;
-    dispatch(actions.markConversationAsRead(id));
-  }, [id, user?.id, safeConversationMessages, dispatch]);
+    dispatch(actions.markConversationAsRead(conversationId));
+  }, [conversationId, user?.id, safeConversationMessages, dispatch]);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -280,17 +306,17 @@ export default function ConversationScreen() {
 
   const sendMessage = () => {
     if (inputText.trim() === '' && attachments.length === 0) return;
-    if (!user) return;
+    if (!user || !conversationId) return;
 
     // Stop typing indicator when sending
-    if (id) {
-      stopTypingIndicator(id as string);
+    if (conversationId) {
+      stopTypingIndicator(conversationId);
     }
 
     const tempId = generateTempId();
 
     dispatch(actions.sendMessage({
-      conversationId: id as string,
+      conversationId,
       message: {
         content: inputText,
         attachments: attachments,
@@ -417,8 +443,8 @@ export default function ConversationScreen() {
           onRemoveAttachment={(index: number) => setAttachments(attachments.filter((_, i) => i !== index))}
           onAttachmentSheetOpen={handleAttachmentSheetOpen}
           onSend={sendMessage}
-          onTypingStart={id ? () => sendTypingIndicator(id as string) : undefined}
-          onTypingStop={id ? () => stopTypingIndicator(id as string) : undefined}
+          onTypingStart={conversationId ? () => sendTypingIndicator(conversationId) : undefined}
+          onTypingStop={conversationId ? () => stopTypingIndicator(conversationId) : undefined}
           maxAttachments={MAX_ATTACHMENTS}
           disabled={!canChat}
         />
