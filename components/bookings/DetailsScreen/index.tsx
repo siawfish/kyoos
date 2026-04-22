@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,7 +21,10 @@ import { BookingStatuses } from "@/redux/app/types";
 
 const Details = () => {
   const dispatch = useDispatch();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, openRatingSheet } = useLocalSearchParams<{
+    id: string;
+    openRatingSheet?: string;
+  }>();
   const allBookings = useSelector(selectBookings);
   const booking = useSelector(selectBooking);
   const isLoading = useSelector(selectIsLoading);
@@ -34,6 +37,7 @@ const Details = () => {
   const [showRebookConfirm, setShowRebookConfirm] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
   const [showRateWorker, setShowRateWorker] = useState(false);
+  const ratingParamConsumed = useRef(false);
 
   // Find the booking by ID
   const stateBooking = useMemo(() => {
@@ -47,7 +51,34 @@ const Details = () => {
     }
     dispatch(actions.fetchBooking(id));
   }, [dispatch, id, stateBooking]);
-  
+
+  useEffect(() => {
+    ratingParamConsumed.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (booking?.id !== id) {
+      return;
+    }
+    const wantsOpen =
+      openRatingSheet === "1" || openRatingSheet === "true";
+    if (!wantsOpen) {
+      return;
+    }
+    if (ratingParamConsumed.current) {
+      return;
+    }
+    ratingParamConsumed.current = true;
+    router.setParams({ openRatingSheet: undefined });
+    const alreadyRated = booking.rating != null;
+    if (
+      booking.status === BookingStatuses.COMPLETED &&
+      !alreadyRated
+    ) {
+      setShowRateWorker(true);
+    }
+  }, [booking, id, openRatingSheet]);
+
   const accentColor = isDark ? colors.dark.white : colors.light.black;
   const textColor = isDark ? colors.dark.text : colors.light.text;
   const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
