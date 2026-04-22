@@ -253,6 +253,36 @@ function* reportBooking(action: PayloadAction<string>) {
   }
 }
 
+function* rateWorker(action: PayloadAction<{ bookingId: string; rating: number; comment: string }>) {
+  try {
+    const { bookingId, rating, comment } = action.payload;
+    const response: ApiResponse<Booking> = yield call(request, {
+      method: 'POST',
+      url: `/api/users/bookings/${bookingId}/rate`,
+      data: { rating, comment },
+    });
+    if (response.error || !response.data) {
+      throw new Error(response.message || response.error || 'An error occurred while submitting your rating');
+    }
+    Toast.show({
+      type: 'success',
+      text1: 'Thanks for your feedback',
+      text2: 'Your rating has been submitted.',
+    });
+    yield put(actions.fetchBookings());
+    yield put(actions.fetchBooking(bookingId));
+  } catch (error:unknown) {
+    const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while submitting your rating';
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: errorMessage,
+    });
+  } finally {
+    yield put(actions.setIsUpdatingBooking(false));
+  }
+}
+
 export function* bookingsSaga() {
   yield takeLatest(actions.fetchHomeActiveBooking.type, fetchHomeActiveBooking);
   yield takeLatest(actions.fetchBookings, fetchBookings);
@@ -264,5 +294,6 @@ export function* bookingsSaga() {
   yield takeLatest(actions.rescheduleBooking, rescheduleBooking);
   yield takeLatest(actions.reportBooking, reportBooking);
   yield takeLatest(actions.rebookBooking, rebookBooking);
+  yield takeLatest(actions.rateWorker, rateWorker);
 }
 

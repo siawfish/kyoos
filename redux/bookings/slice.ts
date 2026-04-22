@@ -74,6 +74,12 @@ const bookingsSlice = createSlice({
     reportBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },
+    rateWorker: (
+      state,
+      action: PayloadAction<{ bookingId: string; rating: number; comment: string }>
+    ) => {
+      state.isUpdatingBooking = true;
+    },
     setIsUpdatingBooking: (state, action: PayloadAction<boolean>) => {
       state.isUpdatingBooking = action.payload;
     },

@@ -1,5 +1,6 @@
 import BookingStatus from '@/components/bookings/BookingDetails/Status';
 import EmptyList from '@/components/ui/EmptyList';
+import { parseCompletedActualInterval } from '@/constants/helpers';
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
 import { colors } from '@/constants/theme/colors';
@@ -35,6 +36,15 @@ export type ParsedBooking = {
 
 /** Same start/end semantics as useBookingStatus; fallbacks if end missing. */
 export function parseBookingInterval(booking: Booking): ParsedBooking | null {
+  const actualInterval = parseCompletedActualInterval(booking);
+  if (actualInterval) {
+    return {
+      booking,
+      startMs: actualInterval.startMs,
+      endMs: actualInterval.endMs,
+    };
+  }
+
   try {
     const startMs = new Date(booking.date).setTime(
       new Date(booking.startTime).getTime()
@@ -84,6 +94,7 @@ type AgendaRowProps = {
   onCancel: (booking: Booking) => void;
   onRebook: (booking: Booking) => void;
   onReport: (booking: Booking) => void;
+  onRateWorker: (booking: Booking) => void;
 };
 
 function AgendaBookingRow({
@@ -97,7 +108,8 @@ function AgendaBookingRow({
   onCancel,
   onRebook,
   onReport,
-}: AgendaRowProps) {
+  onRateWorker,
+}: Readonly<AgendaRowProps>) {
   const { booking, startMs, endMs } = parsed;
   const { statusColor, isPassed } = useBookingStatus(booking);
   const durationMs = endMs - startMs;
@@ -126,7 +138,7 @@ function AgendaBookingRow({
       if(isPassed) {
         return [
           { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
-          { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+          { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
         ];
       }
       return [
@@ -142,7 +154,7 @@ function AgendaBookingRow({
 
     if (isCancelled) {
       return [
-        { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+        { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
       ];
     }
 
@@ -155,8 +167,11 @@ function AgendaBookingRow({
 
     if (isCompleted) {
       return [
-        { label: 'Book Again', icon: OptionIcons.CALENDAR, onPress: () => onRebook(booking)},
-        { label: 'Report Booking', icon: OptionIcons.REPORT, onPress: () => onReport(booking), isDanger: true },
+        { label: 'Book Again', icon: OptionIcons.CALENDAR, onPress: () => onRebook(booking) },
+        ...(booking.rating
+          ? []
+          : [{ label: 'Rate Worker', icon: OptionIcons.RATE, onPress: () => onRateWorker(booking) }]),
+        { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
       ];
     }
     
@@ -282,6 +297,7 @@ export type BookingDayTimelineProps = {
   onCancel: (booking: Booking) => void;
   onRebook: (booking: Booking) => void;
   onReport: (booking: Booking) => void;
+  onRateWorker: (booking: Booking) => void;
 };
 
 export default function BookingDayTimeline({
@@ -297,7 +313,8 @@ export default function BookingDayTimeline({
   onCancel,
   onRebook,
   onReport,
-}: BookingDayTimelineProps) {
+  onRateWorker,
+}: Readonly<BookingDayTimelineProps>) {
   const isDark = useAppTheme() === 'dark';
   const borderColor = isDark ? colors.dark.white : colors.light.black;
   const textColor = isDark ? colors.dark.text : colors.light.text;
@@ -386,6 +403,7 @@ export default function BookingDayTimeline({
             onCancel={onCancel}
             onRebook={onRebook}
             onReport={onReport}
+            onRateWorker={onRateWorker}
           />
         </View>
       );
@@ -404,6 +422,7 @@ export default function BookingDayTimeline({
       onCancel,
       onRebook,
       onReport,
+      onRateWorker,
     ]
   );
 

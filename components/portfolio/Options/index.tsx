@@ -11,15 +11,17 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Options as OptionsType } from '@/redux/app/types';
 
+interface OptionsProps {
+    options: OptionsType[],
+    snapPoints?: string[],
+    title?: string,
+}
+
 export function Options({
     options,
     snapPoints = ['45%'],
     title = 'Portfolio Actions',
-}: {
-    options: OptionsType[],
-    snapPoints?: string[],
-    title?: string,
-}) {
+}: Readonly<OptionsProps>) {
     const [isOpen, setIsOpen] = useState(false);
     const bottomSheetRef = useRef<BottomSheet>(null);
 

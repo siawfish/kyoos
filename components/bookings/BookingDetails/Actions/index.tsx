@@ -13,14 +13,15 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 interface ActionsProps {
   readonly onCancel?: () => void;
   readonly onReport?: () => void;
-  readonly onDelete?: () => void;
   readonly onReschedule?: () => void;
+  readonly onRateWorker?: () => void;
 }
 
 const Actions = ({
     onCancel,
     onReport,
     onReschedule,
+    onRateWorker,
 }:ActionsProps) => {
   const booking = useAppSelector(selectBooking);
   const isUpdatingBooking = useAppSelector(selectIsUpdatingBooking);
@@ -63,8 +64,17 @@ const Actions = ({
           style: styles.cancelBtn,
           labelStyle: styles.cancelLabel,
           onPress: onReport,
-        }
-      ]
+        },
+        ...(booking.rating
+          ? []
+          : [{
+              label: '',
+              icon: <Ionicons name="thumbs-up" size={fontPixel(16)} color={iconColor} />,
+              style: styles.smallBtn,
+              labelStyle: styles.cancelLabel,
+              onPress: onRateWorker,
+            }]),
+      ];
     }
 
     if (booking?.status === BookingStatuses.ACCEPTED) {
@@ -153,6 +163,11 @@ const styles = StyleSheet.create({
       fontSize: fontPixel(12),
       fontFamily: 'SemiBold',
       letterSpacing: 1.5,
+    },
+    smallBtn: {
+      width: widthPixel(80),
+      borderRadius: 0,
+      marginHorizontal: 0,
     },
     bookingBtn: {
       marginHorizontal: 0,

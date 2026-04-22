@@ -47,7 +47,7 @@ export enum OptionIcons {
     CALENDAR = 'calendar',
     CLOSE = 'close',
     COMPLETE = 'check',
-    REPORT = 'flag',
+    RATE = 'like',
 }
 
 
@@ -155,6 +155,8 @@ export interface User {
     name: string;
     phoneNumber: string;
     rating: number;
+    ratingAverage: number;
+    ratingCount: number;
     settings: Settings;
     updatedAt: string;
     userType: UserTypes;

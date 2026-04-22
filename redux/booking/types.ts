@@ -46,6 +46,13 @@ export interface GetAvailableTimesResponse {
     availableSlots: AvailableSlot[];
 }
 
+export interface BookingRating {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+}
+
 export interface Booking {
     id: string;
     searchId?: string;
@@ -69,6 +76,8 @@ export interface Booking {
     finalPrice?: number;
     media?: Media[];
     serviceType?: ServiceLocationType;
+    /** Present once the client has submitted a rating for this booking. */
+    rating?: BookingRating | null;
 }
 
 

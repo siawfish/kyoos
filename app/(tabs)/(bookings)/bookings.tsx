@@ -3,6 +3,7 @@ import WeekCalendar from '@/components/bookings/WeekCalendar';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import OverlayLoader from '@/components/ui/OverlayLoader';
+import RatingSheet from '@/components/ui/RatingSheet';
 import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { formatRelativeDate } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -54,6 +55,7 @@ export default function BookingsScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showRebookConfirm, setShowRebookConfirm] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
+  const [showRateWorker, setShowRateWorker] = useState(false);
 
   const selectedDate = useMemo(() => {
     return new Date(selectedDateString);
@@ -159,7 +161,22 @@ export default function BookingsScreen() {
     dispatch(actions.reportBooking(booking.id));
   };
 
+  const handleRateWorker = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowRateWorker(true);
+  };
 
+  const handleConfirmRateWorker = (rating: number, comment: string) => {
+    if (!selectedBooking) return;
+    setShowRateWorker(false);
+    dispatch(
+      actions.rateWorker({
+        bookingId: selectedBooking.id,
+        rating,
+        comment,
+      })
+    );
+  };
 
   const pageHeader = useMemo(
     () => (
@@ -213,6 +230,7 @@ export default function BookingsScreen() {
           onCancel={handleCancel}
           onRebook={handleRebook}
           onReport={handleReport}
+          onRateWorker={handleRateWorker}
         />
       </View>
       {isLoadingMessaging && (
@@ -301,6 +319,17 @@ export default function BookingsScreen() {
               description={`Are you sure you want to report this booking${selectedBooking?.worker?.name ? ` with ${selectedBooking.worker.name}` : ''}?`}
               confirmText="Yes, Report Booking"
               cancelText="Cancel"
+          />
+      )}
+      {showRateWorker && (
+          <RatingSheet
+              isOpen={showRateWorker}
+              onClose={() => {
+                setShowRateWorker(false);
+                setSelectedBooking(null);
+              }}
+              onConfirm={handleConfirmRateWorker}
+              userName={selectedBooking?.worker?.name}
           />
       )}
     </ScreenLayout>
