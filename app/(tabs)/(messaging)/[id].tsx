@@ -31,6 +31,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
 import CustomImage from '@/components/ui/CustomImage';
+import Toast from 'react-native-toast-message';
 
 function getVideoMimeType(mime: string | undefined): MimeType {
   const m = mime?.toLowerCase();
@@ -40,6 +41,15 @@ function getVideoMimeType(mime: string | undefined): MimeType {
   if (m === 'video/webm') return MimeType.WEBM;
   return MimeType.MP4;
 }
+
+const displayErrorMessage = (title: string, error: unknown) => {
+  const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+  Toast.show({
+    text1: title,
+    text2: errorMessage,
+    type: 'error',
+  });
+};
 
 export default function ConversationScreen() {
   const subTextColor = useThemeColor({ light: colors.light.secondary, dark: colors.dark.secondary }, 'secondary');
@@ -207,8 +217,8 @@ export default function ConversationScreen() {
           id: result.assets[0].name,
         }]);
       }
-    } catch (err) {
-      console.error('Error picking document:', err);
+    } catch (err: unknown) {
+      displayErrorMessage('Failed to pick document', err);
     } finally {
       isPickerActiveRef.current = false;
     }
@@ -257,8 +267,8 @@ export default function ConversationScreen() {
           return [...prev, ...toAdd];
         });
       }
-    } catch (err) {
-      console.error('Error picking image:', err);
+    } catch (err: unknown) {
+      displayErrorMessage('Failed to pick image', err);
     } finally {
       isPickerActiveRef.current = false;
     }
@@ -294,8 +304,8 @@ export default function ConversationScreen() {
         const type = asset.type === 'video' ? MimeType.MP4 : MimeType.JPEG;
         setAttachments([...attachments, { type, uri: asset.uri, id: asset.fileName as string || 'photo.jpg' }]);
       }
-    } catch (err) {
-      console.error('Error taking photo:', err);
+    } catch (err: unknown) {
+      displayErrorMessage('Failed to take photo', err);
     } finally {
       isPickerActiveRef.current = false;
     }
