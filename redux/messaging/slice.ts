@@ -47,7 +47,28 @@ const messagingSlice = createSlice({
       state.isRefreshing = false;
       state.error = action.payload;
     },
-    
+
+    /** GET single conversation (e.g. deep link; not in filtered inbox list) */
+    fetchConversationById: (state, _action: PayloadAction<string>) => {
+      state.fetchingConversation = true;
+      state.error = null;
+    },
+    fetchConversationByIdSuccess: (state, action: PayloadAction<Conversation>) => {
+      state.fetchingConversation = false;
+      const id = action.payload.id;
+      const idx = state.conversations.findIndex((c) => c.id === id);
+      if (idx >= 0) {
+        state.conversations[idx] = action.payload;
+      } else {
+        state.conversations.push(action.payload);
+      }
+      sortConversationsByLatest(state.conversations);
+    },
+    fetchConversationByIdFailure: (state, action: PayloadAction<string>) => {
+      state.fetchingConversation = false;
+      state.error = action.payload;
+    },
+
     // Fetch messages for a conversation
     fetchConversationMessages: (state, action: PayloadAction<string>) => {
       state.isLoading = true;
