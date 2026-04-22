@@ -225,11 +225,15 @@ function* deleteBooking(action: PayloadAction<string>) {
   }
 }
 
-function* reportBooking(action: PayloadAction<string>) {
+function* reportBooking(
+  action: PayloadAction<{ bookingId: string; reason: string; comment: string }>
+) {
   try {
+    const { bookingId, reason, comment } = action.payload;
     const response: ApiResponse<Booking> = yield call(request, {
       method: 'POST',
-      url: `/api/users/bookings/${action.payload}/report`,
+      url: `/api/users/bookings/${bookingId}/report`,
+      data: { reason, comment },
     })
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while reporting booking');
@@ -240,7 +244,7 @@ function* reportBooking(action: PayloadAction<string>) {
       text2: 'You complaint has been received. We will review it and get back to you soon.',
     });
     yield put(actions.fetchBookings());
-    yield put(actions.fetchBooking(action.payload));
+    yield put(actions.fetchBooking(bookingId));
   } catch (error:unknown) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while reporting booking';
     Toast.show({

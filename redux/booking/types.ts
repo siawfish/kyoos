@@ -53,6 +53,13 @@ export interface BookingRating {
     createdAt: string;
 }
 
+export interface BookingReport {
+    id: string;
+    reason: string;
+    comment: string | null;
+    createdAt: string;
+}
+
 export interface Booking {
     id: string;
     searchId?: string;
@@ -78,6 +85,8 @@ export interface Booking {
     serviceType?: ServiceLocationType;
     /** Present once the client has submitted a rating for this booking. */
     rating?: BookingRating | null;
+    /** Present once the client has submitted a report for this booking. */
+    report?: BookingReport | null;
 }
 
 

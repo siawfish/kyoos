@@ -13,6 +13,7 @@ import ContactCard from './ContactCard'
 import BookingStatus from './Status'
 import CustomImage from '@/components/ui/CustomImage'
 import YourRatingCard from './YourRatingCard'
+import YourReportCard from './YourReportCard'
 
 interface BookingDetailsProps {
     booking: Booking;
@@ -131,6 +132,8 @@ const BookingDetails = ({
             )}
 
             <ContactCard booking={booking} />
+
+            <YourReportCard report={booking.report} />
 
             <YourRatingCard rating={booking.rating} />
 

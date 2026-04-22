@@ -4,6 +4,7 @@ import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
 import { ConfirmActionSheet } from '@/components/ui/ConfirmActionSheet';
 import OverlayLoader from '@/components/ui/OverlayLoader';
 import RatingSheet from '@/components/ui/RatingSheet';
+import ReportSheet from '@/components/ui/ReportSheet';
 import { ScreenLayout } from '@/components/layout/ScreenLayout';
 import { formatRelativeDate } from '@/constants/helpers';
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize';
@@ -20,7 +21,7 @@ import {
 import { actions } from '@/redux/bookings/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { format, startOfWeek } from 'date-fns';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { selectFetchingConversation } from '@/redux/messaging/selector';
@@ -56,6 +57,8 @@ export default function BookingsScreen() {
   const [showRebookConfirm, setShowRebookConfirm] = useState(false);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
   const [showRateWorker, setShowRateWorker] = useState(false);
+  /** Booking that opened ReportSheet — source of truth for submit (avoids stale state). */
+  const reportTargetRef = useRef<Booking | null>(null);
 
   const selectedDate = useMemo(() => {
     return new Date(selectedDateString);
@@ -150,16 +153,29 @@ export default function BookingsScreen() {
     });
   };
 
-  const handleReport = (booking: Booking) => {
+  const handleReport = useCallback((booking: Booking) => {
+    reportTargetRef.current = booking;
     setSelectedBooking(booking);
     setShowReportConfirm(true);
-  };
+  }, []);
 
-  const handleConfirmReport = (booking: Booking) => {
-    if(!booking) return;
-    setShowReportConfirm(false);
-    dispatch(actions.reportBooking(booking.id));
-  };
+  const handleConfirmReport = useCallback(
+    (reason: string, comment: string) => {
+      const target = reportTargetRef.current;
+      if (!target) return;
+      reportTargetRef.current = null;
+      setShowReportConfirm(false);
+      setSelectedBooking(null);
+      dispatch(
+        actions.reportBooking({
+          bookingId: target.id,
+          reason,
+          comment,
+        })
+      );
+    },
+    [dispatch]
+  );
 
   const handleRateWorker = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -305,20 +321,15 @@ export default function BookingsScreen() {
           />
       )}
       {showReportConfirm && (
-          <ConfirmActionSheet 
-              isOpen={showReportConfirm} 
-              isOpenChange={(open) => {
-                setShowReportConfirm(open);
-                if (!open) setSelectedBooking(null);
-              }} 
-              onConfirm={() => {
-                if (selectedBooking) handleConfirmReport(selectedBooking);
-              }} 
-              title="Report Booking?" 
-              icon={<Image source={require('@/assets/images/danger.png')} style={styles.dangerIcon} />}
-              description={`Are you sure you want to report this booking${selectedBooking?.worker?.name ? ` with ${selectedBooking.worker.name}` : ''}?`}
-              confirmText="Yes, Report Booking"
-              cancelText="Cancel"
+          <ReportSheet
+              isOpen={showReportConfirm}
+              onClose={() => {
+                reportTargetRef.current = null;
+                setShowReportConfirm(false);
+                setSelectedBooking(null);
+              }}
+              onConfirm={handleConfirmReport}
+              userName={selectedBooking?.worker?.name}
           />
       )}
       {showRateWorker && (

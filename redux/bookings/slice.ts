@@ -71,7 +71,10 @@ const bookingsSlice = createSlice({
     cancelBooking: (state, action: PayloadAction<string>) => {
       state.isUpdatingBooking = true;
     },
-    reportBooking: (state, action: PayloadAction<string>) => {
+    reportBooking: (
+      state,
+      action: PayloadAction<{ bookingId: string; reason: string; comment: string }>
+    ) => {
       state.isUpdatingBooking = true;
     },
     rateWorker: (

@@ -122,7 +122,7 @@ const ArtisanOptions = ({ isVisible, onClose, artisan, children }: ArtisanOption
                 >
                     <BottomSheetView style={styles.bottomSheetContent}>
                         <AccentScreenHeader
-                            onBackPress={onClose}
+                            renderRight={() => <BackButton iconName="x" onPress={onClose} />}
                             title={
                                 <View style={styles.titleContainer}>
                                     <View style={styles.titleTextContainer}>

@@ -55,10 +55,14 @@ const Details = () => {
     router.back();
   };
 
+  const handleRebook = () => {
+    setShowRebookConfirm(true);
+  };
+
   const renderBookingDetailHeader = (b: Booking | null | undefined) => (
     <AccentScreenHeader
       renderRight={b?.status === BookingStatuses.COMPLETED ? 
-        () => <BackButton iconName="refresh-ccw" onPress={handleBack} /> : 
+        () => <BackButton iconName="refresh-ccw" onPress={handleRebook} /> : 
         () => <BackButton iconName="x" onPress={handleBack} />
       }
       onBackPress={b?.status === BookingStatuses.COMPLETED ? handleBack : undefined}
@@ -114,11 +118,7 @@ const Details = () => {
   };
 
   const handleCancel = () => {
-      setShowCancelConfirm(true);
-  };
-
-  const handleDelete = () => {
-      setShowDeleteConfirm(true);
+    setShowCancelConfirm(true);
   };
 
   const handleConfirmCancel = () => {
@@ -149,10 +149,16 @@ const Details = () => {
       setShowReportConfirm(true);
   };
 
-  const handleConfirmReport = () => {
-    if(!booking) return;
+  const handleConfirmReport = (reason: string, comment: string) => {
+    if (!booking) return;
     setShowReportConfirm(false);
-    dispatch(actions.reportBooking(booking.id));
+    dispatch(
+      actions.reportBooking({
+        bookingId: booking.id,
+        reason,
+        comment,
+      })
+    );
   };
 
   const handleRateWorker = () => {

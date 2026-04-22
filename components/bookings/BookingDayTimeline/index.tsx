@@ -122,28 +122,42 @@ function AgendaBookingRow({
     const isCompleted = booking.status === BookingStatuses.COMPLETED;
     const isDeclined = booking.status === BookingStatuses.DECLINED;
     const isAccepted = booking.status === BookingStatuses.ACCEPTED;
+    const reportOption = (): Options[] =>
+      booking.report
+        ? []
+        : [
+            {
+              label: 'Report Booking',
+              icon: OptionIcons.FLAG,
+              onPress: () => onReport(booking),
+              isDanger: true,
+            },
+          ];
     if (isPending) {
-      if(isPassed) {
+      if (isPassed) {
         return [
           { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+          ...reportOption(),
         ];
       }
       return [
         { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
+        ...reportOption(),
         { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
       ];
     }
 
     if (isAccepted) {
-      if(isPassed) {
+      if (isPassed) {
         return [
           { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
-          { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
+          ...reportOption(),
         ];
       }
       return [
         { label: 'Reschedule', icon: OptionIcons.CALENDAR, onPress: () => onReschedule(booking) },
         { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: () => onChatWorker(booking) },
+        ...reportOption(),
         { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
       ];
     }
@@ -153,14 +167,13 @@ function AgendaBookingRow({
     }
 
     if (isCancelled) {
-      return [
-        { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
-      ];
+      return [...reportOption()];
     }
 
     if (isOngoing) {
       return [
         { label: 'Chat Worker', icon: OptionIcons.CHAT, onPress: () => onChatWorker(booking) },
+        ...reportOption(),
         { label: 'Cancel Booking', icon: OptionIcons.CLOSE, onPress: () => onCancel(booking), isDanger: true },
       ];
     }
@@ -171,7 +184,7 @@ function AgendaBookingRow({
         ...(booking.rating
           ? []
           : [{ label: 'Rate Worker', icon: OptionIcons.RATE, onPress: () => onRateWorker(booking) }]),
-        { label: 'Report Booking', icon: OptionIcons.FLAG, onPress: () => onReport(booking), isDanger: true },
+        ...reportOption(),
       ];
     }
     
