@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {call, put, select, takeLatest} from 'redux-saga/effects';
 import { actions } from './slice';
 import { actions as authActions } from '@/redux/auth/slice';
@@ -229,11 +230,14 @@ export function* updateUserLocation() {
 
 export function* registerPushToken(action: PayloadAction<string>) {
     try {
+        const platform =
+            Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : undefined;
         const response: ApiResponse<User> = yield call(request, {
             method: 'PATCH',
             url: '/api/users/profile/push-token',
             data: {
                 pushToken: action.payload,
+                ...(platform ? { platform } : {}),
             },
         });
         if (response.error || !response.data) {
