@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP,
+    paddingBottom: TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP + heightPixel(24),
   },
   pageHeaderSlot: {
     width: '100%',
