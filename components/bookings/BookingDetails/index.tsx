@@ -8,7 +8,7 @@ import { BookingStatuses } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import numeral from 'numeral'
 import React from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, type ScrollViewProps, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
 import BookingStatus from './Status'
 import CustomImage from '@/components/ui/CustomImage'
@@ -17,10 +17,12 @@ import YourReportCard from './YourReportCard'
 
 interface BookingDetailsProps {
     booking: Booking;
+    refreshControl?: NonNullable<ScrollViewProps['refreshControl']>;
 }
 
 const BookingDetails = ({
-    booking
+    booking,
+    refreshControl,
 }:BookingDetailsProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
@@ -46,6 +48,7 @@ const BookingDetails = ({
         <ScrollView 
             contentContainerStyle={styles.mainContainer}
             showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
         >
             {/* Status & Fee Row */}
             <View style={styles.statusRow}>

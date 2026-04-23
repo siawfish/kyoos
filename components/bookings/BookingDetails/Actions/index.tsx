@@ -89,7 +89,7 @@ const Actions = ({
           : [
               {
                 label: '',
-                icon: <Ionicons name="flag" size={fontPixel(16)} color={colors.light.white} />,
+                icon: <Ionicons name="flag" size={fontPixel(16)} color={iconColor} />,
                 style: styles.smallBtn,
                 labelStyle: styles.cancelLabel,
                 onPress: onReport,
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
       width: widthPixel(80),
       borderRadius: 0,
       marginHorizontal: 0,
-      backgroundColor: colors.light.danger,
     },
     bookingBtn: {
       marginHorizontal: 0,
