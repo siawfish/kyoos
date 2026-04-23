@@ -1,16 +1,16 @@
 import {
   MESSAGE_PUSH_REPLY_ACTION_ID,
 } from '@/constants/pushNotifications';
-import { BookingStatuses } from '@/redux/app/types';
 import { selectIsAuthenticated, selectUser } from '@/redux/app/selector';
 import { actions as bookingsActions } from '@/redux/bookings/slice';
 import { actions as messagingActions } from '@/redux/messaging/slice';
 import { actions as notificationsActions } from '@/redux/notifications/slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { getBookingDetailsHrefFromNotificationData } from '@/utils/bookingNotificationRouting';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, InteractionManager, type AppStateStatus } from 'react-native';
 
 /**
  * Handles notification responses/listeners in-app (foreground/active lifecycle),
@@ -45,22 +45,14 @@ export function useInAppNotificationActions() {
       });
 
       if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
-        if (payloadType === 'booking') {
-          const bookingId = typeof raw.bookingId === 'string' ? raw.bookingId : null;
-          if (bookingId) {
+        if (String(payloadType).toLowerCase() === 'booking') {
+          const href = getBookingDetailsHrefFromNotificationData(raw);
+          if (href) {
             processedKeys.current.add(key);
-            const isCompleted = raw.status === BookingStatuses.COMPLETED;
-            router.push(
-              {
-                pathname: '/(tabs)/(bookings)/[id]',
-                params: {
-                  id: bookingId,
-                  ...(isCompleted ? { openRatingSheet: '1' } : {}),
-                },
-              },
-              { withAnchor: true }
-            );
-            Notifications.clearLastNotificationResponse();
+            InteractionManager.runAfterInteractions(() => {
+              router.push(href, { withAnchor: true });
+              Notifications.clearLastNotificationResponse();
+            });
           }
           return;
         }
@@ -77,7 +69,7 @@ export function useInAppNotificationActions() {
         return;
       }
 
-      if (raw.type !== 'message') {
+      if (String(raw.type).toLowerCase() !== 'message') {
         return;
       }
 
@@ -122,11 +114,11 @@ export function useInAppNotificationActions() {
       dispatch(notificationsActions.fetchNotifications());
 
       const raw = notification.request.content.data ?? {};
-      if (raw.type === 'message') {
+      if (String(raw.type).toLowerCase() === 'message') {
         dispatch(messagingActions.refreshConversations());
         return;
       }
-      if (raw.type === 'booking') {
+      if (String(raw.type).toLowerCase() === 'booking') {
         dispatch(bookingsActions.refreshBookings());
       }
     },

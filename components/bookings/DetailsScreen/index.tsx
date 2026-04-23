@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefreshControl, StyleSheet, Image, ActivityIndicator, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { ScreenLayout } from "@/components/layout/ScreenLayout";
@@ -78,6 +78,10 @@ const Details = () => {
       setShowRateWorker(true);
     }
   }, [booking, id, openRatingSheet]);
+
+  const onRefreshBooking = useCallback(() => {
+    dispatch(actions.fetchBooking(id));
+  }, [dispatch, id]);
 
   const accentColor = isDark ? colors.dark.white : colors.light.black;
   const textColor = isDark ? colors.dark.text : colors.light.text;
@@ -220,7 +224,16 @@ const Details = () => {
     <ScreenLayout style={styles.container}>
       {renderBookingDetailHeader(booking)}
       <View style={styles.contentContainer}>
-        <BookingDetails booking={booking} />
+        <BookingDetails
+          booking={booking}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading && !!booking && booking.id === id}
+              onRefresh={onRefreshBooking}
+              tintColor={isDark ? colors.dark.text : colors.light.text}
+            />
+          }
+        />
       </View>
         <Actions 
           onCancel={handleCancel} 
