@@ -1,8 +1,6 @@
 /**
  * Registers a headless task so notification actions work when the app is backgrounded or killed.
  * Android: required for action taps outside the foreground (see expo-notifications registerTaskAsync).
- * Also re-presents categorized pushes locally on Android because the Expo push service delivers
- * them as data-only FCM messages (no OS-level notification).
  * Must load early — imported from notificationBootstrap before other app code.
  */
 import { MESSAGE_PUSH_REPLY_ACTION_ID } from '@/constants/pushNotifications';
@@ -10,11 +8,9 @@ import { getItemFromStorage } from '@/services/asyncStorage';
 import {
   BackgroundNotificationTaskResult,
   registerTaskAsync,
-  scheduleNotificationAsync,
   type NotificationResponse,
 } from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
-import { Platform } from 'react-native';
 
 const BACKGROUND_NOTIFICATION_ACTIONS_TASK = 'BACKGROUND_NOTIFICATION_ACTIONS_TASK';
 
@@ -24,51 +20,6 @@ const logBackgroundTask = (event: string, payload?: Record<string, unknown>) => 
   }
   console.info('[notification-bg-task:kyoos]', event, payload ?? {});
 };
-
-type DisplayPayload = {
-  title?: string;
-  body?: string;
-  categoryId?: string;
-  sound?: string;
-  channelId?: string;
-};
-
-/**
- * Handle a data-only push delivery by presenting a local notification so the user actually sees
- * the notification (Android) with category action buttons attached. iOS delivers categorized
- * pushes as visible APNs alerts natively — no need to re-present there.
- */
-async function presentDataOnlyNotification(
-  payload: Record<string, unknown>,
-): Promise<BackgroundNotificationTaskResult> {
-  if (Platform.OS !== 'android') {
-    return BackgroundNotificationTaskResult.NoData;
-  }
-  const notifData = (payload.data ?? {}) as Record<string, unknown>;
-  const display = notifData._display as DisplayPayload | undefined;
-  if (!display?.categoryId) {
-    logBackgroundTask('data_only_missing_display', { hasData: Boolean(notifData) });
-    return BackgroundNotificationTaskResult.NoData;
-  }
-
-  try {
-    await scheduleNotificationAsync({
-      content: {
-        title: display.title ?? '',
-        body: display.body ?? '',
-        data: notifData,
-        categoryIdentifier: display.categoryId,
-        sound: display.sound ?? 'notification.wav',
-      },
-      trigger: null,
-    });
-    logBackgroundTask('presented_local_notification', { categoryId: display.categoryId });
-    return BackgroundNotificationTaskResult.NewData;
-  } catch (err) {
-    logBackgroundTask('present_failed', { message: err instanceof Error ? err.message : String(err) });
-    return BackgroundNotificationTaskResult.Failed;
-  }
-}
 
 TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, error }) => {
   if (error) {
@@ -83,7 +34,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_ACTIONS_TASK, async ({ data, erro
   const payload = data as Record<string, unknown>;
 
   if (!('actionIdentifier' in payload)) {
-    return presentDataOnlyNotification(payload);
+    return BackgroundNotificationTaskResult.NoData;
   }
 
   const response = payload as unknown as NotificationResponse;
