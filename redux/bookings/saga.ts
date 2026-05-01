@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { actions as bookingActions } from '../booking/slice';
-import { Booking } from '../booking/types';
+import { Booking, BookingResponse } from '../booking/types';
 import { selectBookings, selectCurrentWeekStart } from './selector';
 import { actions } from './slice';
 
@@ -32,7 +32,7 @@ function* fetchBookings() {
     const weekStartDate = startOfDay(new Date(currentWeekStart));
     const weekEndDate = endOfDay(addDays(weekStartDate, 6));
 
-    const response: ApiResponse<Booking[]> = yield call(request, {
+    const response: ApiResponse<BookingResponse> = yield call(request, {
       method: 'GET',
       url: `/api/users/bookings`,
       params: {
@@ -43,7 +43,7 @@ function* fetchBookings() {
     if (response.error || !response.data) {
       throw new Error(response.message || response.error || 'An error occurred while fetching bookings');
     }
-    yield put(actions.fetchBookingsSuccess(response.data));
+    yield put(actions.fetchBookingsSuccess(response.data.items));
   } catch (error:unknown) {
     const errorMessage = error instanceof Error ? error.message : (error as {error: string})?.error || 'An error occurred while fetching bookings';
     Toast.show({
