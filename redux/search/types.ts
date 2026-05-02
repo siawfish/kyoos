@@ -93,6 +93,7 @@ export interface Worker {
     rating: number;
     ratingAverage?: number;
     ratingCount?: number;
+    isAvailable?: boolean;
 }
 
 export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
