@@ -11,6 +11,8 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { selectUserCurrency } from "@/redux/app/selector";
+import { formatPrice } from "@/constants/helpers";
 import { selectConversations } from "@/redux/messaging/selector";
 import { actions as messagingActions } from "@/redux/messaging/slice";
 import { selectIsLoading, selectPortfolios } from "@/redux/portfolio/selector";
@@ -42,6 +44,7 @@ export default function ArtisanScreen() {
     const conversations = useAppSelector(selectConversations);
     const portfolios = useAppSelector(selectPortfolios);
     const isLoading = useAppSelector(selectIsLoading);
+    const currency = useAppSelector(selectUserCurrency);
     const dispatch = useAppDispatch();
     const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
 
@@ -71,11 +74,11 @@ export default function ArtisanScreen() {
         const minRate = Math.min(...rates);
         const maxRate = Math.max(...rates);
         const rateLabel = minRate === maxRate
-            ? `GH₵${minRate}/hr`
-            : `GH₵${minRate}-${maxRate}/hr`;
+            ? `${formatPrice(minRate, currency)}/hr`
+            : `${formatPrice(minRate, currency)}-${formatPrice(maxRate, currency)}/hr`;
 
         return `${skills.length} skills • ${rateLabel}`;
-    }, [artisan?.skills]);
+    }, [artisan?.skills, currency]);
 
     useEffect(() => {
         setIsSkillsExpanded(false);
@@ -225,7 +228,7 @@ export default function ArtisanScreen() {
                                                 </View>
                                                 <View style={[styles.rateBadge]}>
                                                     <ThemedText style={[styles.skillRate, { color: textColor }]}>
-                                                        GH₵{skill.rate ?? 0}
+                                                        {formatPrice(skill.rate ?? 0, currency)}
                                                     </ThemedText>
                                                     <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
                                                         /hr

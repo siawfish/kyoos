@@ -109,8 +109,7 @@ export default function WorkerMapMarker({
                 <View style={styles.bubbleBody}>
                     {displayCost ? (
                         <>
-                            <ThemedText style={[styles.currency, { color: muted }]}>{currency}</ThemedText>
-                            <ThemedText style={[styles.price, { color: textColor }]}>{formatPrice(workerCost)}</ThemedText>
+                            <ThemedText style={[styles.price, { color: textColor }]}>{formatPrice(workerCost, currency)}</ThemedText>
                         </>
                     ) : (
                         <>

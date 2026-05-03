@@ -1,4 +1,6 @@
-import { convertFromMillisecondsToHours, formatDate, formatTime, parseCompletedActualInterval } from '@/constants/helpers'
+import { convertFromMillisecondsToHours, formatDate, formatPrice, formatTime, parseCompletedActualInterval } from '@/constants/helpers'
+import { selectUserCurrency } from '@/redux/app/selector'
+import { useAppSelector } from '@/store/hooks'
 import { TAB_ROOT_SCROLL_CONTENT_BOTTOM_GAP } from '@/constants/navigation/tabRootScrollPadding'
 import { fontPixel, heightPixel, widthPixel } from '@/constants/normalize'
 import { colors } from '@/constants/theme/colors'
@@ -6,7 +8,6 @@ import { useAppTheme } from '@/hooks/use-app-theme'
 import { Booking } from '@/redux/booking/types'
 import { BookingStatuses } from '@/redux/app/types'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import numeral from 'numeral'
 import React from 'react'
 import { ScrollView, type ScrollViewProps, StyleSheet, Text, View } from 'react-native'
 import ContactCard from './ContactCard'
@@ -26,6 +27,7 @@ const BookingDetails = ({
 }:BookingDetailsProps) => {
     const theme = useAppTheme();
     const isDark = theme === 'dark';
+    const currency = useAppSelector(selectUserCurrency);
 
     const textColor = isDark ? colors.dark.text : colors.light.text;
     const labelColor = isDark ? colors.dark.secondary : colors.light.secondary;
@@ -56,7 +58,7 @@ const BookingDetails = ({
                 <View>
                     <Text style={[styles.feeLabel, { color: labelColor }]}>{priceLabel}</Text>
                     <Text style={[styles.feeValue, { color: textColor }]}>
-                        GHS {numeral(priceAmount ?? 0).format('0,0.00')}
+                        {formatPrice(priceAmount ?? 0, currency)}
                     </Text>
                   </View>
                 </View>

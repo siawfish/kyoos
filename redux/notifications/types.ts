@@ -16,13 +16,21 @@ export interface MessageNotificationData {
   categoryId?: string;
 }
 
-export type AppNotificationData = BookingNotificationData | MessageNotificationData | null;
+export interface PortfolioNotificationData {
+  type: 'portfolio_like' | 'portfolio_comment';
+  portfolioId: string;
+  actorId: string;
+  actorName?: string;
+  commentPreview?: string;
+}
+
+export type AppNotificationData = BookingNotificationData | MessageNotificationData | PortfolioNotificationData | null;
 
 export interface AppNotification {
   id: string;
   title: string;
   body: string;
-  type: 'booking' | 'message';
+  type: 'booking' | 'message' | 'portfolio_like' | 'portfolio_comment';
   data?: AppNotificationData;
   isRead: boolean;
   createdAt: string;

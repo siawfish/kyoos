@@ -184,12 +184,20 @@ export const getCurrentLocation = async (): Promise<LocationType | null> => {
   }
 };
 
-export const formatPrice = (price: number | string) => {
-  if (!price) return '0.00';
-  if (typeof price === 'string') {
-    return numeral(Number(price)).format('0,0.00');
-  }
-  return numeral(price).format('0,0.00');
+export const DEFAULT_CURRENCY = 'GHS';
+
+const formatNumeric = (price: number | string | null | undefined, fmt: string) => {
+  if (price === null || price === undefined || price === '') return numeral(0).format(fmt);
+  const value = typeof price === 'string' ? Number(price) : price;
+  return numeral(Number.isFinite(value) ? value : 0).format(fmt);
+};
+
+export const formatPrice = (price: number | string | null | undefined, currency?: string | null) => {
+  return `${currency || DEFAULT_CURRENCY} ${formatNumeric(price, '0,0.00')}`;
+};
+
+export const formatPriceCompact = (price: number | string | null | undefined, currency?: string | null) => {
+  return `${currency || DEFAULT_CURRENCY} ${formatNumeric(price, '0,0')}`;
 };
 
 export const isVideo = (mimeType: MimeType) => {

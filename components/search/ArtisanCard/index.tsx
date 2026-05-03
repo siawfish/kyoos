@@ -107,11 +107,8 @@ const ArtisanCard = ({ artisan, containerStyle, estimatedDuration, onPress }: Ar
                                 STARTING FROM
                             </ThemedText>
                             <View style={styles.priceRow}>
-                                <ThemedText style={[styles.currency, { color: textColor }]}>
-                                    {currency}
-                                </ThemedText>
                                 <ThemedText style={[styles.price, { color: textColor }]}>
-                                    {formatPrice(displayPrice)}
+                                    {formatPrice(displayPrice, currency)}
                                 </ThemedText>
                                 {priceSuffix && (
                                     <ThemedText style={[styles.priceSuffix, { color: secondaryColor }]}>
