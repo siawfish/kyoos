@@ -21,9 +21,10 @@ import { OptionIcons, Options as OptionsType } from '@/redux/app/types';
 interface PortfolioProps {
   portfolio: Portfolio;
   clickable?: boolean;
+  hideHeader?: boolean;
 }
 
-const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
+const PortfolioItem = ({ portfolio, clickable = true, hideHeader = false }: PortfolioProps) => {
     const dispatch = useAppDispatch();
     const { share } = useSharing();
     const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -99,34 +100,42 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
 
     const portfolioContent = () => {
         return (
-            <View style={[styles.content, { borderColor }]}>
-                <View style={styles.topContent}>
-                    <User
-                        name={portfolio.createdBy?.name}
-                        avatar={portfolio.createdBy?.avatar}
-                        createdAt={portfolio.createdAt}
-                    />
-                    <Options 
-                        options={options}
-                    />
-                </View>
+            <View style={styles.content}>
+                {!hideHeader && (
+                    <View style={styles.header}>
+                        <User
+                            name={portfolio.createdBy?.name}
+                            avatar={portfolio.createdBy?.avatar}
+                            createdAt={portfolio.createdAt}
+                        />
+                        <Options
+                            options={options}
+                        />
+                    </View>
+                )}
                 {
                     portfolio?.assets?.length > 0 &&
-                    <Thumbnails 
+                    <Thumbnails
                         portfolio={portfolio}
                         autoplayVideos={!clickable}
                     />
                 }
-                <ThemedText 
-                    darkColor={colors.dark.text} 
-                    lightColor={colors.light.text} 
-                    style={[styles.description, { color: textColor }]}
-                >
-                    {portfolio.description}
-                </ThemedText>
-                <Actions 
-                    portfolio={portfolio}
-                />
+                <View style={styles.footer}>
+                    {portfolio.description ? (
+                        <ThemedText
+                            darkColor={colors.dark.text}
+                            lightColor={colors.light.text}
+                            style={[styles.description, { color: textColor }]}
+                        >
+                            {portfolio.description}
+                        </ThemedText>
+                    ) : null}
+                    <View style={[styles.engagement, { borderTopColor: borderColor }]}>
+                        <Actions
+                            portfolio={portfolio}
+                        />
+                    </View>
+                </View>
             </View>
         )
     }
@@ -181,6 +190,7 @@ const PortfolioItem = ({ portfolio, clickable = true }: PortfolioProps) => {
 
 const arePropsEqual = (prev: PortfolioProps, next: PortfolioProps) => {
     if (prev.clickable !== next.clickable) return false;
+    if (prev.hideHeader !== next.hideHeader) return false;
     const a = prev.portfolio;
     const b = next.portfolio;
     if (a === b) return true;
@@ -208,31 +218,32 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         height: "auto",
-        flexDirection: 'row',
         marginHorizontal: 0,
+        paddingBottom: heightPixel(16),
         marginBottom: heightPixel(16),
-        overflow: 'hidden',
-    },
-    leftAccent: {
-        width: widthPixel(4),
+        borderBottomWidth: StyleSheet.hairlineWidth,
     },
     content: {
         flex: 1,
-        padding: widthPixel(16),
         gap: heightPixel(12),
-        borderWidth: 0.5,
     },
-    topContent: {
+    header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
     },
+    footer: {
+        gap: heightPixel(10),
+    },
+    engagement: {
+        paddingTop: heightPixel(10),
+        borderTopWidth: StyleSheet.hairlineWidth,
+    },
     description: {
         fontFamily: 'Regular',
         fontSize: fontPixel(15),
         lineHeight: fontPixel(22),
-        marginTop: heightPixel(4),
     },
     icon: {
         width: widthPixel(60),

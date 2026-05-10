@@ -81,8 +81,6 @@ export default ContactCard
 
 const styles = StyleSheet.create({
     container: {
-        borderWidth: 0.5,
-        borderTopWidth: 0,
         overflow: 'hidden',
     },
     topAccent: {

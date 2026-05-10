@@ -23,8 +23,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import PortfolioSkeleton from "@/components/portfolio/Loaders/PortfolioSkeleton";
 
 type DockRow = { id: "__dock__"; kind: "dock" };
@@ -46,7 +46,6 @@ export default function ArtisanScreen() {
     const isLoading = useAppSelector(selectIsLoading);
     const currency = useAppSelector(selectUserCurrency);
     const dispatch = useAppDispatch();
-    const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
 
     useEffect(() => {
         if (artisanId) {
@@ -56,33 +55,6 @@ export default function ArtisanScreen() {
     }, [artisanId, dispatch]);
 
     const artisan = useMemo(() => allWorkers.find((worker) => worker.id === artisanId), [allWorkers, artisanId]);
-
-    const skillsSummary = useMemo(() => {
-        const skills = artisan?.skills ?? [];
-        if (skills.length === 0) {
-            return "No skills added";
-        }
-
-        const rates = skills
-            .map((skill) => skill.rate ?? 0)
-            .filter((rate) => rate > 0);
-
-        if (rates.length === 0) {
-            return `${skills.length} skills`;
-        }
-
-        const minRate = Math.min(...rates);
-        const maxRate = Math.max(...rates);
-        const rateLabel = minRate === maxRate
-            ? `${formatPrice(minRate, currency)}/hr`
-            : `${formatPrice(minRate, currency)}-${formatPrice(maxRate, currency)}/hr`;
-
-        return `${skills.length} skills • ${rateLabel}`;
-    }, [artisan?.skills, currency]);
-
-    useEffect(() => {
-        setIsSkillsExpanded(false);
-    }, [artisanId]);
 
     // Create skeleton data array when loading
     const skeletonData = useMemo((): SkeletonRow[] => {
@@ -179,65 +151,24 @@ export default function ArtisanScreen() {
                             <View style={styles.sectionLabelContainer}>
                                 <Text style={[styles.sectionLabel, { color: labelColor }]}>SKILLS & RATES</Text>
                             </View>
-                            <View style={[styles.skillsCard, { backgroundColor: cardBg, borderColor }]}>
-                                <Pressable
-                                    style={[styles.skillsSummaryRow, { borderColor }]}
-                                    onPress={() => setIsSkillsExpanded((prev) => !prev)}
-                                >
-                                    <View style={styles.skillsSummaryContent}>
-                                        <ThemedText style={[styles.skillsSummaryTitle, { color: textColor }]}>
-                                            {skillsSummary}
+                            <View style={styles.skillsList}>
+                                {artisan.skills.map((skill, index) => (
+                                    <View
+                                        key={`${skill.skillId ?? skill.id ?? skill.name}-${index}`}
+                                        style={[
+                                            styles.skillRow,
+                                            index !== artisan.skills.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor },
+                                        ]}
+                                    >
+                                        <ThemedText style={[styles.skillName, { color: textColor }]} numberOfLines={1}>
+                                            {skill.name}
                                         </ThemedText>
-                                        <ThemedText style={[styles.skillsSummaryHint, { color: labelColor }]}>
-                                            {isSkillsExpanded ? "Tap to collapse details" : "Tap to expand details"}
+                                        <ThemedText style={[styles.skillRate, { color: textColor }]}>
+                                            {formatPrice(skill.rate ?? 0, currency)}
+                                            <Text style={[styles.rateUnit, { color: labelColor }]}>/hr</Text>
                                         </ThemedText>
                                     </View>
-                                    <Ionicons
-                                        name={isSkillsExpanded ? "chevron-up-outline" : "chevron-down-outline"}
-                                        size={16}
-                                        color={textColor}
-                                    />
-                                </Pressable>
-
-                                {isSkillsExpanded && (
-                                    <>
-                                        <View style={[styles.skillsHeader, { borderColor }]}>
-                                            <ThemedText style={[styles.skillsHeaderText, { color: labelColor }]}>
-                                                SKILL
-                                            </ThemedText>
-                                            <ThemedText style={[styles.skillsHeaderText, { color: labelColor }]}>
-                                                RATE / HOUR
-                                            </ThemedText>
-                                        </View>
-                                        {artisan?.skills?.map((skill, index) => (
-                                            <View
-                                                key={`${skill.skillId ?? skill.id ?? skill.name}-${index}`}
-                                                style={[
-                                                    styles.skillItem,
-                                                    { borderColor },
-                                                    index !== (artisan?.skills?.length ?? 0) - 1 && styles.skillItemBorder,
-                                                ]}
-                                            >
-                                                <View style={styles.skillInfo}>
-                                                    <ThemedText style={[styles.skillName, { color: textColor }]}>
-                                                        {skill.name}
-                                                    </ThemedText>
-                                                    <ThemedText style={[styles.skillLabel, { color: labelColor }]}>
-                                                        SERVICE
-                                                    </ThemedText>
-                                                </View>
-                                                <View style={[styles.rateBadge]}>
-                                                    <ThemedText style={[styles.skillRate, { color: textColor }]}>
-                                                        {formatPrice(skill.rate ?? 0, currency)}
-                                                    </ThemedText>
-                                                    <ThemedText style={[styles.rateUnit, { color: labelColor }]}>
-                                                        /hr
-                                                    </ThemedText>
-                                                </View>
-                                            </View>
-                                        ))}
-                                    </>
-                                )}
+                                ))}
                             </View>
                         </View>
                     )
@@ -267,7 +198,7 @@ export default function ArtisanScreen() {
         if ("isSkeleton" in item && item.isSkeleton) {
             return <PortfolioSkeleton />;
         }
-        return <Portfolio portfolio={item as PortfolioType} />;
+        return <Portfolio portfolio={item as PortfolioType} hideHeader />;
     };
 
     return (
@@ -324,85 +255,29 @@ const styles = StyleSheet.create({
         fontFamily: 'SemiBold',
         letterSpacing: 1.5,
     },
-    skillsCard: {
-        borderWidth: 0.5,
-        borderTopWidth: 0.5,
+    skillsList: {
         width: '100%',
-        overflow: 'hidden',
     },
-    skillsSummaryRow: {
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(12),
-        borderBottomWidth: 0.5,
+    skillRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingVertical: heightPixel(10),
         gap: widthPixel(12),
     },
-    skillsSummaryContent: {
+    skillName: {
         flex: 1,
-        gap: heightPixel(4),
-    },
-    skillsSummaryTitle: {
         fontSize: fontPixel(13),
         fontFamily: 'SemiBold',
         letterSpacing: -0.1,
     },
-    skillsSummaryHint: {
-        fontSize: fontPixel(9),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.05,
-    },
-    skillsHeader: {
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(10),
-        borderBottomWidth: 0.5,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    skillsHeaderText: {
-        fontSize: fontPixel(9),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.1,
-    },
-    skillItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(14),
-        gap: widthPixel(12),
-    },
-    skillItemBorder: {
-        borderBottomWidth: 0.5,
-    },
-    skillInfo: {
-        flex: 1,
-        gap: heightPixel(4),
-    },
-    skillName: {
-        fontSize: fontPixel(15),
-        fontFamily: 'SemiBold',
-        letterSpacing: -0.2,
-    },
-    skillLabel: {
-        fontSize: fontPixel(9),
-        fontFamily: 'SemiBold',
-        letterSpacing: 1.1,
-    },
-    rateBadge: {
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        minWidth: widthPixel(92),
-    },
     skillRate: {
-        fontSize: fontPixel(17),
+        fontSize: fontPixel(13),
         fontFamily: 'Bold',
-        letterSpacing: -0.3,
+        letterSpacing: -0.1,
     },
     rateUnit: {
-        fontSize: fontPixel(10),
+        fontSize: fontPixel(11),
         fontFamily: 'Regular',
     },
     chatButton: {

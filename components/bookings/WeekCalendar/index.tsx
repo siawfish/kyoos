@@ -122,9 +122,7 @@ export default WeekCalendar
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: widthPixel(16),
-    marginBottom: heightPixel(24),
-    borderWidth: 0.5,
-    borderTopWidth: 0,
+    // marginBottom: heightPixel(24),
     overflow: 'hidden',
   },
   topAccent: {
@@ -135,7 +133,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: widthPixel(12),
+    // paddingHorizontal: widthPixel(12),
     paddingTop: heightPixel(16),
     paddingBottom: heightPixel(12),
   },
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
   },
   weekContainer: {
     flexDirection: 'row',
-    paddingHorizontal: widthPixel(8),
+    // paddingHorizontal: widthPixel(8),
     paddingBottom: heightPixel(16),
   },
   dayContainer: {

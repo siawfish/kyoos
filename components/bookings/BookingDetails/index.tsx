@@ -172,8 +172,6 @@ const styles = StyleSheet.create({
         textAlign: 'right',
     },
     infoCard: {
-        borderWidth: 0.5,
-        borderTopWidth: 0,
         overflow: 'hidden',
     },
     infoAccent: {

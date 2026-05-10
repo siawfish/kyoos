@@ -124,8 +124,6 @@ export default CommentItem;
 const styles = StyleSheet.create({
     commentContainer: {
         marginBottom: heightPixel(12),
-        borderWidth: 0.5,
-        borderTopWidth: 0,
         overflow: 'hidden',
     },
     topAccent: {
