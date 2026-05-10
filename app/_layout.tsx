@@ -19,6 +19,26 @@ import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://8da53fd1ad9a44594967ec60f4502e27@o4511162461716480.ingest.us.sentry.io/4511362801729536',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -94,7 +114,7 @@ function ThemedApp() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const [loaded] = useFonts({
     Bold: require('../assets/fonts/maison-neue/fonnts.com-Maison_Neue_Bold.ttf'),
     Medium: require('../assets/fonts/maison-neue/fonnts.com-Maison_Neue_Book.ttf'),
@@ -124,4 +144,4 @@ export default function RootLayout() {
       </PersistGate>
     </Provider>
   );
-}
+});
