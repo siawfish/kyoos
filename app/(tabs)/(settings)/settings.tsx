@@ -184,7 +184,7 @@ const SettingsScreen = () => {
               style={styles.creditLink}
               onPress={() => Linking.openURL('https://www.instagram.com/abenasiepo?igsh=a2JkaW4yYTVhNnp3')}
             >
-              Abenasiepo
+              @abenasiepo
             </Text>
           </ThemedText>
       </ScrollView>
