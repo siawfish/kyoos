@@ -528,8 +528,6 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     flexDirection: 'row',
-    borderWidth: 0.5,
-    borderLeftWidth: 0,
     minWidth: 0,
     overflow: 'hidden',
   },

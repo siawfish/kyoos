@@ -1,7 +1,7 @@
 {
   "name": "kyoos",
   "main": "index.js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -23,6 +23,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@reduxjs/toolkit": "^2.11.2",
+    "@sentry/react-native": "^8.11.0",
     "@shopify/flash-list": "2.0.2",
     "axios": "^1.13.2",
     "buffer": "^6.0.3",

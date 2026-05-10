@@ -10,7 +10,6 @@ import CameraView from '@/components/ui/CameraView';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import { AccentScreenHeader } from '@/components/ui/AccentScreenHeader';
-import BackButton from '@/components/ui/BackButton';
 import { AssetModule } from '@/redux/app/types';
 import { actions } from '@/redux/app/slice';
 import { useDispatch } from 'react-redux';
@@ -333,7 +332,7 @@ const styles = StyleSheet.create({
     },
     bottomSheetContent: {
         flex: 1,
-        paddingTop: heightPixel(20),
+        // paddingTop: heightPixel(20),
         paddingBottom: heightPixel(20),
         overflow: 'hidden',
     },

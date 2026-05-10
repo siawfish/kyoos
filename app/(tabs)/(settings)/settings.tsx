@@ -12,7 +12,7 @@ import { actions } from '@/redux/app/slice';
 import { useAppDispatch } from '@/store/hooks';
 import Constants from 'expo-constants';
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import HeaderNotificationButton from '@/components/ui/AccentScreenHeader/HeaderNotificationButton';
 
 
@@ -173,6 +173,20 @@ const SettingsScreen = () => {
               </ThemedText>
             ) : null
           }
+          <ThemedText
+            type="subtitle"
+            style={styles.creditText}
+            lightColor={colors.light.secondary}
+            darkColor={colors.dark.secondary}
+          >
+            Onboarding illustrations by{' '}
+            <Text
+              style={styles.creditLink}
+              onPress={() => Linking.openURL('https://www.instagram.com/abenasiepo?igsh=a2JkaW4yYTVhNnp3')}
+            >
+              @abenasiepo
+            </Text>
+          </ThemedText>
       </ScrollView>
       <ConfirmActionSheet
         isOpen={isConfirmLogout}
@@ -243,9 +257,19 @@ const styles = StyleSheet.create({
   versionText: {
     textAlign: 'center',
     marginTop: heightPixel(8),
-    marginBottom: heightPixel(32),
+    marginBottom: heightPixel(8),
     fontSize: fontPixel(14),
     fontFamily: 'Regular',
+  },
+  creditText: {
+    textAlign: 'center',
+    marginBottom: heightPixel(32),
+    fontSize: fontPixel(12),
+    fontFamily: 'Regular',
+  },
+  creditLink: {
+    fontFamily: 'SemiBold',
+    textDecorationLine: 'underline',
   },
   dangerIcon: {
     width: widthPixel(60),

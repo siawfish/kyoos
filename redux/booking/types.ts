@@ -1,6 +1,7 @@
 import { BookingStatuses, FormElement, Media } from "@/redux/app/types";
 import { Location } from "../auth/types";
 import { Skill, Summary, Worker } from "../search/types";
+import { Pagination } from "@/services/types";
 
 export interface BookingState {
     bookingId: string;
@@ -58,6 +59,12 @@ export interface BookingReport {
     reason: string;
     comment: string | null;
     createdAt: string;
+}
+
+export interface BookingResponse {
+    items: Booking[];
+    pagination: Pagination;
+    statusCounts: Record<BookingStatuses, number>;
 }
 
 export interface Booking {

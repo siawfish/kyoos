@@ -30,6 +30,11 @@ export const selectUser = createSelector(
     (app) => app?.user,
 );
 
+export const selectUserCurrency = createSelector(
+    [selectUser],
+    (user) => user?.settings?.currency || 'GHS',
+);
+
 export const selectUserLocation = createSelector(
     [selectDomain],
     (app) => app?.location,

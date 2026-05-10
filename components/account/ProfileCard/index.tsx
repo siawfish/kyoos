@@ -81,8 +81,7 @@ function ProfileCard({ worker, containerStyle }: ProfileCardProps) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: cardBg, borderColor }, containerStyle]}>
-            <View style={[styles.topAccent, { backgroundColor: accentColor }]} />
+        <View style={[styles.container, { backgroundColor: cardBg }, containerStyle]}>
             <View style={styles.content}>
                 <View style={styles.profileRow}>
                     <Image
@@ -158,17 +157,9 @@ export default MemoizedProfileCard;
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        borderWidth: 0.5,
-        borderTopWidth: 0,
-        overflow: 'hidden',
-    },
-    topAccent: {
-        height: heightPixel(3),
-        width: '100%',
     },
     content: {
-        paddingHorizontal: widthPixel(16),
-        paddingVertical: heightPixel(16),
+        paddingVertical: heightPixel(8),
         gap: heightPixel(14),
     },
     profileRow: {

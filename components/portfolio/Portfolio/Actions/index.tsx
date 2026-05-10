@@ -26,18 +26,13 @@ const Actions = ({
     const [isLikeCooldown, setIsLikeCooldown] = useState(false);
     const likeCooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const borderTopColor = useThemeColor(
+    const skillBorderColor = useThemeColor(
         {
             light: colors.light.black,
             dark: colors.dark.white,
         },
         "text"
     );
-    const skillBorderColor = borderTopColor;
-    const skillBgColor = useThemeColor({
-        light: colors.light.background,
-        dark: colors.dark.background
-    }, 'background');
     const skillTextColor = useThemeColor({
         light: colors.light.text,
         dark: colors.dark.text
@@ -61,72 +56,70 @@ const Actions = ({
     }, [onComment, portfolio.id]);
 
     return (
-        <>
-            <View style={[styles.container, {borderTopColor}]}>
-                {portfolio.skills.length > 0 && (
-                    <View style={styles.skillsRow}>
+        <View style={styles.container}>
+            {portfolio.skills.length > 0 && (
+                <View style={styles.skillsRow}>
                     {
                         portfolio.skills.slice(0, 3).map((skill, index) => (
-                                <View 
-                                    key={skill?.id || index} 
-                                    style={[styles.skill, { backgroundColor: skillBgColor, borderColor: skillBorderColor }]}
+                            <View
+                                key={skill?.id || index}
+                                style={[styles.skill, { borderColor: skillBorderColor }]}
+                            >
+                                <ThemedText
+                                    type='subtitle'
+                                    style={[styles.skillText, { color: skillTextColor }]}
                                 >
-                                    <ThemedText 
-                                        type='subtitle'
-                                            style={[styles.skillText, { color: skillTextColor }]}
-                                    >
-                                        {skill?.name?.toUpperCase()}
-                                    </ThemedText>
-                                </View>
+                                    {skill?.name?.toUpperCase()}
+                                </ThemedText>
+                            </View>
                         ))
                     }
                     {portfolio.skills.length > 3 && (
-                            <View style={[styles.skill, { backgroundColor: skillBgColor, borderColor: skillBorderColor }]}>
-                            <ThemedText 
+                        <View style={[styles.skill, { borderColor: labelColor }]}>
+                            <ThemedText
                                 type='subtitle'
-                                    style={[styles.skillText, { color: skillTextColor }]}
+                                style={[styles.skillText, { color: labelColor }]}
                             >
                                 +{portfolio.skills.length - 3}
                             </ThemedText>
-                            </View>
+                        </View>
                     )}
                 </View>
-                )}
-                <View style={styles.actionsRow}>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        disabled={isLikeCooldown}
-                        onPress={handleLikePress}
+            )}
+            <View style={styles.actionsRow}>
+                <TouchableOpacity
+                    style={styles.actionBtn}
+                    disabled={isLikeCooldown}
+                    onPress={handleLikePress}
+                >
+                    <Image
+                        source={portfolio.hasLiked ? likeActive : like}
+                        style={styles.actionIcon}
+                    />
+                    <ThemedText
+                        style={[styles.actionCount, { color: portfolio.hasLiked ? skillTextColor : labelColor }]}
+                        type='subtitle'
                     >
-                        <Image
-                            source={portfolio.hasLiked ? likeActive : like}
-                            style={styles.actionIcon}
-                        />
-                        <ThemedText
-                            style={[styles.actionCount, { color: portfolio.hasLiked ? skillTextColor : labelColor }]}
-                            type='subtitle'
-                        >
-                            {portfolio.likes}
-                        </ThemedText>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionBtn}
-                        onPress={handleCommentPress}
+                        {portfolio.likes}
+                    </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={handleCommentPress}
+                >
+                    <Image
+                        source={portfolio.hasCommented ? commentActive : comment}
+                        style={styles.actionIcon}
+                    />
+                    <ThemedText
+                        style={[styles.actionCount, { color: portfolio.hasCommented ? skillTextColor : labelColor }]}
+                        type='subtitle'
                     >
-                        <Image
-                            source={portfolio.hasCommented ? commentActive : comment}
-                            style={styles.actionIcon}
-                        />
-                        <ThemedText
-                            style={[styles.actionCount, { color: portfolio.hasCommented ? skillTextColor : labelColor }]}
-                            type='subtitle'
-                        >
-                            {portfolio.comments}
-                        </ThemedText>
-                    </TouchableOpacity>
-                </View>
+                        {portfolio.comments}
+                    </ThemedText>
+                </TouchableOpacity>
             </View>
-        </>
+        </View>
     )
 }
 
@@ -153,46 +146,49 @@ export default memo(Actions, areActionsPropsEqual);
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        paddingTop: heightPixel(16),
-        marginTop: heightPixel(4),
-        borderTopWidth: 0.5,
-        gap: heightPixel(12),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: widthPixel(12),
     },
     skillsRow: {
+        flex: 1,
         flexDirection: 'row',
-        gap: widthPixel(8),
+        gap: widthPixel(5),
         flexWrap: 'wrap',
         alignItems: 'center',
+        minWidth: 0,
     },
     skill: {
-        paddingHorizontal: widthPixel(12),
-        paddingVertical: heightPixel(6),
+        paddingHorizontal: widthPixel(7),
+        paddingVertical: heightPixel(2),
         borderRadius: 0,
-        borderWidth: 0.5,
+        borderWidth: StyleSheet.hairlineWidth,
     },
     skillText: {
-        fontSize: fontPixel(10),
+        fontSize: fontPixel(9),
         fontFamily: 'SemiBold',
-        letterSpacing: 1,
+        letterSpacing: 1.1,
     },
     actionsRow: {
         flexDirection: 'row',
-        gap: widthPixel(24),
+        gap: widthPixel(16),
         alignItems: 'center',
+        flexShrink: 0,
     },
     actionBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: widthPixel(6),
+        gap: widthPixel(5),
     },
     actionIcon: {
-        width: widthPixel(18),
-        height: widthPixel(18),
+        width: widthPixel(16),
+        height: widthPixel(16),
         objectFit: 'contain',
     },
     actionCount: {
         fontSize: fontPixel(12),
         fontFamily: 'SemiBold',
-        minWidth: widthPixel(16),
+        minWidth: widthPixel(14),
     }
 })

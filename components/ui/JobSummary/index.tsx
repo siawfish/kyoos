@@ -4,7 +4,7 @@ import { fontPixel, heightPixel, widthPixel } from "@/constants/normalize";
 import { colors } from "@/constants/theme/colors";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { selectUser } from "@/redux/app/selector";
+import { selectUser, selectUserCurrency } from "@/redux/app/selector";
 import { selectBookingId } from "@/redux/booking/selector";
 import { Summary, Worker } from "@/redux/search/types";
 import { useAppSelector } from "@/store/hooks";
@@ -25,6 +25,7 @@ export default function JobSummary({ artisan, summary, containerStyle, formatted
     const animatedHeight = useRef(new Animated.Value(0)).current;
     const chevronRotation = useRef(new Animated.Value(0)).current;
     const user = useAppSelector(selectUser);
+    const currency = useAppSelector(selectUserCurrency);
     const workerSkills = artisan?.skills;
     const bookingId = useAppSelector(selectBookingId);
     const rate = useMemo(()=>{
@@ -96,10 +97,10 @@ export default function JobSummary({ artisan, summary, containerStyle, formatted
 
     const evaluatedEstimatedPrice = useMemo(()=>{
         if (bookingId) {
-            return formatPrice(summary?.estimatedPrice);
+            return formatPrice(summary?.estimatedPrice, currency);
         }
-        return formatPrice(estimatedPrice);
-    },[estimatedPrice, summary?.estimatedPrice, bookingId])
+        return formatPrice(estimatedPrice, currency);
+    },[estimatedPrice, summary?.estimatedPrice, bookingId, currency])
 
     return (
         <BlurView 
